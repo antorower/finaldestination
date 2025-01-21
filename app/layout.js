@@ -3,9 +3,9 @@ import Menu from "@/components/Menu";
 import "./globals.css";
 
 const roboto = Roboto({
-  subsets: ["latin", "greek"], 
-  weight: ["400", "700"], 
-  variable: "--font-roboto", 
+  subsets: ["latin", "greek"],
+  weight: ["400", "700"],
+  variable: "--font-roboto",
 });
 
 export const metadata = {
@@ -16,9 +16,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-black`}>
-       <Menu/>
-       {children}
+      <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-black text-white`}>
+        <Menu />
+        {children}
       </body>
     </html>
   );
