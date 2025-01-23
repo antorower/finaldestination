@@ -1,5 +1,5 @@
 import { Roboto } from "next/font/google";
-import Menu from "@/components/Menu";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -16,10 +16,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-black text-white`}>
-        <Menu />
-        {children}
-      </body>
+      <ClerkProvider>
+        <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-black text-white`}>{children}</body>
+      </ClerkProvider>
     </html>
   );
 }

@@ -1,6 +1,8 @@
 import AccountCard from "@/components/AccountCard";
+import Menu from "@/components/Menu";
+import { auth } from "@clerk/nextjs/server";
 
-export default function Home() {
+export default async function Home() {
   let publicNote = "";
   let personalNote = "";
   const dayOfWeek = new Date().getDay();
@@ -32,8 +34,12 @@ export default function Home() {
       publicNote = "";
   }
 
+  const { sessionClaims } = await auth();
+  console.log(sessionClaims);
+
   return (
     <div className="flex flex-col gap-4 p-8">
+      <Menu />
       {publicNote && publicNote !== "" && <div className="text-center p-4 bg-orange-700 w-full rounded-md animate-bounce text-lg font-bold">{publicNote}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         <AccountCard number="15485415" company="FTMO" balance={28500} phase={1} />
