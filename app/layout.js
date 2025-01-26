@@ -1,5 +1,7 @@
 import { Roboto } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -17,7 +19,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <ClerkProvider>
-        <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-black text-white`}>{children}</body>
+        <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-black text-white`}>
+          {children}
+          <ToastContainer position="bottom-right" autoClose={8000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable={false} pauseOnHover theme="dark" />
+        </body>
       </ClerkProvider>
     </html>
   );

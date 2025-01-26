@@ -1,11 +1,37 @@
 import mongoose from "mongoose";
-import { clerkClient } from "@clerk/nextjs/server";
+import Account from "./Account";
 
 const UserSchema = new mongoose.Schema({
   clerkId: {
     type: String,
     required: true,
     unique: true,
+  },
+  firstName: {
+    type: String,
+    trim: true,
+  },
+  lastName: {
+    type: String,
+    trim: true,
+  },
+  telephone: {
+    type: String,
+    trim: true,
+  },
+  bybitEmail: {
+    type: String,
+    trim: true,
+    unique: true,
+  },
+  bybitUid: {
+    type: String,
+    trim: true,
+    unique: true,
+  },
+  accepted: {
+    type: Boolean,
+    default: false,
   },
   leaders: [
     {
@@ -27,14 +53,6 @@ const UserSchema = new mongoose.Schema({
     default: [],
   },
   note: {
-    type: String,
-    trim: true,
-  },
-  firstName: {
-    type: String,
-    trim: true,
-  },
-  lastName: {
     type: String,
     trim: true,
   },

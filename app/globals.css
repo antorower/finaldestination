@@ -2,3 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
+.input {
+  @apply bg-gray-900 border w-full border-gray-700 text-gray-400  placeholder:text-gray-500 px-3 py-2 focus:outline focus:outline-1 focus:outline-gray-600;
+}

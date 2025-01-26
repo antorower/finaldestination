@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import * as Settings from "@/lib/AppData";
 import User from "./User";
+import Company from "./Company";
 
 const AccountSchema = new mongoose.Schema(
   {
@@ -8,7 +8,10 @@ const AccountSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    company: String,
+    company: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+    },
     number: {
       type: String,
       trim: true,
@@ -17,15 +20,7 @@ const AccountSchema = new mongoose.Schema(
     },
     capital: Number,
     phase: Number,
-    balance: {
-      type: Number,
-      validate: {
-        validator: function (value) {
-          return Number.isInteger(value) && value >= 80000 && value <= 250000;
-        },
-        message: "{VALUE} is not a valid integer or not in the range of 80000 to 250000",
-      },
-    },
+    balance: Number,
     activities: [
       {
         title: String,
@@ -49,85 +44,47 @@ const AccountSchema = new mongoose.Schema(
       day: Number,
       month: Number,
     },
-    eventsTimestamp: {
-      targetReachedDate: Date,
-      lostDate: Date,
-      purchaseDate: Date,
-      firstTradeDate: Date,
-      upgradedDate: Date,
-      payoutRequestDoneDate: Date,
-      profitsSendedDate: Date,
+    targetReachedDate: Date,
+    lostDate: Date,
+    purchaseDate: Date,
+    firstTradeDate: Date,
+    upgradedDate: Date,
+    payoutRequestDoneDate: Date,
+    profitsSendedDate: Date,
+    timesPaid: {
+      type: Number,
+      default: 0,
     },
-    metadata: {
-      timesPaid: {
-        type: Number,
-        default: 0,
-      },
-      balanceCategory: Number,
-      relatedAccounts: {
-        previousAccount: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Account",
-        },
-        nextAccount: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Account",
-        },
-      },
+    profitPaid: {
+      type: Number,
+      default: 0,
     },
-    investment: Boolean,
   },
   { timestamps: true }
 );
 
 AccountSchema.pre("save", async function (next) {
   if (this.isModified("balance") || this.isNew) {
-    const company = Settings.GetCompany(this.company);
-    const phase = company.phases[this.phase];
+    const company = await Company.findById(this.company).lean(); // Παίρνει την εταιρεία
+    const phase = company.phases[this.phase - 1];
 
     const targetBalance = (1 + phase.target) * this.capital;
-    const drawdownBalance = (1 - phase.maxDrawdown) * this.capital;
-    const targetDollars = phase.target * this.capital;
-    const drawdownDollars = phase.maxDrawdown * this.capital;
-
-    // Κάθε φορά που αλλάζει το balance ενημερώνεται η κατηγορία του account
-    const step = (targetDollars + drawdownDollars) / 10;
-    const categories = [];
-    for (let i = 1; i <= 10; i++) {
-      categories.push(drawdownBalance + i * step);
-    }
-    for (let i = 0; i < categories.length - 1; i++) {
-      if (this.balance > categories[i] && this.balance <= categories[i + 1]) {
-        this.metadata.balanceCategory = i + 1;
-        break;
-      }
-    }
+    const drawdownBalance = (1 - phase.totalDrawdown) * this.capital;
 
     // Κάθε φορά που αλλάζει το balance ελέγχεται αν το account πρέπει να αλλάξει status
-    if (this.phaseWeight < 3) {
+    if (this.phase + 1 < company.phases.length) {
       if (this.balance >= targetBalance) {
         this.targetReached();
       }
     } else {
-      if (this.company !== "The5ers") {
-        if (this.balance >= targetBalance - targetBalance * 0.008) {
-          this.targetReached();
-        }
-      } else {
-        if (this.balance >= targetBalance) {
-          this.targetReached();
-        }
+      if (this.balance >= targetBalance - targetBalance * 0.005) {
+        this.targetReached();
       }
     }
 
     if (this.balance <= drawdownBalance) {
       this.accountLost();
     }
-  }
-
-  if (this.isModified("phase") || this.isNew) {
-    const company = Settings.GetCompany(this.company);
-    this.phaseWeight = company.phases[this.phase].weight;
   }
   next();
 });
