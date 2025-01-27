@@ -1,16 +1,40 @@
 import Link from "next/link";
 import Image from "next/image";
+import NewAccount from "@/components/NewAccount";
+import Account from "@/models/Account";
+import dbConnect from "@/dbConnect";
+import { revalidatePath } from "next/cache";
 
-const AccountCard = ({ number, company, balance, phase, note }) => {
+const SaveNewAccount = async ({ number, id }) => {
+  "use server";
+  try {
+    await dbConnect();
+    revalidatePath("/", "layout");
+    const newAccount = await Account.findById(id);
+    if (!newAccount) return false;
+    newAccount.number = number;
+    newAccount.status = "Live";
+    newAccount.activities.push({ title: "Το account αγοράστηκε", description: "no description" });
+    newAccount.purchaseDate = new Date();
+    newAccount.note = "";
+    await newAccount.save();
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+const AccountCard = ({ id, number, company, balance, phase, note, status, link }) => {
   return (
     <div className={`border border-gray-700 p-4 rounded-md flex flex-col gap-4 bg-gray-950 hover:scale-[102%] transition-transform duration-300`}>
       <div className="grid grid-cols-12">
         <div className="col-span-10 flex flex-col gap-2">
-          <div className="flex gap-2 items-center">
-            {/*<div>
-              <Image src="/warning.svg" width={16} height={16} alt="" /> #FixCode (εδω πρεπει να δειχνει το λογοτυπο της καθε εταιριας)
-            </div>*/}
-            <div className="">{company}</div>
+          <div className="flex justify-between items-center">
+            <div>{company}</div>
+            <a href={link} target="_blank">
+              <Image src="/link.svg" alt="" width={16} height={16} />
+            </a>
           </div>
           <div className="text-xl">{number}</div>
           <div>
@@ -29,16 +53,20 @@ const AccountCard = ({ number, company, balance, phase, note }) => {
         </div>
       </div>
       <div className={`text-sm flex items-center justify-start gap-4 border border-gray-700 px-4 py-2 rounded ${note && note !== "" ? "animate-bounce" : "opacity-25"}`}>
-        {note && note !== "" && (
-          <div className="">
-            <Image src="/warning.svg" width={16} height={16} alt="" />
-          </div>
-        )}
-        <div>{note && note !== "" ? note : "-"}</div>
+        <div className="">
+          <Image src="/warning.svg" width={16} height={16} alt="" />
+        </div>
+        <div>{note}</div>
       </div>
-      <Link className="flex justify-center p-2 bg-gray-950 border border-gray-700 rounded" href="/">
-        Dashboard
-      </Link>
+      {/* Διάφορα status */}
+      {status === "WaitingPurchase" && (
+        <>
+          <div className="text-sm text-gray-500">
+            Αφού αγοράσεις ένα account των ${balance.toLocaleString("en-US")} από {company} γράψε τον αριθμό του ακριβώς από κάτω και πάτα το κουμπί Αποθήκευση
+          </div>
+          <NewAccount id={id} SaveNewAccount={SaveNewAccount} />
+        </>
+      )}
     </div>
   );
 };

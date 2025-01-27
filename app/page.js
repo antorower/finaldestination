@@ -46,9 +46,15 @@ export const GetUser = async () => {
   try {
     await dbConnect();
     const { sessionClaims } = await auth();
-    return await User.findOne({ clerkId: sessionClaims.userId });
+    return await User.findOne({ clerkId: sessionClaims.userId }).populate({
+      path: "accounts", // Populate το πεδίο "accounts"
+      populate: {
+        path: "company", // Nested populate το πεδίο "company" από το "accounts"
+      },
+    });
   } catch (error) {
-    return { error: true, message: error.message };
+    console.log(error);
+    return false;
   }
 };
 
@@ -71,6 +77,7 @@ export default async function Home() {
   }
   //#endregion
 
+  console.log(user.accounts.length);
   let publicNote = "";
   const dayOfWeek = new Date().getDay();
   // #UpdateData Notes
@@ -105,20 +112,12 @@ export default async function Home() {
       <Menu activeMenu="Profile" />
       {publicNote && publicNote !== "" && <div className="text-center p-4 bg-orange-700 w-full rounded-md text-lg font-bold">{publicNote}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        <AccountCard number="15485415" company="FTMO" balance={28500} phase={1} />
-        <AccountCard number="15485415" company="Funded Next" balance={28500} phase={2} />
-        <AccountCard number="15485415" company="FTMO" balance={28500} phase={3} />
-        <AccountCard number="15485415" company="FTMO" balance={28500} phase={1} note="Βάλε 0.01" />
-        <AccountCard number="15485415" company="FTMO" balance={28500} phase={1} />
-        <AccountCard number="15485415" company="FTMO" balance={28500} phase={1} note="Βάλε 0.01" />
-        <AccountCard number="15485415" company="FTMO" balance={28500} phase={1} />
-        <AccountCard number="15485415" company="FTMO" balance={28500} phase={1} />
+        {user.accounts &&
+          user.accounts.length > 0 &&
+          user.accounts.map((account) => {
+            return <AccountCard key={`account-${account._id.toString()}`} id={account._id.toString()} status={account.status} number={account.number || "-"} company={account.company.name} balance={account.balance} phase={account.phase} note={account.note || "-"} link={account.company.link} />;
+          })}
       </div>
-      {sessionClaims?.metadata?.owner && (
-        <div className="fixed right-8 bottom-8">
-          <AddAccountLink userId="12345" />
-        </div>
-      )}
     </div>
   );
 }
