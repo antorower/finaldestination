@@ -26,7 +26,7 @@ const NewAccount = ({ id, SaveNewAccount }) => {
     <div className="border border-gray-700 p-4 flex flex-col gap-4 rounded">
       <input type="text" required value={number} onChange={(e) => setNumber(e.target.value)} placeholder="Account Number" className="input" />
       <button className="bg-blue-500 p-4 rounded font-black w-full" onClick={SaveAccount}>
-        Αποθήκευση
+        Save
       </button>
     </div>
   );

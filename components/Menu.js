@@ -29,6 +29,9 @@ const Menu = ({ activeMenu }) => {
       <Link href="/companies" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Companies" && "text-orange-400"}`}>
         Companies
       </Link>
+      <Link href="/settings" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Settings" && "text-orange-400"}`}>
+        Settings
+      </Link>
     </div>
   );
 };

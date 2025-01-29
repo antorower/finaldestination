@@ -115,7 +115,7 @@ export default async function Home() {
         {user.accounts &&
           user.accounts.length > 0 &&
           user.accounts.map((account) => {
-            return <AccountCard key={`account-${account._id.toString()}`} id={account._id.toString()} status={account.status} number={account.number || "-"} company={account.company.name} balance={account.balance} phase={account.phase} note={account.note || "-"} link={account.company.link} />;
+            return <AccountCard key={`account-${account._id.toString()}`} id={account._id.toString()} status={account.status} number={account.number || "-"} company={account.company.name} balance={account.balance} phase={account.phase} note={account.note || "-"} link={account.company.link} instructions={account.company.phases[account.phase - 1].instructions} userId={account.user._id.toString()} companyId={account.company._id.toString()} capital={account.capital} />;
           })}
       </div>
     </div>
