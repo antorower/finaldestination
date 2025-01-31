@@ -4,6 +4,7 @@ import Settings from "@/models/Settings";
 import DayStringDate from "@/components/DayStringDate";
 import Link from "next/link";
 import Pair from "@/models/Pair";
+import DayNote from "@/components/DayNote";
 
 const GetSettings = async () => {
   "use server";
@@ -45,16 +46,25 @@ const UpdateStringDate = async ({ day, stringDate }) => {
     return false;
   }
 };
-const UpdateMode = ({ day, mode }) => {};
-const UpdateMaxHour = ({ day, maxHour }) => {};
-const UpdateMinHour = ({ day, minHour }) => {};
-const AddPair = ({ day, pairId }) => {};
-const RemovePair = ({ day, pairId }) => {};
+
+const UpdateDayNote = async ({ day, note }) => {
+  "use server";
+  try {
+    dbConnect();
+    const settings = await GetSettings();
+    settings[day].note = note;
+    await settings.save();
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
 
 const Schedule = async ({ searchParams }) => {
   const params = await searchParams;
 
-  const settings = await GetSettings();
+  let settings = await GetSettings();
   const pairs = await GetPairs();
 
   const pair = params.pair;
@@ -62,6 +72,17 @@ const Schedule = async ({ searchParams }) => {
   const day = params.day;
   const minHour = params.minhour;
   const maxHour = params.maxhour;
+  const mode = params.mode;
+
+  if (mode && day) {
+    try {
+      dbConnect();
+      settings[day].mode = mode;
+      await settings.save();
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   if (minHour) {
     try {
@@ -85,13 +106,18 @@ const Schedule = async ({ searchParams }) => {
 
   if (pair && action && day) {
     if (action === "add") {
-      try {
-        dbConnect();
-        settings[day].pairs.push(pair);
-        await settings.save();
-        redirect("/settings/schedule");
-      } catch (error) {
-        console.log(error);
+      if (settings[day].pairs.some((existingPair) => existingPair._id.toString() === pair)) {
+        console.log("Υπάρχει ήδη");
+      } else {
+        try {
+          dbConnect();
+          settings[day].pairs.push(pair);
+          await settings.save();
+
+          settings = await GetSettings();
+        } catch (error) {
+          console.log(error);
+        }
       }
     }
     if (action === "remove") {
@@ -99,72 +125,69 @@ const Schedule = async ({ searchParams }) => {
         dbConnect();
         settings[day].pairs.pull(pair);
         await settings.save();
-        redirect("/settings/schedule");
       } catch (error) {
         console.log(error);
       }
     }
   }
-
+  const days = ["monday", "tuesday", "wednesday", "thursday", "friday"];
   return (
     <div className="flex flex-col gap-4 p-8">
       <Menu activeMenu="Settings" />
-      <div className="flex gap-4">
-        <div className="flex flex-col gap-4 border border-gray-700 rounded px-4 py-2">
-          <div className="m-auto">Monday</div>
-          <DayStringDate day="monday" UpdateStringDate={UpdateStringDate} />
-          <div className="m-auto">{settings.monday.stringDate}</div>
-          <div className="flex flex-col items-center justify-center gap-4">
-            <div>Min Hour</div>
-            <div className="flex gap-4">
-              <Link href={`/settings/schedule?day=monday&minhour=4`} className={settings.monday.hours.min === 4 ? "text-orange-500 font-bold" : " text-white"}>
-                4
-              </Link>
-              <Link href={`/settings/schedule?day=monday&minhour=5`} className={settings.monday.hours.min === 5 ? "text-orange-500 font-bold" : " text-white"}>
-                5
-              </Link>
-              <Link href={`/settings/schedule?day=monday&minhour=6`} className={settings.monday.hours.min === 6 ? "text-orange-500 font-bold" : " text-white"}>
-                6
-              </Link>
-            </div>
-            <div>Max Hour</div>
-            <div className="flex gap-4">
-              <Link href={`/settings/schedule?day=monday&maxhour=9`} className={settings.monday.hours.max === 9 ? "text-orange-500 font-bold" : " text-white"}>
-                9
-              </Link>
-              <Link href={`/settings/schedule?day=monday&maxhour=10`} className={settings.monday.hours.max === 10 ? "text-orange-500 font-bold" : " text-white"}>
-                10
-              </Link>
-              <Link href={`/settings/schedule?day=monday&maxhour=11`} className={settings.monday.hours.max === 11 ? "text-orange-500 font-bold" : " text-white"}>
-                11
-              </Link>
-              <Link href={`/settings/schedule?day=monday&maxhour=12`} className={settings.monday.hours.max === 12 ? "text-orange-500 font-bold" : " text-white"}>
-                12
-              </Link>
-            </div>
-            <div className="border border-gray-700 rounded p-4 w-full">
-              {settings.monday.pairs &&
-                settings.monday.pairs.length > 0 &&
-                settings.monday.pairs.map((pair, index) => {
-                  console.log("Pair", pair._id);
-                  return <div key={`monday-pair-${pair._id.toString()}-${index}`}>{pair.name}</div>;
-                })}
-            </div>
-            <div>
-              {pairs &&
-                pairs.length > 0 &&
-                pairs.map((pair) => {
-                  return (
-                    <div key={`pair-${pair._id.toString()}`} className="flex gap-4 border border-gray-700 px-2 py-1 text-sm">
-                      <div>{pair.name}</div>
-                      <Link href={`/settings/schedule?action=add&day=monday&pair=${pair._id.toString()}`}>+</Link>
-                      <Link href={`/settings/schedule?action=remove&day=monday&pair=${pair._id.toString()}`}>-</Link>
-                    </div>
-                  );
-                })}
+      <div className="flex gap-4 flex-wrap justify-center">
+        {days.map((day) => (
+          <div key={day} className="flex flex-col gap-4 border border-gray-700 rounded px-4 py-2 w-[300px]">
+            <div className="m-auto capitalize">{day}</div>
+            <DayStringDate day={day} UpdateStringDate={UpdateStringDate} />
+            <DayNote day={day} UpdateDayNote={UpdateDayNote} />
+            <div className="m-auto">{settings[day].stringDate}</div>
+            <div className="text-sm text-gray-400 m-auto">{settings[day].note}</div>
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="text-center text-gray-600">Min Hour</div>
+              <div className="flex gap-4">
+                {[4, 5, 6].map((hour) => (
+                  <Link key={`minhour-${day}-${hour}`} href={`/settings/schedule?day=${day}&minhour=${hour}`} className={settings[day].hours.min === hour ? "text-orange-500 font-bold" : " text-white"}>
+                    {hour}
+                  </Link>
+                ))}
+              </div>
+              <div className="text-center text-gray-600">Max Hour</div>
+              <div className="flex gap-4">
+                {[9, 10, 11, 12].map((hour) => (
+                  <Link key={`maxhour-${day}-${hour}`} href={`/settings/schedule?day=${day}&maxhour=${hour}`} className={settings[day].hours.max === hour ? "text-orange-500 font-bold" : " text-white"}>
+                    {hour}
+                  </Link>
+                ))}
+              </div>
+              <div className="m-auto">
+                <div className="text-center text-gray-600">Mode</div>
+                <div className="flex gap-4">
+                  <Link href={`/settings/schedule?mode=fast&day=${day}`}>Fast</Link>
+                  <Link href={`/settings/schedule?mode=slow&day=${day}`}>Slow</Link>
+                </div>
+              </div>
+              <div className="border border-gray-700 rounded p-4 w-full flex flex-wrap gap-4">
+                {settings[day].pairs &&
+                  settings[day].pairs.length > 0 &&
+                  settings[day].pairs.map((pair, index) => (
+                    <Link href={`/settings/schedule?action=remove&day=${day}&pair=${pair._id.toString()}`} key={`${day}-pair-${pair._id.toString()}-${index}`}>
+                      {pair.name}
+                    </Link>
+                  ))}
+              </div>
+              <div className="flex gap-4">
+                {pairs &&
+                  pairs
+                    .filter((pair) => !settings[day].pairs.some((p) => p._id.toString() === pair._id.toString()))
+                    .map((pair) => (
+                      <Link href={`/settings/schedule?action=add&day=${day}&pair=${pair._id.toString()}`} key={`pair-${pair._id.toString()}-${day}`} className="flex gap-4 border border-gray-700 px-2 py-1 text-sm">
+                        {pair.name}
+                      </Link>
+                    ))}
+              </div>
             </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );

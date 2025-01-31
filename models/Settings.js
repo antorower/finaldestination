@@ -5,7 +5,10 @@ const SettingsSchema = new mongoose.Schema(
   {
     monday: {
       stringDate: String,
-      mode: String,
+      mode: {
+        type: String,
+        enum: ["fast", "slow"],
+      },
       pairs: [
         {
           type: mongoose.Schema.Types.ObjectId,
@@ -16,6 +19,7 @@ const SettingsSchema = new mongoose.Schema(
         min: Number,
         max: Number,
       },
+      note: String,
     },
     tuesday: {
       stringDate: String,
