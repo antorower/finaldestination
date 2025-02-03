@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  leaders: [
+  team: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -87,6 +87,22 @@ const UserSchema = new mongoose.Schema({
   lastTradeOpened: Date,
 });
 
+UserSchema.methods.addBeneficiary = async function (beneficiaryId, percentage) {
+  const existingBeneficiary = this.beneficiaries.find((beneficiary) => beneficiary.user.equals(beneficiaryId));
+  if (existingBeneficiary) {
+    existingBeneficiary.percentage = percentage;
+  } else {
+    this.beneficiaries.push({ user: beneficiaryId, percentage });
+  }
+  await this.save();
+  return;
+};
+UserSchema.methods.removeBeneficiary = async function (beneficiaryId) {
+  this.beneficiaries.pull({ user: beneficiaryId });
+  await this.save();
+  return;
+};
+
 UserSchema.methods.addAccount = async function (accountId) {
   if (this.accounts.includes(accountId)) return;
   this.accounts.push(accountId);
@@ -120,22 +136,6 @@ UserSchema.methods.addRelatedUser = async function (userId) {
 };
 UserSchema.methods.removeRelatedUser = async function () {
   this.relatedUser = null;
-  await this.save();
-  return;
-};
-
-UserSchema.methods.addBeneficiary = async function (beneficiaryId, percentage) {
-  const existingBeneficiary = this.beneficiaries.find((beneficiary) => beneficiary.user.equals(beneficiaryId));
-  if (existingBeneficiary) {
-    existingBeneficiary.percentage = percentage;
-  } else {
-    this.beneficiaries.push({ user: beneficiaryId, percentage });
-  }
-  await this.save();
-  return;
-};
-UserSchema.methods.removeBeneficiary = async function (beneficiaryId) {
-  this.beneficiaries.pull({ user: beneficiaryId });
   await this.save();
   return;
 };
