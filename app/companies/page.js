@@ -31,7 +31,6 @@ const Companies = async () => {
     redirect("/");
   }
   const companies = await GetCompanies();
-  console.log(companies);
 
   return (
     <div className="flex flex-col gap-4 p-8">

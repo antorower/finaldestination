@@ -10,7 +10,7 @@ const GetUser = async (id) => {
   "use server";
   try {
     await dbConnect();
-    return await User.findById(id)
+    const user = await User.findById(id)
       .populate({
         path: "accounts", // Populate το πεδίο "accounts"
         populate: {
@@ -18,9 +18,9 @@ const GetUser = async (id) => {
         },
       })
       .populate("team") // Populate το πεδίο "team" απευθείας
-      .populate({
-        path: "beneficiaries.user", // Populate το πεδίο "user" μέσα στο beneficiaries array
-      });
+      .populate("beneficiaries.user");
+    console.log("USERRR", user);
+    return user;
   } catch (error) {
     console.log(error);
     return false;
@@ -44,9 +44,23 @@ const Trader = async ({ searchParams }) => {
   const action = params.action; // add, remove
   const pickedUser = params.pickeduser; // mongo ID of the user
   const placement = params.placement; // beneficiary, team
-  const percentage = Number(params.percentage);
 
-  if (action && pickedUser && placement) {
+  const profileUser = await GetUser(params.user);
+  if (!profileUser) return <div>No user found</div>;
+
+  const { sessionClaims } = await auth();
+
+  const owner = sessionClaims.metadata.owner;
+  const trader = !params.user === sessionClaims.metadata.mongoId;
+  let leader = false;
+  if (!owner && !trader) {
+    const exists = profileUser.team.some((user) => user._id.toString() === sessionClaims.metadata.mongoId);
+    if (exists) leader = true;
+  }
+
+  if (!owner && !trader && !leader) return <div className="m-auto"> You don't have the permissions to see this profile </div>;
+
+  if (action && pickedUser && placement && owner) {
     if (placement === "team") {
       if (action === "add") {
         try {
@@ -76,7 +90,7 @@ const Trader = async ({ searchParams }) => {
         try {
           dbConnect();
           const mainUser = await User.findById(params.user);
-          mainUser.beneficiaries.push(pickedUser);
+          mainUser.beneficiaries.push({ user: pickedUser });
           await mainUser.save();
         } catch (error) {
           console.log(error);
@@ -97,20 +111,12 @@ const Trader = async ({ searchParams }) => {
     }
   }
 
-  const profileUser = await GetUser(params.user);
-  if (!profileUser) return <div>No user found</div>;
-
-  const { sessionClaims } = await auth();
-  if (!sessionClaims.metadata.owner && !params.user === user._id.toString()) return <div>You don't have permissions to see this profile</div>;
-
   const users = await GetAllUsers();
-
-  console.log(profileUser.beneficiaries);
 
   return (
     <div className="flex flex-col gap-4">
       <Menu activeMenu="Traders" />
-      <div className="text-center text-3xl border-b-2 border-white pb-4">
+      <div className="text-center text-3xl border-b border-gray-700 pb-4">
         {profileUser.firstName} {profileUser.lastName}
       </div>
       <div className="m-auto">Last Trade: {profileUser.lastTrade || "No date"}</div>
@@ -126,64 +132,70 @@ const Trader = async ({ searchParams }) => {
           })}
       </div>
 
-      <div className="border-y border-gray-700 p-4 flex flex-col gap-4">
-        <div className="flex justify-center">Ομάδα</div>
-        <div className="flex justify-center">
-          {profileUser.team &&
-            profileUser.team.length > 0 &&
-            profileUser.team.map((user) => {
-              return (
-                <Link href={`/user?user=${profileUser._id.toString()}&action=remove&pickeduser=${user._id.toString()}&placement=team`} key={`omada-uparxontes-${user._id.toString()}`} className="border border-gray-700 mx-2 px-4 py-2">
-                  {user.firstName} {user.lastName}
-                </Link>
-              );
-            })}
-        </div>
-        <hr />
-        <div className="flex justify-center flex-wrap">
-          {users &&
-            users.length > 0 &&
-            users
-              .filter((user) => !profileUser.team.some((teamMember) => teamMember._id.toString() === user._id.toString())) // Φιλτράρει όσους είναι ήδη στην ομάδα
-              .map((user) => {
-                return (
-                  <Link href={`/user?user=${profileUser._id.toString()}&action=add&pickeduser=${user._id.toString()}&placement=team`} className="border border-gray-700 mx-2 px-4 py-2" key={`omada-oloi-${user._id.toString()}`}>
-                    {user.firstName} {user.lastName}
-                  </Link>
-                );
-              })}
-        </div>
+      <div className="p-8 flex flex-col gap-4">
+        {(owner || leader) && (
+          <div className="border border-gray-300 p-4 flex flex-col gap-4 rounded">
+            <div className="flex justify-center">Ομάδα</div>
+            <div className="flex justify-center">
+              {profileUser.team &&
+                profileUser.team.length > 0 &&
+                profileUser.team.map((user) => {
+                  return (
+                    <Link href={`/user?user=${profileUser._id.toString()}&action=remove&pickeduser=${user._id.toString()}&placement=team`} key={`omada-uparxontes-${user._id.toString()}`} className="border border-gray-700 mx-2 px-4 py-2">
+                      {user.firstName} {user.lastName}
+                    </Link>
+                  );
+                })}
+            </div>
+            {owner && (
+              <div className="flex justify-center flex-wrap">
+                {users &&
+                  users.length > 0 &&
+                  users
+                    .filter((user) => !profileUser.team.some((teamMember) => teamMember._id.toString() === user._id.toString())) // Φιλτράρει όσους είναι ήδη στην ομάδα
+                    .map((user) => {
+                      return (
+                        <Link href={`/user?user=${profileUser._id.toString()}&action=add&pickeduser=${user._id.toString()}&placement=team`} className="border border-gray-700 mx-2 px-4 py-2" key={`omada-oloi-${user._id.toString()}`}>
+                          {user.firstName} {user.lastName}
+                        </Link>
+                      );
+                    })}
+              </div>
+            )}
+          </div>
+        )}
+        {(owner || leader) && (
+          <div className="border border-gray-300 p-4 flex flex-col gap-4 ">
+            <div className="flex justify-center">Δικαιούχοι</div>
+            <div className="flex justify-center">
+              {profileUser.beneficiaries &&
+                profileUser.beneficiaries.length > 0 &&
+                profileUser.beneficiaries.map((user) => {
+                  return (
+                    <Link href={`/user?user=${profileUser._id.toString()}&action=remove&pickeduser=${user._id.toString()}&placement=beneficiaries`} key={`dikaiouxoi-uparxontes-${user._id.toString()}`} className="border border-gray-700 mx-2 px-4 py-2">
+                      {user.user.firstName} {user.user.lastName} - {user.percentage}%
+                    </Link>
+                  );
+                })}
+            </div>
+            {owner && (
+              <div className="flex justify-center flex-wrap">
+                {users &&
+                  users.length > 0 &&
+                  users
+                    .filter((user) => !profileUser.beneficiaries.some((beneficiaryMember) => beneficiaryMember._id.toString() === user._id.toString())) // Φιλτράρει όσους είναι ήδη στην ομάδα
+                    .map((user) => {
+                      return (
+                        <Link href={`/user?user=${profileUser._id.toString()}&action=add&pickeduser=${user._id.toString()}&placement=beneficiaries`} className="border border-gray-700 mx-2 px-4 py-2" key={`dikaiouxoi-oloi-${user._id.toString()}`}>
+                          {user.firstName} {user.lastName}
+                        </Link>
+                      );
+                    })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
-
-      <div className="border-y border-gray-700 p-4 flex flex-col gap-4">
-        <div className="flex justify-center">Δικαιούχοι</div>
-        <div className="flex justify-center">
-          {profileUser.beneficiaries &&
-            profileUser.beneficiaries.length > 0 &&
-            profileUser.beneficiaries.map((user) => {
-              return (
-                <Link href={`/user?user=${profileUser._id.toString()}&action=remove&pickeduser=${user._id.toString()}&placement=beneficiaries`} key={`dikaiouxoi-uparxontes-${user._id.toString()}`} className="border border-gray-700 mx-2 px-4 py-2">
-                  {user.firstName} {user.lastName}
-                </Link>
-              );
-            })}
-        </div>
-        <hr />
-        <div className="flex justify-center flex-wrap">
-          {users &&
-            users.length > 0 &&
-            users
-              .filter((user) => !profileUser.beneficiaries.some((beneficiaryMember) => beneficiaryMember._id.toString() === user._id.toString())) // Φιλτράρει όσους είναι ήδη στην ομάδα
-              .map((user) => {
-                return (
-                  <Link href={`/user?user=${profileUser._id.toString()}&action=add&pickeduser=${user._id.toString()}&placement=beneficiaries`} className="border border-gray-700 mx-2 px-4 py-2" key={`dikaiouxoi-oloi-${user._id.toString()}`}>
-                    {user.firstName} {user.lastName}
-                  </Link>
-                );
-              })}
-        </div>
-      </div>
-
       {sessionClaims?.metadata?.owner && (
         <div className="fixed right-8 bottom-8">
           <AddAccountLink userId={profileUser._id.toString()} />

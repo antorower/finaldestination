@@ -12,6 +12,7 @@ const PairSchema = new mongoose.Schema(
       fast: Number,
       slow: Number,
     },
+    priority: Number,
   },
   { timestamps: true }
 );

@@ -32,6 +32,10 @@ const AccountSchema = new mongoose.Schema(
       type: String,
       enum: ["WaitingPurchase", "Live", "NeedUpgrade", "UpgradeDone", "WaitingPayout", "PayoutRequestDone", "MoneySended", "Lost", "Review"],
     },
+    isOnBoarding: {
+      type: Boolean,
+      default: false,
+    },
     note: {
       type: String,
       trim: true,
@@ -55,9 +59,17 @@ const AccountSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    profitPaid: {
+    grossProfit: {
       type: Number,
       default: 0,
+    },
+    netProfit: {
+      type: Number,
+      default: 0,
+    },
+    needBalanceUpdate: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

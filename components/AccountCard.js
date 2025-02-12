@@ -6,6 +6,7 @@ import Account from "@/models/Account";
 import User from "@/models/User";
 import dbConnect from "@/dbConnect";
 import { revalidatePath } from "next/cache";
+import ChangeAccountStatus from "./ChangeAccountStatus";
 
 const SaveNewAccount = async ({ number, id }) => {
   "use server";
@@ -31,6 +32,7 @@ const UpgradeAccount = async ({ number, passedAccountNumber, passedAccountId, ph
   "use server";
   try {
     dbConnect();
+    revalidatePath("/", "layout");
     const newAccount = new Account({
       user: user,
       company: company,
@@ -60,29 +62,40 @@ const UpgradeAccount = async ({ number, passedAccountNumber, passedAccountId, ph
   }
 };
 
-const AccountCard = ({ id, number, company, balance, phase, note, status, link, instructions, userId, companyId, capital }) => {
-  console.log("ID:", id);
-  console.log("Number:", number);
-  console.log("Company:", company);
-  console.log("Balance:", balance);
-  console.log("Phase:", phase);
-  console.log("Note:", note);
-  console.log("Status:", status);
-  console.log("Link:", link);
-  console.log("Instructions:", instructions);
-  console.log("User ID:", userId);
-  console.log("Company ID:", companyId);
-  console.log("Capital:", capital);
+const ChangeStatus = async ({ accountId }) => {
+  "use server";
+  revalidatePath("/", "layout");
+  try {
+    const account = await Account.findById(accountId);
+    if (!account) return false;
 
+    if (account.status === "Live") {
+      account.isOnBoarding = !account.isOnBoarding;
+    }
+
+    await account.save();
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+const AccountCard = ({ id, number, company, balance, phase, note, status, link, instructions, userId, companyId, capital, firstName, lastName, isOnBoarding }) => {
   return (
-    <div className={`border border-gray-700 p-4 rounded-md flex flex-col gap-4 bg-gray-950 hover:scale-[102%] transition-transform duration-300`}>
+    <div className={`border ${isOnBoarding ? "border-red-700" : "border-gray-700"} p-4 rounded-md flex flex-col gap-4 bg-gray-950 hover:scale-[102%] transition-transform duration-300`}>
       <div className="grid grid-cols-12">
         <div className="col-span-10 flex flex-col gap-2">
           <div className="flex justify-between items-center">
-            <div>{company}</div>
+            <div className="flex gap-2 items-center">
+              <ChangeAccountStatus ChangeStatus={ChangeStatus} accountId={id} isOnBoarding={isOnBoarding} />
+              <div>{company}</div>
+            </div>
             <a href={link} target="_blank">
               <Image src="/link.svg" alt="" width={16} height={16} />
             </a>
+          </div>
+          <div className="text-sm text-gray-500">
+            {firstName} {lastName}
           </div>
           <div className="text-xl">{number}</div>
           <div>
@@ -100,6 +113,7 @@ const AccountCard = ({ id, number, company, balance, phase, note, status, link, 
           <div className={`${phase === 1 && "bg-green-400"} ${phase === 2 && "bg-blue-400"} ${phase === 3 && "bg-orange-400"} rounded-sm h-[22]`}></div>
         </div>
       </div>
+      <div className="text-sm text-gray-500 text-justify">{instructions}</div>
       {/* Διάφορα status */}
       {status === "WaitingPurchase" && (
         <>
@@ -112,7 +126,6 @@ const AccountCard = ({ id, number, company, balance, phase, note, status, link, 
           <div className="text-sm text-gray-500 text-justify">
             Αφού αγοράσεις ένα account των ${balance.toLocaleString("en-US")} από {company} γράψε τον αριθμό του ακριβώς από κάτω και πάτα το κουμπί Αποθήκευση.
           </div>
-          <div className="text-sm text-gray-500 text-justify">{instructions}</div>
           <NewAccount id={id} SaveNewAccount={SaveNewAccount} />
         </>
       )}
@@ -125,7 +138,6 @@ const AccountCard = ({ id, number, company, balance, phase, note, status, link, 
             <div>Κάνε upgrade το account</div>
           </div>
           <div className="text-sm text-gray-500 text-justify">Σιγουρέψου ότι έχεις συμπληρώσει τις minimum trading ημέρες και πέρασε στην σελίδα μας το νέο account που σου έχει στείλει η εταιρία.</div>
-          <div className="text-sm text-gray-500 text-justify">{instructions}</div>
           <CreateUpgradedAccount UpgradeAccount={UpgradeAccount} passedAccountNumber={number} passedAccountId={id} phase={phase} capital={capital} user={userId} company={companyId} />
         </>
       )}

@@ -6,7 +6,7 @@ import dbConnect from "@/dbConnect";
 import { revalidatePath } from "next/cache";
 import User from "@/models/User";
 import { clerkClient } from "@clerk/nextjs/server";
-import AddAccountLink from "@/components/AddAccountLink";
+import WorkingHours from "@/components/WorkingHours";
 
 export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail, bybitUid }) => {
   "use server";
@@ -58,10 +58,50 @@ export const GetUser = async () => {
   }
 };
 
+export const SaveHours = async ({ userId, startingHour, endingHour }) => {
+  "use server";
+  try {
+    await dbConnect();
+    console.log("Nice");
+    revalidatePath("/", "layout");
+    const user = await User.findById(userId);
+    console.log(userId);
+    if (!user) return false;
+    user.tradingHours.startingTradingHour = startingHour;
+    user.tradingHours.endingTradingHour = endingHour;
+    await user.save();
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+export const SaveStatus = async ({ userId }) => {
+  "use server";
+  try {
+    await dbConnect();
+    revalidatePath("/", "layout");
+    const user = await User.findById(userId);
+    if (!user) return false;
+    if (user.status === "active") {
+      user.status = "inactive";
+    } else if (user.status === "inactive") {
+      user.status = "active";
+    }
+    console.log(user.status);
+    await user.save();
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
 export default async function Home() {
   const user = await GetUser();
   const { sessionClaims } = await auth();
-
+  console.log(user._id.toString());
   //#region Έλεγχος User
   // Αν υπάρξει error τραβώντας τον user βγάλε μήνυμα λάθους
   if (user?.error) {
@@ -77,7 +117,6 @@ export default async function Home() {
   }
   //#endregion
 
-  console.log(user.accounts.length);
   let publicNote = "";
   const dayOfWeek = new Date().getDay();
   // #UpdateData Notes
@@ -110,12 +149,18 @@ export default async function Home() {
   return (
     <div className="flex flex-col gap-4 p-8">
       <Menu activeMenu="Profile" />
+      <div className="m-auto text-2xl">
+        {user.firstName} {user.lastName}
+      </div>
+      <WorkingHours startingTradingHour={user.tradingHours.startingTradingHour} endingTradingHour={user.tradingHours.endingTradingHour} userStatus={user.status} ChangeHours={SaveHours} ChangeStatus={SaveStatus} userId={user._id.toString()} />
       {publicNote && publicNote !== "" && <div className="text-center p-4 bg-orange-700 w-full rounded-md text-lg font-bold">{publicNote}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {user.accounts &&
           user.accounts.length > 0 &&
           user.accounts.map((account) => {
-            return <AccountCard key={`account-${account._id.toString()}`} id={account._id.toString()} status={account.status} number={account.number || "-"} company={account.company.name} balance={account.balance} phase={account.phase} note={account.note || "-"} link={account.company.link} instructions={account.company.phases[account.phase - 1].instructions} userId={account.user._id.toString()} companyId={account.company._id.toString()} capital={account.capital} />;
+            return (
+              <AccountCard key={`account-${account._id.toString()}`} id={account._id.toString()} status={account.status} number={account.number || "-"} company={account.company.name} balance={account.balance} phase={account.phase} note={account.note || "-"} link={account.company.link} instructions={account.company.phases[account.phase - 1].instructions} userId={account.user._id.toString()} companyId={account.company._id.toString()} capital={account.capital} isOnBoarding={account.isOnBoarding} />
+            );
           })}
       </div>
     </div>

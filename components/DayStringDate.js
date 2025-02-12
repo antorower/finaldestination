@@ -20,7 +20,7 @@ const DayStringDate = ({ day, UpdateStringDate }) => {
 
   return (
     <div className="flex flex-col gap-2 border border-gray-900 p-2 mb-4">
-      <input type="text" required value={stringName} onChange={(e) => setStringName(e.target.value)} placeholder="Phase Name" className="input" />
+      <input type="text" required value={stringName} onChange={(e) => setStringName(e.target.value)} placeholder="Day String" className="input" />
       <button type="button" onClick={UpdateDate} className="bg-blue-500 text-white px-4 py-2 rounded w-full">
         Save
       </button>

@@ -134,6 +134,14 @@ const Schedule = async ({ searchParams }) => {
   return (
     <div className="flex flex-col gap-4 p-8">
       <Menu activeMenu="Settings" />
+      <div className="flex justify-center gap-8">
+        <Link href="/settings/pairs" className="hover:text-orange-300">
+          Pairs
+        </Link>
+        <Link href="/settings/schedule" className="hover:text-orange-300">
+          Schedule
+        </Link>
+      </div>
       <div className="flex gap-4 flex-wrap justify-center">
         {days.map((day) => (
           <div key={day} className="flex flex-col gap-4 border border-gray-700 rounded px-4 py-2 w-[300px]">

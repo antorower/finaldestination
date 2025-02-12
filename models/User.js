@@ -40,18 +40,18 @@ const UserSchema = new mongoose.Schema({
       default: [],
     },
   ],
-  beneficiaries: {
-    type: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        percentage: Number,
+  beneficiaries: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
-    ],
-    default: [],
-  },
+      percentage: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
   note: {
     type: String,
     trim: true,
@@ -84,6 +84,15 @@ const UserSchema = new mongoose.Schema({
       description: String,
     },
   ],
+  tradingHours: {
+    startingTradingHour: Number,
+    endingTradingHour: Number,
+  },
+  status: {
+    type: String,
+    enum: ["active", "inactive"],
+    default: "inactive",
+  },
   lastTradeOpened: Date,
 });
 
