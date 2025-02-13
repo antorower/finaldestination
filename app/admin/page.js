@@ -941,6 +941,9 @@ const MatchMaking = async () => {
           let priority2 = acc2.minHour <= tradeTime && tradeTime <= acc2.maxHour ? "high" : "low";
           let tradePriority = priority1 === "high" && priority2 === "high" ? "high" : priority1 === "high" || priority2 === "high" ? "medium" : "low";
 
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1); // Μετακινούμε την ημερομηνία στην αυριανή μέρα
+
           trades.push({
             firstParticipant: {
               user: acc1.user,
@@ -960,8 +963,12 @@ const MatchMaking = async () => {
             cancelable: true,
             priority: tradePriority,
             openTime: {
-              hour: Math.floor(tradeTime / 60),
-              minutes: tradeTime % 60,
+              year: tomorrow.getFullYear(), // Έτος (π.χ. 2025)
+              month: tomorrow.getMonth() + 1, // Μήνας (π.χ. 5 για Μάιο)
+              day: tomorrow.getDate(), // Ημέρα (π.χ. 17)
+              dayString: tomorrow.toLocaleDateString("el-GR", { weekday: "long" }), // Ημέρα της εβδομάδας (π.χ. Τετάρτη)
+              hour: Math.floor(tradeTime / 60), // Υπολογισμός ώρας
+              minutes: tradeTime % 60, // Υπολογισμός λεπτών
             },
           });
 

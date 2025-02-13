@@ -7,6 +7,10 @@ import { revalidatePath } from "next/cache";
 import User from "@/models/User";
 import { clerkClient } from "@clerk/nextjs/server";
 import WorkingHours from "@/components/WorkingHours";
+import Trade from "@/models/Trade";
+import Link from "next/link";
+import TradeButtonAcceptReject from "@/components/TradeButtonAcceptReject";
+import { keyframes } from "framer-motion";
 
 export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail, bybitUid }) => {
   "use server";
@@ -62,10 +66,8 @@ export const SaveHours = async ({ userId, startingHour, endingHour }) => {
   "use server";
   try {
     await dbConnect();
-    console.log("Nice");
     revalidatePath("/", "layout");
     const user = await User.findById(userId);
-    console.log(userId);
     if (!user) return false;
     user.tradingHours.startingTradingHour = startingHour;
     user.tradingHours.endingTradingHour = endingHour;
@@ -89,7 +91,6 @@ export const SaveStatus = async ({ userId }) => {
     } else if (user.status === "inactive") {
       user.status = "active";
     }
-    console.log(user.status);
     await user.save();
     return true;
   } catch (error) {
@@ -98,10 +99,63 @@ export const SaveStatus = async ({ userId }) => {
   }
 };
 
+export const GetTrades = async (userId) => {
+  "use server";
+  try {
+    dbConnect();
+    const trades = await Trade.find({
+      $or: [
+        {
+          "firstParticipant.user": userId,
+          "firstParticipant.status": { $in: ["pending", "accepted", "shown"] },
+        },
+        {
+          "secondParticipant.user": userId,
+          "secondParticipant.status": { $in: ["pending", "accepted", "shown"] },
+        },
+      ],
+    })
+      .populate("firstParticipant.account") // Populate firstParticipant.account
+      .populate("secondParticipant.account"); // Populate secondParticipant.account
+    return trades;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+export const AcceptTrade = async ({ userId, tradeId, action }) => {
+  "use server";
+  try {
+    dbConnect();
+    const trade = await Trade.find(tradeId);
+    if (!trade) return false;
+    if (trade.firstParticipant.user._id.toString() === userId) {
+      if (action === "accept") {
+        trade.firstParticipant.status = "accepted";
+      } else if (action === "reject") {
+        trade.firstParticipant.status = "canceled";
+      }
+    }
+    if (trade.secondParticipant.user._id.toString() === userId) {
+      if (action === "accept") {
+        trade.secondParticipant.status = "accepted";
+      } else if (action === "reject") {
+        trade.secondParticipant.status = "canceled";
+      }
+    }
+    await trade.save();
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
 export default async function Home() {
-  const user = await GetUser();
   const { sessionClaims } = await auth();
-  console.log(user._id.toString());
+
+  const user = await GetUser();
   //#region Έλεγχος User
   // Αν υπάρξει error τραβώντας τον user βγάλε μήνυμα λάθους
   if (user?.error) {
@@ -146,6 +200,8 @@ export default async function Home() {
       publicNote = "";
   }
 
+  const trades = await GetTrades(user._id.toString());
+
   return (
     <div className="flex flex-col gap-4 p-8">
       <Menu activeMenu="Profile" />
@@ -154,6 +210,43 @@ export default async function Home() {
       </div>
       <WorkingHours startingTradingHour={user.tradingHours.startingTradingHour} endingTradingHour={user.tradingHours.endingTradingHour} userStatus={user.status} ChangeHours={SaveHours} ChangeStatus={SaveStatus} userId={user._id.toString()} />
       {publicNote && publicNote !== "" && <div className="text-center p-4 bg-orange-700 w-full rounded-md text-lg font-bold">{publicNote}</div>}
+      <div className="flex gap-8 flex-wrap my-4 m-auto">
+        {trades.map((trade) => {
+          let account;
+          let status;
+          let priority;
+          const day = trade.openTime.dayString;
+          const date = trade.openTime.day + "/" + trade.openTime.month + "/" + trade.openTime.year;
+          const hour = trade.openTime.hour + ":" + (trade.openTime.minutes < 10 ? `0${trade.openTime.minutes}` : trade.openTime.minutes);
+
+          if (trade.firstParticipant.user._id.toString() === user._id.toString()) {
+            account = trade.firstParticipant.account.number;
+            status = trade.firstParticipant.status;
+            priority = trade.firstParticipant.priority;
+          }
+          if (trade.secondParticipant.user._id.toString() === user._id.toString()) {
+            account = trade.secondParticipant.account.number;
+            status = trade.secondParticipant.status;
+            priority = trade.secondParticipant.priority;
+          }
+
+          if (status === "pending") {
+            return (
+              <div key={`trade-${trade._id.toString()}`} className={`flex flex-col items-center rounded gap-2 px-4 py-4 ${priority === "high" ? "border border-orange-500" : " border border-gray-700"}`}>
+                <TradeButtonAcceptReject accept={true} reject={false} trader={user._id.toString()} trade={trade._id.toString()} />
+                <div>{account}</div>
+                <div className="text-sm">{status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}</div>
+                <div className="text-center border border-gray-500 p-2 rounded flex flex-col gap-2 text-sm">
+                  <div>{day}</div>
+                  <div>{date}</div>
+                  <div>{hour}</div>
+                </div>
+                <TradeButtonAcceptReject accept={false} reject={true} trader={user._id.toString()} trade={trade._id.toString()} />
+              </div>
+            );
+          }
+        })}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {user.accounts &&
           user.accounts.length > 0 &&

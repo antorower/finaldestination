@@ -22,7 +22,7 @@ const TradeSchema = new mongoose.Schema(
       },
       status: {
         type: String,
-        enum: ["pending", "canceled", "accepted", "shown"],
+        enum: ["pending", "canceled", "accepted", "shown", "completed"],
         default: "pending",
       },
       priority: {
@@ -50,7 +50,7 @@ const TradeSchema = new mongoose.Schema(
       },
       status: {
         type: String,
-        enum: ["pending", "accepted", "canceled", "shown"],
+        enum: ["pending", "accepted", "canceled", "shown", "completed"],
         default: "pending",
       },
       priority: {
@@ -61,6 +61,10 @@ const TradeSchema = new mongoose.Schema(
       loss: Number,
     },
     openTime: {
+      year: Number,
+      month: Number,
+      day: Number,
+      dayString: String,
       hour: Number,
       minutes: Number,
     },
@@ -90,5 +94,24 @@ const TradeSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+TradeSchema.pre("save", function (next) {
+  const firstStatus = this.firstParticipant.status;
+  const secondStatus = this.secondParticipant.status;
+
+  if (firstStatus === "pending" || secondStatus === "pending") {
+    this.status = "pending";
+  } else if (firstStatus === "accepted" && secondStatus === "accepted") {
+    this.status = "accepted";
+  } else if (firstStatus === "canceled" || secondStatus === "canceled") {
+    this.status = "canceled";
+  } else if (firstStatus === "shown" || secondStatus === "shown") {
+    this.status = firstStatus === "shown" && secondStatus === "shown" ? "open" : "openPending";
+  } else if (firstStatus === "completed" || secondStatus === "completed") {
+    this.status = firstStatus === "completed" && secondStatus === "completed" ? "close" : "closePending";
+  }
+
+  next();
+});
 
 export default mongoose.models.Trade || mongoose.model("Trade", TradeSchema);
