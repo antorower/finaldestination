@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Account from "./Account";
+import Evaluation from "./Evaluation";
 
 const UserSchema = new mongoose.Schema({
   clerkId: {
@@ -93,8 +94,37 @@ const UserSchema = new mongoose.Schema({
     enum: ["active", "inactive"],
     default: "inactive",
   },
+  evaluation: {
+    points: {
+      type: Number,
+      default: 100,
+    },
+    progress: [
+      {
+        title: String,
+        description: String,
+        points: Number,
+      },
+    ],
+  },
   lastTradeOpened: Date,
 });
+
+UserSchema.methods.addPoints = async function ({ title, description, points }) {
+  if (!this.evaluation) {
+    this.evaluation = { points: 100, progress: [] };
+  }
+  if (!this.evaluation.progress) {
+    this.evaluation.progress = [];
+  }
+
+  this.evaluation.points = this.evaluation.points + points;
+  this.evaluation.progress.push({ title, description, points });
+  await this.save();
+
+  const newEvaluation = new Evaluation({ user: this._id, title, description, points });
+  await newEvaluation.save();
+};
 
 UserSchema.methods.addBeneficiary = async function (beneficiaryId, percentage) {
   const existingBeneficiary = this.beneficiaries.find((beneficiary) => beneficiary.user.equals(beneficiaryId));

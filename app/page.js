@@ -8,12 +8,14 @@ import User from "@/models/User";
 import { clerkClient } from "@clerk/nextjs/server";
 import WorkingHours from "@/components/WorkingHours";
 import Trade from "@/models/Trade";
+import Settings from "@/models/Settings";
 import Link from "next/link";
 import TradeButtonAcceptReject from "@/components/TradeButtonAcceptReject";
-import { keyframes } from "framer-motion";
 
+//#region Set Functions
 export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail, bybitUid }) => {
   "use server";
+  // ----> Κάνει εγγραφή τον user
   const { sessionClaims } = await auth();
 
   try {
@@ -45,17 +47,50 @@ export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail,
   }
 };
 
-export const GetUser = async () => {
+export const SubmitTrade = async ({ userId, tradeId, account, action, points }) => {
   "use server";
+  // ----> Απορρίπτει ή αποδέχεται το trade
+  const now = new Date();
+  const greeceTime = Number(now.toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "2-digit", hour12: false }));
+  if (greeceTime < 17 || greeceTime > 0) return false; // EDIT το > 0 να γίνει > 20
   try {
-    await dbConnect();
-    const { sessionClaims } = await auth();
-    return await User.findOne({ clerkId: sessionClaims.userId }).populate({
-      path: "accounts", // Populate το πεδίο "accounts"
-      populate: {
-        path: "company", // Nested populate το πεδίο "company" από το "accounts"
-      },
-    });
+    dbConnect();
+    revalidatePath("/", "layout");
+    const trade = await Trade.findById(tradeId);
+    if (!trade) return false;
+    console.log(trade);
+    console.log(trade.firstParticipant);
+    console.log(trade.firstParticipant.user);
+    if (trade.firstParticipant.user._id.toString() === userId) {
+      if (action === "accept") {
+        trade.firstParticipant.status = "accepted";
+      } else if (action === "reject") {
+        trade.firstParticipant.status = "canceled";
+      }
+    }
+    if (trade.secondParticipant.user._id.toString() === userId) {
+      if (action === "accept") {
+        trade.secondParticipant.status = "accepted";
+      } else if (action === "reject") {
+        trade.secondParticipant.status = "canceled";
+      }
+    }
+    await trade.save();
+
+    if (points < 0) {
+      const user = await User.findById(userId);
+      const title = "Trade Rejected";
+      const description = `Ο/Η ${user.firstName} ${user.lastName} έχασε ${Math.abs(points)} points επειδή έκανε reject ένα high priority trade στο ${account}`;
+      await user.addPoints({ title, description, points });
+    }
+    if (points > 0) {
+      const user = await User.findById(userId);
+      const title = "Trade Accepted";
+      const description = `Ο/Η ${user.firstName} ${user.lastName} κέρδισε ${Math.abs(points)} points επειδή έκανε accept ένα low priority trade στο ${account}`;
+      await user.addPoints({ title, description, points });
+    }
+
+    return true;
   } catch (error) {
     console.log(error);
     return false;
@@ -64,6 +99,7 @@ export const GetUser = async () => {
 
 export const SaveHours = async ({ userId, startingHour, endingHour }) => {
   "use server";
+  // ----> Ενημερώνει τις trading hours του χρήστη
   try {
     await dbConnect();
     revalidatePath("/", "layout");
@@ -81,6 +117,7 @@ export const SaveHours = async ({ userId, startingHour, endingHour }) => {
 
 export const SaveStatus = async ({ userId }) => {
   "use server";
+  // ----> Αλλάζει τον χρήστη από ενεργό σε ανενεργό και αντίστροφα
   try {
     await dbConnect();
     revalidatePath("/", "layout");
@@ -98,9 +135,30 @@ export const SaveStatus = async ({ userId }) => {
     return false;
   }
 };
+//#endregion
+
+//#region Get Functions
+export const GetUser = async () => {
+  "use server";
+  // ----> Τραβάει τον user, τα accounts του και τις εταιρίες των accounts
+  try {
+    await dbConnect();
+    const { sessionClaims } = await auth();
+    return await User.findOne({ clerkId: sessionClaims.userId }).populate({
+      path: "accounts", // Populate το πεδίο "accounts"
+      populate: {
+        path: "company", // Nested populate το πεδίο "company" από το "accounts"
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
 
 export const GetTrades = async (userId) => {
   "use server";
+  // ----> Τραβάει τα trades που είναι pending, accepted και shown
   try {
     dbConnect();
     const trades = await Trade.find({
@@ -124,39 +182,27 @@ export const GetTrades = async (userId) => {
   }
 };
 
-export const AcceptTrade = async ({ userId, tradeId, action }) => {
+export const GetSettings = async (userId) => {
   "use server";
+  // ----> Τραβάει τα settings
   try {
     dbConnect();
-    const trade = await Trade.find(tradeId);
-    if (!trade) return false;
-    if (trade.firstParticipant.user._id.toString() === userId) {
-      if (action === "accept") {
-        trade.firstParticipant.status = "accepted";
-      } else if (action === "reject") {
-        trade.firstParticipant.status = "canceled";
-      }
-    }
-    if (trade.secondParticipant.user._id.toString() === userId) {
-      if (action === "accept") {
-        trade.secondParticipant.status = "accepted";
-      } else if (action === "reject") {
-        trade.secondParticipant.status = "canceled";
-      }
-    }
-    await trade.save();
-    return true;
+    return await Settings.findOne();
   } catch (error) {
     console.log(error);
     return false;
   }
 };
+//#endregion
 
 export default async function Home() {
   const { sessionClaims } = await auth();
-
   const user = await GetUser();
-  //#region Έλεγχος User
+
+  const now = new Date();
+  const greeceTime = Number(now.toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "2-digit", hour12: false }));
+
+  //#region Έλεγχος User Permissions
   // Αν υπάρξει error τραβώντας τον user βγάλε μήνυμα λάθους
   if (user?.error) {
     return <div className="flex w-full h-dvh justify-center items-center">Κάτι πήγε στραβά με την φόρτωση του χρήστη</div>;
@@ -169,38 +215,44 @@ export default async function Home() {
   if (!user.accepted) {
     return <div className="flex w-full h-dvh justify-center items-center">Επικοινώνησε με τον Αντώνη να σε κάνει approve συνάδελφε.</div>;
   }
+  // Αν ο χρήστης δεν είναι ο ιδιοκτήτης του profile ή δεν είναι ο owner της σελίδας του επιστρέφει μήνυμα
+  if (!sessionClaims.metadata.owner && sessionClaims.metadata.mongoId !== user._id.toString()) {
+    return <div className="flex w-full h-dvh justify-center items-center">Δεν έχεις permissions να δεις αυτό το profile</div>;
+  }
   //#endregion
 
+  const settings = await GetSettings();
+  const trades = await GetTrades(user._id.toString());
+
+  //#region Update public note για ώρα κλεισίματος
   let publicNote = "";
   const dayOfWeek = new Date().getDay();
-  // #UpdateData Notes
   switch (dayOfWeek) {
     case 1: // Δευτέρα
-      publicNote = "Δευτέρα 20/1/2025: Κλείνουμε στις 5";
+      publicNote = settings?.monday?.note || "Κλείνουμε στη 1:11";
       break;
     case 2: // Τρίτη
-      publicNote = "Τριτη 21/1/2025: Κλείνουμε στις 6";
+      publicNote = settings?.tuesday?.note || "Κλείνουμε στη 1:11";
       break;
     case 3: // Τετάρτη
-      publicNote = "Τετάρτη 22/1/2025: Κλείνουμε στις 5";
+      publicNote = settings?.wednsday?.note || "Κλείνουμε στη 1:11";
       break;
     case 4: // Πέμπτη
-      publicNote = "Πέμπτη 23/1/2025: Κλείνουμε στις 5";
+      publicNote = settings?.thursday?.note || "Κλείνουμε στη 1:11";
       break;
     case 5: // Παρασκευή
-      publicNote = "Παρασκευή 24/1/2025: Κλείνουμε στις 5";
+      publicNote = settings?.friday?.note || "Κλείνουμε στη 1:11";
       break;
     case 6: // Σάββατο
-      publicNote = "Σάββατο 25/1/2025: Το market είναι κλειστό";
+      publicNote = "Το market είναι κλειστό";
       break;
     case 0: // Κυριακή
-      publicNote = "Κυριακή 26/1/2025: Το market είναι κλειστό";
+      publicNote = "Το market είναι κλειστό";
       break;
     default:
-      publicNote = "";
+      publicNote = "Κλείνουμε στη 1:12";
   }
-
-  const trades = await GetTrades(user._id.toString());
+  //#endregion
 
   return (
     <div className="flex flex-col gap-4 p-8">
@@ -209,44 +261,63 @@ export default async function Home() {
         {user.firstName} {user.lastName}
       </div>
       <WorkingHours startingTradingHour={user.tradingHours.startingTradingHour} endingTradingHour={user.tradingHours.endingTradingHour} userStatus={user.status} ChangeHours={SaveHours} ChangeStatus={SaveStatus} userId={user._id.toString()} />
-      {publicNote && publicNote !== "" && <div className="text-center p-4 bg-orange-700 w-full rounded-md text-lg font-bold">{publicNote}</div>}
-      <div className="flex gap-8 flex-wrap my-4 m-auto">
-        {trades.map((trade) => {
-          let account;
-          let status;
-          let priority;
-          const day = trade.openTime.dayString;
-          const date = trade.openTime.day + "/" + trade.openTime.month + "/" + trade.openTime.year;
-          const hour = trade.openTime.hour + ":" + (trade.openTime.minutes < 10 ? `0${trade.openTime.minutes}` : trade.openTime.minutes);
-
-          if (trade.firstParticipant.user._id.toString() === user._id.toString()) {
-            account = trade.firstParticipant.account.number;
-            status = trade.firstParticipant.status;
-            priority = trade.firstParticipant.priority;
-          }
-          if (trade.secondParticipant.user._id.toString() === user._id.toString()) {
-            account = trade.secondParticipant.account.number;
-            status = trade.secondParticipant.status;
-            priority = trade.secondParticipant.priority;
-          }
-
-          if (status === "pending") {
-            return (
-              <div key={`trade-${trade._id.toString()}`} className={`flex flex-col items-center rounded gap-2 px-4 py-4 ${priority === "high" ? "border border-orange-500" : " border border-gray-700"}`}>
-                <TradeButtonAcceptReject accept={true} reject={false} trader={user._id.toString()} trade={trade._id.toString()} />
-                <div>{account}</div>
-                <div className="text-sm">{status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}</div>
-                <div className="text-center border border-gray-500 p-2 rounded flex flex-col gap-2 text-sm">
-                  <div>{day}</div>
-                  <div>{date}</div>
-                  <div>{hour}</div>
-                </div>
-                <TradeButtonAcceptReject accept={false} reject={true} trader={user._id.toString()} trade={trade._id.toString()} />
+      {publicNote && publicNote !== "" && (
+        <div className="text-center p-4 bg-orange-700 w-full rounded-md text-3xl font-bold">
+          ⏰ ⏰ ⏰ <span className="animate-bounce inline-block">{publicNote}</span> ⏰ ⏰ ⏰
+        </div>
+      )}
+      <div className="flex flex-col gap-8">
+        <div className="text-center">
+          {greeceTime > 0 && greeceTime < 21 && (
+            <>
+              <div className="text-sm text-gray-700">
+                📜 Οδηγίες: Κάθε απόγευμα 17:00 - 20:00 ώρα Ελλάδος, ακριβώς κάτω από εδώ, θα υπάρχουν προτάσεις από τον αλγόριθμο για τα trades που μπορείτε να βάλετε την επόμενη μέρα. Εσείς μπορείτε να πατάνε Accept ή Reject αναλόγως αν μπορείτε εκείνη την ώρα να το βάλετε. Οι προτάσεις είναι είτε σε πορτοκαλί είτε σε γκρι πλαίσιο. Τα πορτοκαλί είναι εντός των ωρών που εσείς έχετε δηλώσει ότι μπορείτε. Οπότε αν τα κάνετε Reject χάνετε τα EP που αναγράφονται στην παρένθεση λόγω ασυνέπειας. Τα
+                γκρι από την άλλη είναι σε ώρες που έχετε δηλώσει ότι δεν μπορείτε. Οπότε αν τα κάνετε Accept κερδίζετε EP.
               </div>
-            );
-          }
-        })}
+              <div className="flex gap-8 flex-wrap my-4 m-auto">
+                {trades.map((trade) => {
+                  let account;
+                  let status;
+                  let priority;
+                  const day = trade.openTime.dayString;
+                  const date = trade.openTime.day + "/" + trade.openTime.month;
+                  const hour = trade.openTime.hour + ":" + (trade.openTime.minutes < 10 ? `0${trade.openTime.minutes}` : trade.openTime.minutes);
+
+                  if (trade.firstParticipant.user._id.toString() === user._id.toString()) {
+                    account = trade.firstParticipant.account.number;
+                    status = trade.firstParticipant.status;
+                    priority = trade.firstParticipant.priority;
+                  }
+                  if (trade.secondParticipant.user._id.toString() === user._id.toString()) {
+                    account = trade.secondParticipant.account.number;
+                    status = trade.secondParticipant.status;
+                    priority = trade.secondParticipant.priority;
+                  }
+
+                  if (status !== "pending") return;
+
+                  return (
+                    <div key={`trade-${trade._id.toString()}`} className={`flex m-auto flex-col justify-center items-center rounded gap-6 px-4 py-4 ${priority === "high" ? "border-2 border-orange-500" : " border border-gray-700"}`}>
+                      <div className="text-center p-2 rounded flex gap-2 text-2xl font-bold">
+                        <div>{date}</div>
+                        <div>{day}</div>
+                        <div>{hour}</div>
+                      </div>
+                      <div className="flex gap-4 w-full">
+                        <TradeButtonAcceptReject text="Accept" account={account} accept={true} reject={false} trader={user._id.toString()} trade={trade._id.toString()} SubmitTrade={SubmitTrade} acceptPoints={priority === "high" ? 0 : 2} rejectPoints={priority === "high" ? -2 : 0} />
+                        <div className="text-sm flex items-center">{account}</div>
+                        <TradeButtonAcceptReject text="Reject" account={account} accept={false} reject={true} trader={user._id.toString()} trade={trade._id.toString()} SubmitTrade={SubmitTrade} acceptPoints={priority === "high" ? 0 : 2} rejectPoints={priority === "high" ? -2 : 0} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+        <div>context</div>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {user.accounts &&
           user.accounts.length > 0 &&
@@ -259,3 +330,5 @@ export default async function Home() {
     </div>
   );
 }
+
+// EDIT {greeceTime > 0 && greeceTime < 21 && ( το > 0 να γίνει > 16

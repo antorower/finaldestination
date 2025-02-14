@@ -56,6 +56,9 @@ const Menu = async ({ activeMenu }) => {
           Settings
         </Link>
       )}
+      <Link href="/instructions" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Guide" && "text-orange-400"}`}>
+        Guide
+      </Link>
     </div>
   );
 };
