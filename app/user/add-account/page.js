@@ -40,7 +40,6 @@ export const AddNewAccount = async (account) => {
   "use server";
   try {
     await dbConnect();
-    revalidatePath("/", "layout");
     const newAccount = new Account(account);
     await newAccount.save();
 
@@ -52,6 +51,8 @@ export const AddNewAccount = async (account) => {
   } catch (error) {
     console.log(error);
     return false;
+  } finally {
+    revalidatePath("/", "layout");
   }
 };
 

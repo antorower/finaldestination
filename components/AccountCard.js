@@ -12,7 +12,6 @@ const SaveNewAccount = async ({ number, id }) => {
   "use server";
   try {
     await dbConnect();
-    revalidatePath("/", "layout");
     const newAccount = await Account.findById(id);
     if (!newAccount) return false;
     newAccount.number = number;
@@ -25,6 +24,8 @@ const SaveNewAccount = async ({ number, id }) => {
   } catch (error) {
     console.log(error);
     return false;
+  } finally {
+    revalidatePath("/", "layout");
   }
 };
 
@@ -32,7 +33,6 @@ const UpgradeAccount = async ({ number, passedAccountNumber, passedAccountId, ph
   "use server";
   try {
     dbConnect();
-    revalidatePath("/", "layout");
     const newAccount = new Account({
       user: user,
       company: company,
@@ -59,12 +59,13 @@ const UpgradeAccount = async ({ number, passedAccountNumber, passedAccountId, ph
   } catch (error) {
     console.log(error);
     return false;
+  } finally {
+    revalidatePath("/", "layout");
   }
 };
 
 const ChangeStatus = async ({ accountId }) => {
   "use server";
-  revalidatePath("/", "layout");
   try {
     const account = await Account.findById(accountId);
     if (!account) return false;
@@ -77,12 +78,14 @@ const ChangeStatus = async ({ accountId }) => {
   } catch (error) {
     console.log(error);
     return false;
+  } finally {
+    revalidatePath("/", "layout");
   }
 };
 
 const AccountCard = ({ id, number, company, balance, phase, note, status, link, instructions, userId, companyId, capital, firstName, lastName, isOnBoarding }) => {
   return (
-    <div className={`border ${isOnBoarding ? "border-red-700" : "border-gray-700"} p-4 rounded-md flex flex-col gap-4 bg-gray-950 hover:scale-[102%] transition-transform duration-300`}>
+    <div className={`border ${isOnBoarding ? "border-red-700" : "border-gray-700"} p-4 rounded-md w-[350px] flex flex-col gap-4 bg-gray-950 hover:scale-[102%] transition-transform duration-300`}>
       <div className="grid grid-cols-12">
         <div className="col-span-10 flex flex-col gap-2">
           <div className="flex justify-between items-center">

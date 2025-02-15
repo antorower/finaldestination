@@ -104,6 +104,10 @@ const UserSchema = new mongoose.Schema({
         title: String,
         description: String,
         points: Number,
+        time: {
+          type: Date,
+          default: () => new Date(),
+        },
       },
     ],
   },

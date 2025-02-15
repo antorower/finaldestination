@@ -22,7 +22,7 @@ const TradeSchema = new mongoose.Schema(
       },
       status: {
         type: String,
-        enum: ["pending", "canceled", "accepted", "shown", "completed"],
+        enum: ["pending", "canceled", "accepted", "aware", "shown", "completed"],
         default: "pending",
       },
       checking: {
@@ -71,7 +71,7 @@ const TradeSchema = new mongoose.Schema(
       },
       status: {
         type: String,
-        enum: ["pending", "accepted", "canceled", "shown", "completed"],
+        enum: ["pending", "accepted", "aware", "canceled", "shown", "completed"],
         default: "pending",
       },
       checking: {
