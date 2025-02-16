@@ -12,6 +12,7 @@ import Trade from "@/models/Trade";
 import Settings from "@/models/Settings";
 import PendingTrades from "@/components/PendingTrades";
 import AcceptedTrades from "@/components/AcceptedTrades";
+import AwareTrades from "@/components/AwareTrades";
 
 //#region Set Functions
 export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail, bybitUid }) => {
@@ -43,60 +44,6 @@ export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail,
     return true;
   } catch (error) {
     console.error("Error from root page on register action: ", error);
-    return false;
-  } finally {
-    revalidatePath("/", "layout");
-  }
-};
-
-export const SubmitTrade = async ({ userId, tradeId, account, action, points }) => {
-  "use server";
-  // ----> Απορρίπτει ή αποδέχεται το trade
-  const tradesSuggestionHours = {
-    starting: 0,
-    ending: 24,
-  }; // EDIT
-  const now = new Date();
-  const greeceTime = Number(now.toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "2-digit", hour12: false }));
-  if (greeceTime < tradesSuggestionHours.starting || greeceTime > tradesSuggestionHours.ending) return false; // EDIT το > 0 να γίνει > 20
-
-  try {
-    await dbConnect();
-    const trade = await Trade.findById(tradeId);
-    if (!trade) return false;
-
-    if (trade.firstParticipant.user._id.toString() === userId) {
-      if (action === "accept") {
-        trade.firstParticipant.status = "accepted";
-      } else if (action === "reject") {
-        trade.firstParticipant.status = "canceled";
-      }
-    }
-    if (trade.secondParticipant.user._id.toString() === userId) {
-      if (action === "accept") {
-        trade.secondParticipant.status = "accepted";
-      } else if (action === "reject") {
-        trade.secondParticipant.status = "canceled";
-      }
-    }
-    await trade.save();
-
-    if (points < 0) {
-      const user = await User.findById(userId);
-      const title = "Trade Rejected";
-      const description = `Ο/Η ${user.firstName} ${user.lastName} έχασε ${Math.abs(points)} points επειδή έκανε reject ένα high priority trade στο ${account}`;
-      await user.addPoints({ title, description, points });
-    }
-    if (points > 0) {
-      const user = await User.findById(userId);
-      const title = "Trade Accepted";
-      const description = `Ο/Η ${user.firstName} ${user.lastName} κέρδισε ${Math.abs(points)} points επειδή έκανε accept ένα low priority trade στο ${account}`;
-      await user.addPoints({ title, description, points });
-    }
-
-    return true;
-  } catch (error) {
-    console.log(error);
     return false;
   } finally {
     revalidatePath("/", "layout");
@@ -211,7 +158,7 @@ export default async function Home({ searchParams }) {
   // ---> User και SessionClaims
   const { sessionClaims } = await auth();
   const user = await GetUser();
-  console.log("USERRRRRRRRRRRRR", user._id.toString());
+
   //#region Έλεγχος User
   // Αν υπάρξει error τραβώντας τον user βγάλε μήνυμα λάθους
   // Αν ο user δεν υπάρχει βγάλε την φόρμα εγγραφής
@@ -304,10 +251,8 @@ export default async function Home({ searchParams }) {
 
     return true;
   });
-  console.log(trades.length);
+
   const awareTrades = trades.filter((trade) => {
-    console.log("dsfsdafasdfafasd");
-    if (trade.status !== "accepted") return false;
     const today = new Date();
 
     // Δημιουργούμε ένα `Date` object με τα στοιχεία του trade.openTime
@@ -316,31 +261,20 @@ export default async function Home({ searchParams }) {
     // Ελέγχουμε αν η ημερομηνία του trade είναι **μόνο σήμερα**
     const isToday = tradeDateObj.getFullYear() === today.getFullYear() && tradeDateObj.getMonth() === today.getMonth() && tradeDateObj.getDate() === today.getDate();
 
-    //if (!isToday) return false;
-    //console.log(trade);
-    console.log("USER", user._id.toString());
-    console.log("FP", trade.firstParticipant.user.toString());
-    console.log("SP", trade.secondParticipant.user.toString());
+    //if (!isToday) return false; EDIT
     const isFirstParticipant = trade.firstParticipant.user.toString() === user._id.toString();
     const isSecondParticipant = trade.secondParticipant.user.toString() === user._id.toString();
-    console.log("aaaaaaaaaaa");
-    console.log(isFirstParticipant);
-    console.log(isSecondParticipant);
     if (isFirstParticipant && trade.firstParticipant.status !== "aware") return false;
     if (isSecondParticipant && trade.secondParticipant.status !== "aware") return false;
-    console.log("bbbbbbbbbbb");
     return true;
   });
 
-  //console.log(awareTrades);
-
-  const shownTrades = trades.filter((trade) => {
+  const openTrades = trades.filter((trade) => {
     const isFirstParticipant = trade.firstParticipant.user.toString() === user._id.toString();
     const isSecondParticipant = trade.secondParticipant.user.toString() === user._id.toString();
 
-    if ((isFirstParticipant && trade.firstParticipant.status === "shown") || (isSecondParticipant && trade.secondParticipant.status === "shown")) {
-      return true;
-    }
+    if (isFirstParticipant && trade.firstParticipant.status === "open") return true;
+    if (isSecondParticipant && trade.secondParticipant.status === "open") return true;
 
     return false;
   });
@@ -411,19 +345,17 @@ export default async function Home({ searchParams }) {
             <div>Επιβεβαίωση Παρουσίας</div>
             <div className="text-red-500 animate-pulse">Αν το account είναι καινούριο, πριν πατήσεις το κουμπί "Είμαι εδώ" βάλε ένα trade 0.01 στο account για να σιγουρευτείς ότι στο account μπορούν να μπουν trades</div>
             <div className="text-sm text-center text-gray-700">📜 Οδηγίες: Το πρωί θα πρέπει να ξυπνήσεις νωρίτερα από το πρώτο σου trade έτσι ώστε να μπορέσεις τουλάχιστον 10 λεπτά πριν το trade να επιβεβαιώσεις ότι είσαι εδώ ώστε ο αλγόριθμος να ξέρει ότι θα το βάλεις. Αφού επιβεβαιώσεις την παρουσία σου θα βρεις το trade που πρέπει να ανοίξεις στο section "Άνοιγμα Trade".</div>
-            {acceptedTrades && acceptedTrades.length > 0 && <AcceptedTrades trades={acceptedTrades} user={user} SubmitTrade={SubmitTrade} />}
+            {acceptedTrades && acceptedTrades.length > 0 && <AcceptedTrades trades={acceptedTrades} user={user} />}
             {(!acceptedTrades || acceptedTrades.length === 0) && <div className="m-auto text-red-500 animate-pulse">Δεν υπάρχουν trades για άνοιγμα</div>}
           </div>
         )}
 
-        {greeceTime >= 3 && greeceTime <= 19 && awareTrades && awareTrades.length > 0 && (
+        {(awareTrades.length > 0 || openTrades.length > 0) && (
           <div className="text-center flex flex-col gap-4">
             <hr className="border-none h-[1px] bg-gray-800" />
-            <div>Επιβεβαίωση Παρουσίας</div>
-            <div className="text-red-500 animate-pulse">Αν το account είναι καινούριο, πριν πατήσεις το κουμπί "Είμαι εδώ" βάλε ένα trade 0.01 στο account για να σιγουρευτείς ότι στο account μπορούν να μπουν trades</div>
-            <div className="text-sm text-center text-gray-700">📜 Οδηγίες: Το πρωί θα πρέπει να ξυπνήσεις νωρίτερα από το πρώτο σου trade έτσι ώστε να μπορέσεις τουλάχιστον 10 λεπτά πριν το trade να επιβεβαιώσεις ότι είσαι εδώ ώστε ο αλγόριθμος να ξέρει ότι θα το βάλεις. Αφού επιβεβαιώσεις την παρουσία σου θα βρεις το trade που πρέπει να ανοίξεις στο section "Άνοιγμα Trade".</div>
-            {acceptedTrades && acceptedTrades.length > 0 && <AcceptedTrades trades={acceptedTrades} user={user} SubmitTrade={SubmitTrade} />}
-            {(!acceptedTrades || acceptedTrades.length === 0) && <div className="m-auto text-red-500 animate-pulse">Δεν υπάρχουν trades για άνοιγμα</div>}
+            <div>Τα Trades Σου</div>
+            <div className="text-sm text-center text-gray-700">📜 Οδηγίες: Τα μωβ trades ακριβώς από κάτω είναι αυτά που αναγράφεται ότι πρέπει να μπει πατώντας το κουμπί "Άνοιγμα". Φρόντισε να το πατήσες 10 λεπτά πριν την ώρα που πρέπει να μπει για να έχεις χρόνο να τα κάνεις σωστά και να τα ελέγξεις.</div>
+            {awareTrades.length > 0 && <AwareTrades trades={awareTrades} user={user} />}
           </div>
         )}
 

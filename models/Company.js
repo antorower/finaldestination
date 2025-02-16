@@ -23,6 +23,10 @@ const CompanySchema = new mongoose.Schema(
     ],
     commissionFactor: Number,
     link: String,
+    maxLots: {
+      type: Number,
+      default: 100,
+    },
   },
   { timestamps: true }
 );

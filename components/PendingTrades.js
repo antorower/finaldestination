@@ -1,6 +1,61 @@
 import TradeButtonAcceptReject from "./TradeButtonAcceptReject";
+import Trade from "@/models/Trade";
 
-const PendingTrades = ({ trades, user, SubmitTrade }) => {
+export const SubmitTrade = async ({ userId, tradeId, account, action, points }) => {
+  "use server";
+  // ----> Απορρίπτει ή αποδέχεται το trade
+  const tradesSuggestionHours = {
+    starting: 0,
+    ending: 24,
+  }; // EDIT
+  const now = new Date();
+  const greeceTime = Number(now.toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "2-digit", hour12: false }));
+  if (greeceTime < tradesSuggestionHours.starting || greeceTime > tradesSuggestionHours.ending) return false; // EDIT το > 0 να γίνει > 20
+
+  try {
+    await dbConnect();
+    const trade = await Trade.findById(tradeId);
+    if (!trade) return false;
+
+    if (trade.firstParticipant.user._id.toString() === userId) {
+      if (action === "accept") {
+        trade.firstParticipant.status = "accepted";
+      } else if (action === "reject") {
+        trade.firstParticipant.status = "canceled";
+      }
+    }
+    if (trade.secondParticipant.user._id.toString() === userId) {
+      if (action === "accept") {
+        trade.secondParticipant.status = "accepted";
+      } else if (action === "reject") {
+        trade.secondParticipant.status = "canceled";
+      }
+    }
+    await trade.save();
+
+    if (points < 0) {
+      const user = await User.findById(userId);
+      const title = "Trade Rejected";
+      const description = `Ο/Η ${user.firstName} ${user.lastName} έχασε ${Math.abs(points)} points επειδή έκανε reject ένα high priority trade στο ${account}`;
+      await user.addPoints({ title, description, points });
+    }
+    if (points > 0) {
+      const user = await User.findById(userId);
+      const title = "Trade Accepted";
+      const description = `Ο/Η ${user.firstName} ${user.lastName} κέρδισε ${Math.abs(points)} points επειδή έκανε accept ένα low priority trade στο ${account}`;
+      await user.addPoints({ title, description, points });
+    }
+
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
+const PendingTrades = ({ trades, user }) => {
   return (
     <div className="flex flex-wrap justify-center gap-8 my-8">
       {trades &&

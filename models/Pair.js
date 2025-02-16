@@ -8,13 +8,15 @@ const PairSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
-    lots: {
-      fast: Number,
-      slow: Number,
-    },
+    lots: Number,
     priority: Number,
+    expensesFactor: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
 
 export default mongoose.models.Pair || mongoose.model("Pair", PairSchema);
+// Τα lots είναι ανά 1000$ στο stoploss/takeprofit

@@ -19,7 +19,7 @@ const GetUser = async (id) => {
       })
       .populate("team") // Populate το πεδίο "team" απευθείας
       .populate("beneficiaries.user");
-    console.log("USERRR", user);
+
     return user;
   } catch (error) {
     console.log(error);

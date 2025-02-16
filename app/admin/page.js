@@ -204,7 +204,7 @@ const MatchMakingNew = async () => {
     trades.push(...extraTrades);
 
     // Αποθήκευση των trades στη βάση δεδομένων
-    console.log(trades);
+
     //await Trade.insertMany(trades);
 
     return true;
@@ -988,9 +988,6 @@ const MatchMaking = async () => {
     trades.push(...extraTrades);
 
     // Αποθήκευση των trades στη βάση δεδομένων
-    console.log(trades);
-    console.log(trades.length);
-    console.log(updatedAccounts.length);
     await Trade.insertMany(trades);
 
     return true;

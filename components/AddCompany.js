@@ -10,6 +10,7 @@ const AddCompany = ({ SaveCompany }) => {
   const [commissionFactor, setCommissionFactor] = useState("");
   const [link, setLink] = useState("");
   const [active, setActive] = useState(false);
+  const [maxLots, setMaxLots] = useState("");
 
   const router = useRouter();
 
@@ -45,6 +46,7 @@ const AddCompany = ({ SaveCompany }) => {
       })),
       commissionFactor: parseFloat(commissionFactor),
       link,
+      maxLots: parseFloat(maxLots),
     };
     const response = await SaveCompany(companyData);
     if (response) {
@@ -62,6 +64,7 @@ const AddCompany = ({ SaveCompany }) => {
           <input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Company Name" className="input" />
           <input type="number" required value={maxAccounts} onChange={(e) => setMaxAccounts(e.target.value)} placeholder="Max Accounts" className="input" />
           <input type="number" required value={commissionFactor} onChange={(e) => setCommissionFactor(e.target.value)} placeholder="Commission Factor" className="input" />
+          <input type="number" required value={maxLots} onChange={(e) => setMaxLots(e.target.value)} placeholder="Max Lots" className="input" />
           <input type="text" required value={link} onChange={(e) => setLink(e.target.value)} placeholder="Link" className="input" />
 
           <div>

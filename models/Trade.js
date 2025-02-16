@@ -22,7 +22,7 @@ const TradeSchema = new mongoose.Schema(
       },
       status: {
         type: String,
-        enum: ["pending", "canceled", "accepted", "aware", "shown", "completed"],
+        enum: ["pending", "canceled", "accepted", "aware", "open", "closed"],
         default: "pending",
       },
       checking: {
@@ -71,7 +71,7 @@ const TradeSchema = new mongoose.Schema(
       },
       status: {
         type: String,
-        enum: ["pending", "accepted", "aware", "canceled", "shown", "completed"],
+        enum: ["pending", "canceled", "accepted", "aware", "open", "closed"],
         default: "pending",
       },
       checking: {
@@ -117,7 +117,7 @@ const TradeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "canceled", "accepted", "open", "openPending", "close", "closePending", "review"],
+      enum: ["pending", "canceled", "accepted", "open", "openPending", "closePending", "aware", "awarePending", "completed", "review"],
       default: "pending",
     },
     progress: [
@@ -140,23 +140,31 @@ const TradeSchema = new mongoose.Schema(
 
 TradeSchema.pre("save", async function (next) {
   // ----> Ελέγω το status του κάθε user και ορίζω το status του trade
-  const firstStatus = this.firstParticipant.status;
-  const secondStatus = this.secondParticipant.status;
+  const statuses = [this.firstParticipant.status, this.secondParticipant.status];
 
-  if (firstStatus === "pending" || secondStatus === "pending") {
-    this.status = "pending";
-  } else if (firstStatus === "accepted" && secondStatus === "accepted") {
-    this.status = "accepted";
-  } else if (firstStatus === "canceled" || secondStatus === "canceled") {
+  if (statuses.includes("canceled")) {
     this.status = "canceled";
-  } else if (firstStatus === "shown" || secondStatus === "shown") {
-    this.status = firstStatus === "shown" && secondStatus === "shown" ? "open" : "openPending";
-  } else if (firstStatus === "completed" || secondStatus === "completed") {
-    this.status = firstStatus === "completed" && secondStatus === "completed" ? "close" : "closePending";
+  } else if (statuses.includes("pending")) {
+    this.status = "pending";
+  } else if (statuses.includes("aware") && !statuses.every((s) => s === "aware")) {
+    this.status = "awarePending";
+  } else if (statuses.every((s) => s === "aware")) {
+    this.status = "aware";
+  } else if (statuses.every((s) => s === "accepted")) {
+    this.status = "accepted";
+  } else if (statuses.every((s) => s === "open")) {
+    this.status = "open";
+  } else if (statuses.includes("open") && !statuses.every((s) => s === "open")) {
+    this.status = "openPending";
+  } else if (statuses.includes("closed") && !statuses.every((s) => s === "closed")) {
+    this.status = "closePending";
+  }
+  if (statuses.every((s) => s === "closed")) {
+    // Εδώ θα βάλω όλους τους ελέγχους για να αποφασίσω αν θα γίνει completed ή θα πάει στο review
   }
 
-  // ----> Ενημέρωση progress για τον πρώτο συμμετέχοντα
   if (this.isModified("firstParticipant.checking.correctAccount")) {
+    // ----> Ενημέρωση progress για τον πρώτο συμμετέχοντα
     this.firstParticipant.checking.progress.push({
       title: `Updated correctAccount to ${this.firstParticipant.checking.correctAccount}`,
       createdAt: Date.now(),

@@ -14,11 +14,11 @@ const GetPairs = async () => {
   }
 };
 
-const SaveNewPair = async ({ name, minLots, maxLots, priority }) => {
+const SaveNewPair = async ({ name, lots, priority, expensesFactor }) => {
   "use server";
   try {
     dbConnect();
-    const newPair = new Pair({ name: name, lots: { fast: maxLots, slow: minLots }, priority: priority });
+    const newPair = new Pair({ name, lots, priority, expensesFactor });
     await newPair.save();
     return true;
   } catch (error) {

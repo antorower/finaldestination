@@ -26,7 +26,7 @@ const GetCompanies = async () => {
 
 const Companies = async () => {
   const { sessionClaims } = await auth();
-  console.log(sessionClaims.metadata.owner);
+
   if (!sessionClaims.metadata.owner) {
     redirect("/");
   }

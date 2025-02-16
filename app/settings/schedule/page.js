@@ -72,17 +72,6 @@ const Schedule = async ({ searchParams }) => {
   const day = params.day;
   const minHour = params.minhour;
   const maxHour = params.maxhour;
-  const mode = params.mode;
-
-  if (mode && day) {
-    try {
-      dbConnect();
-      settings[day].mode = mode;
-      await settings.save();
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
   if (minHour) {
     try {
@@ -166,13 +155,6 @@ const Schedule = async ({ searchParams }) => {
                     {hour}
                   </Link>
                 ))}
-              </div>
-              <div className="m-auto">
-                <div className="text-center text-gray-600">Mode</div>
-                <div className="flex gap-4">
-                  <Link href={`/settings/schedule?mode=fast&day=${day}`}>Fast</Link>
-                  <Link href={`/settings/schedule?mode=slow&day=${day}`}>Slow</Link>
-                </div>
               </div>
               <div className="border border-gray-700 rounded p-4 w-full flex flex-wrap gap-4">
                 {settings[day].pairs &&
