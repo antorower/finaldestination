@@ -22,6 +22,22 @@ export const Open = async ({ trade, user }) => {
       });
     if (!baseTrade) return false;
 
+    const isFirstParticipant = baseTrade.firstParticipant.user.toString() === user;
+    const isSecondParticipant = baseTrade.secondParticipant.user.toString() === user;
+
+    if (isFirstParticipant) {
+      if (baseTrade.firstParticipant.trade.pair) {
+        baseTrade.firstParticipant.status === "open";
+        return true;
+      }
+    }
+    if (isSecondParticipant) {
+      if (baseTrade.secondParticipant.trade.pair) {
+        baseTrade.secondParticipant.status === "open";
+        return true;
+      }
+    }
+
     // Παίρνουμε την ημερομηνία και το openTime του αρχικού trade
     const { year, month, day, hour, minutes } = baseTrade.openTime;
 
@@ -102,7 +118,7 @@ export const Open = async ({ trade, user }) => {
 
     // Παίρνουμε όλα τα pairs από το daySettings (κρατάμε ολόκληρο το object για να έχουμε το priority)
     const allDayPairs = daySettings.pairs;
-
+    console.log(allDayPairs.length);
     // Παίρνουμε τις εταιρείες του firstParticipant και secondParticipant
     const firstCompanyId = baseTrade.firstParticipant?.account?.company?._id?.toString();
     const secondCompanyId = baseTrade.secondParticipant?.account?.company?._id?.toString();
@@ -113,7 +129,7 @@ export const Open = async ({ trade, user }) => {
 
     // Συνδυάζουμε τα pairs που έχουν ήδη ανοιχτεί από τις δύο εταιρείες
     const openedPairs = [...new Set([...firstCompanyPairs, ...secondCompanyPairs])];
-
+    console.log(openedPairs.length);
     // Φιλτράρουμε τα διαθέσιμα pairs αφαιρώντας αυτά που έχουν ήδη ανοιχτεί
     const availablePairs = allDayPairs
       .filter((pair) => !openedPairs.includes(pair.name)) // Φιλτράρουμε βάση του name
@@ -142,24 +158,48 @@ export const Open = async ({ trade, user }) => {
       maxRisk: (secondAccountCapital * secondAccountPhase.maxRiskPerTrade) / 100,
     };
 
-    console.log(firstAccountMetadata);
+    // Pair
+    baseTrade.firstParticipant.trade.pair = availablePairs[0].name;
+    baseTrade.secondParticipant.trade.pair = availablePairs[0].name;
+    // Position
+    baseTrade.firstParticipant.trade.position = Math.random() < 0.5 ? "Buy" : "Sell";
+    baseTrade.secondParticipant.trade.position = baseTrade.firstParticipant.trade.position === "Buy" ? "Sell" : "Buy";
 
-    const isFirstParticipant = baseTrade.firstParticipant.user.toString() === user;
-    const isSecondParticipant = baseTrade.secondParticipant.user.toString() === user;
+    //First Account Take Profit - Second Account Stop Loss
+    if (firstAccount.remainingTarget < secondAccountMetadata.maxRisk + baseTrade.secondParticipant.account.capital * 0.01) {
+      baseTrade.firstParticipant.trade.takeProfit = firstAccountMetadata.remainingTarget;
+    } else {
+      baseTrade.firstParticipant.trade.takeProfit = Math.floor(Math.random() * (secondAccountMetadata.maxRisk - secondAccountMetadata.maxRisk * 0.8 + 1)) + Math.floor(secondAccountMetadata.maxRisk * 0.8);
+    }
+    baseTrade.secondParticipant.trade.stopLoss = baseTrade.firstParticipant.trade.takeProfit;
+    //Second Account Take Profit - First Account Stop Loss
+    if (secondAccount.remainingTarget < firstAccountMetadata.maxRisk + baseTrade.firstParticipant.account.capital * 0.01) {
+      baseTrade.secondParticipant.trade.takeProfit = secondAccountMetadata.remainingTarget;
+    } else {
+      baseTrade.secondParticipant.trade.takeProfit = Math.floor(Math.random() * (firstAccountMetadata.maxRisk - firstAccountMetadata.maxRisk * 0.8 + 1)) + Math.floor(firstAccountMetadata.maxRisk * 0.8);
+    }
+    baseTrade.firstParticipant.trade.stopLoss = baseTrade.secondParticipant.trade.takeProfit;
+    // Δεν πρέπει το ένα point να είναι πάνω από 3 φορές μεγαλύτερο από το αντίστοιχο του
+    if (baseTrade.firstParticipant.trade.stopLoss > 3 * baseTrade.secondParticipant.trade.takeProfit) {
+      baseTrade.firstParticipant.trade.stopLoss = 3 * baseTrade.secondParticipant.trade.takeProfit;
+    }
+    if (baseTrade.secondParticipant.trade.stopLoss > 3 * baseTrade.firstParticipant.trade.takeProfit) {
+      baseTrade.secondParticipant.trade.stopLoss = 3 * baseTrade.firstParticipant.trade.takeProfit;
+    }
 
-    if (isFirstParticipant) {
-      const account = baseTrade.firstParticipant.account;
-    }
-    if (isSecondParticipant) {
-      const isFirstAccountHasTrade = Boolean(baseTrade.firstParticipant?.trade?.pair);
-      if (isFirstAccountHasTrade) {
-        baseTrade.secondParticipant.trade.pair = baseTrade.firstParticipant.trade.pair;
-        baseTrade.secondParticipant.trade.position = baseTrade.firstParticipant.trade.position === "Buy" ? "Sell" : "Buy";
-      } else {
-        baseTrade.secondParticipant.trade.pair = availablePairs[0].name;
-        baseTrade.secondParticipant.trade.position = Math.random() < 0.5 ? "Buy" : "Sell";
-      }
-    }
+    let maxValue = Math.max(baseTrade.firstParticipant.trade.stopLoss, baseTrade.firstParticipant.trade.takeProfit, baseTrade.secondParticipant.trade.stopLoss, baseTrade.secondParticipant.trade.takeProfit);
+
+    let baseTradeLots = ((availablePairs[0].lots * maxValue) / 1000).toFixed(2);
+    const maxLotsCompany1 = baseTrade.firstParticipant.account.company.maxlots || 100;
+    const maxLotsCompany2 = baseTrade.secondParticipant.account.company.maxlots || 100;
+    const maxLots = Math.max(maxLotsCompany1, maxLotsCompany2);
+    if (maxLots < baseTradeLots) baseTradeLots = maxLots;
+    console.log(baseTradeLots);
+
+    baseTrade.firstParticipant.trade.lots = (Math.random() * 2 + (baseTradeLots - 2)).toFixed(2);
+    baseTrade.secondParticipant.trade.lots = baseTrade.firstParticipant.trade.lots - (Math.random() * (0.03 - 0.01) + 0.01).toFixed(2);
+    console.log(baseTrade.firstParticipant.trade);
+    console.log(baseTrade.secondParticipant.trade);
 
     return trades;
   } catch (error) {

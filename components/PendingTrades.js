@@ -1,5 +1,7 @@
 import TradeButtonAcceptReject from "./TradeButtonAcceptReject";
 import Trade from "@/models/Trade";
+import { revalidatePath } from "next/cache";
+import dbConnect from "@/dbConnect";
 
 export const SubmitTrade = async ({ userId, tradeId, account, action, points }) => {
   "use server";

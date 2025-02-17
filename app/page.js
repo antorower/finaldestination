@@ -334,7 +334,7 @@ export default async function Home({ searchParams }) {
               📜 Οδηγίες: Κάθε απόγευμα 17:00 - 20:00 ώρα Ελλάδος, ακριβώς κάτω από εδώ, θα υπάρχουν προτάσεις από τον αλγόριθμο για τα trades που μπορείς να βάλεις την επόμενη μέρα. Εσύ μπορείς να πατάς Accept ή Reject αναλόγως αν μπορείς εκείνη την ώρα να το βάλεις. Οι προτάσεις είναι είτε με μπλε είτε με γκρι. Τα μπλε είναι εντός των ωρών που εσύ έχεις δηλώσει ότι μπορείς. Οπότε αν τα κάνεις Reject χάνεις τα EP που αναγράφονται στην παρένθεση λόγω ασυνέπειας. Τα γκρι από την άλλη είναι σε
               ώρες που έχεις δηλώσει ότι δεν μπορείς. Οπότε αν τα κάνεις Accept κερδίζεις τα EP που αναγράφονται στην παρένθεση.
             </div>
-            {pendingTrades && pendingTrades.length > 0 && <PendingTrades trades={pendingTrades} user={user} SubmitTrade={SubmitTrade} />}
+            {pendingTrades && pendingTrades.length > 0 && <PendingTrades trades={pendingTrades} user={user} />}
             {(!pendingTrades || pendingTrades.length === 0) && <div className="m-auto text-red-500 animate-pulse">Δεν υπάρχουν διαθέσιμα trades για επιλογή. Μετά τις 20:00, ώρα Ελλάδος, θα μπορείς να δεις τα trades σου για αύριο αν έχεις αποδεχτεί κάποιο σήμερα</div>}
           </div>
         )}
