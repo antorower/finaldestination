@@ -1,12 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import Link from "next/link";
 
-const WorkingHours = ({ startingTradingHour, endingTradingHour, userStatus, ChangeHours, ChangeStatus, userId }) => {
+const WorkingHours = ({ name, startingTradingHour, endingTradingHour, userStatus, ChangeHours, ChangeStatus, userId }) => {
   const [startingHour, setStartingHour] = useState(startingTradingHour || "");
   const [endingHour, setEndingHour] = useState(endingTradingHour || "");
-  const [status, setStatus] = useState(userStatus || "inactive");
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
@@ -44,7 +42,6 @@ const WorkingHours = ({ startingTradingHour, endingTradingHour, userStatus, Chan
 
     const response = await ChangeHours({ userId, startingHour, endingHour });
     if (response) {
-      toast.success("Hours updated successfully");
       setExpanded(false);
     } else {
       toast.warn("Hours were not updated");
@@ -54,7 +51,6 @@ const WorkingHours = ({ startingTradingHour, endingTradingHour, userStatus, Chan
   const SaveStatus = async () => {
     const response = await ChangeStatus({ userId });
     if (response) {
-      toast.success("Status updated successfully");
       setExpanded(false);
     } else {
       toast.warn("Status were not updated");
@@ -62,26 +58,34 @@ const WorkingHours = ({ startingTradingHour, endingTradingHour, userStatus, Chan
   };
 
   return (
-    <div className="flex gap-4 max-w-[500px] m-auto items-center">
+    <div className="flex flex-col gap-4 max-w-[500px] m-auto items-center">
+      <button onClick={SaveStatus} className="flex items-center gap-2">
+        <div className="text-xl">{userStatus && userStatus === "active" ? "✅" : "⛔"}</div>
+        <div className={`text-2xl ${userStatus === "active" ? "text-green-300 border-green-700" : "text-red-300 border-red-700"}`}>{name}</div>
+      </button>
       {!expanded && (
         <>
           <button onClick={() => setExpanded(true)} className={`${userStatus === "active" ? "text-green-300 border-green-700" : "text-red-300 border-red-700"} px-4 py-2 rounded border-2`}>
             Trading Hours: {startingTradingHour}:00 - {endingTradingHour}:00
           </button>
-          <button onClick={SaveStatus} className={`border px-4 rounded py-2 ${userStatus === "active" ? "bg-green-700 border-2 border-green-900" : "bg-red-700 border-2 border-red-900"}`}>
-            {userStatus && userStatus === "active" ? "Είσαι ενεργός" : "Είσαι ανενεργός"}
-          </button>
         </>
       )}
       {expanded && (
-        <>
-          <input type="number" required value={startingHour} onChange={(e) => setStartingHour(e.target.value)} placeholder="Starting" className="input" />
-          -
-          <input type="number" required value={endingHour} onChange={(e) => setEndingHour(e.target.value)} placeholder="Ending" className="input" />
-          <button onClick={SaveHours} className="border border-gray-700 px-4 py-2">
-            Save
-          </button>
-        </>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 items-center">
+            <input type="number" required value={startingHour} onChange={(e) => setStartingHour(e.target.value)} placeholder="Starting" className="bg-gray-900 border w-[80px] border-gray-700 text-gray-400  placeholder:text-gray-500 px-3 py-2 focus:outline focus:outline-1 focus:outline-gray-600;" />
+            <div> - </div>
+            <input type="number" required value={endingHour} onChange={(e) => setEndingHour(e.target.value)} placeholder="Ending" className="bg-gray-900 border w-[80px] border-gray-700 text-gray-400  placeholder:text-gray-500 px-3 py-2 focus:outline focus:outline-1 focus:outline-gray-600;" />
+          </div>
+          <div className="flex gap-2 items-center">
+            <button onClick={SaveHours} className="border w-[70%] border-green-600 bg-green-700 rounded hover:bg-green-800 px-4 py-2">
+              ✔
+            </button>
+            <button onClick={() => setExpanded(false)} className="border w-[30%] border-gray-700 bg-gray-800 rounded hover:bg-gray-900 px-4 py-2">
+              ❌
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

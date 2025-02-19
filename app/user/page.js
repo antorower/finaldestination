@@ -116,10 +116,10 @@ const Trader = async ({ searchParams }) => {
   return (
     <div className="flex flex-col gap-4">
       <Menu activeMenu="Traders" />
-      <div className="text-center text-3xl border-b border-gray-700 pb-4">
+      <div className="text-center text-xl border-b border-gray-700 pb-4">
         {profileUser.firstName} {profileUser.lastName}
       </div>
-      <div className="m-auto">Last Trade: {profileUser.lastTrade || "No date"}</div>
+      <div className="m-auto text-xl">Last Trade: {profileUser.lastTrade || "No date"}</div>
 
       <div className="grid grid-cols-12 gap-8 px-8">
         {profileUser.accounts &&
@@ -132,30 +132,30 @@ const Trader = async ({ searchParams }) => {
           })}
       </div>
 
-      <div className="p-8 flex flex-col gap-4">
+      <div className="p-8 flex flex-col gap-4 text-sm m-auto">
         {(owner || leader) && (
-          <div className="border border-gray-300 p-4 flex flex-col gap-4 rounded">
-            <div className="flex justify-center">Ομάδα</div>
-            <div className="flex justify-center">
+          <div className="border-2 border-purple-700 p-4 flex flex-col gap-4 rounded max-w-[450px]">
+            <div className="flex justify-center text-gray-600">Ομάδα</div>
+            <div className="flex justify-center border border-green-700 p-4 gap-4">
               {profileUser.team &&
                 profileUser.team.length > 0 &&
                 profileUser.team.map((user) => {
                   return (
-                    <Link href={`/user?user=${profileUser._id.toString()}&action=remove&pickeduser=${user._id.toString()}&placement=team`} key={`omada-uparxontes-${user._id.toString()}`} className="border border-gray-700 mx-2 px-4 py-2">
+                    <Link href={`/user?user=${profileUser._id.toString()}&action=remove&pickeduser=${user._id.toString()}&placement=team`} key={`omada-uparxontes-${user._id.toString()}`} className="border border-green-700 text-green-500 mx-2 px-4 py-2">
                       {user.firstName} {user.lastName}
                     </Link>
                   );
                 })}
             </div>
             {owner && (
-              <div className="flex justify-center flex-wrap">
+              <div className="flex justify-center flex-wrap  border border-orange-700 p-4 text-orange-500 gap-4">
                 {users &&
                   users.length > 0 &&
                   users
                     .filter((user) => !profileUser.team.some((teamMember) => teamMember._id.toString() === user._id.toString())) // Φιλτράρει όσους είναι ήδη στην ομάδα
                     .map((user) => {
                       return (
-                        <Link href={`/user?user=${profileUser._id.toString()}&action=add&pickeduser=${user._id.toString()}&placement=team`} className="border border-gray-700 mx-2 px-4 py-2" key={`omada-oloi-${user._id.toString()}`}>
+                        <Link href={`/user?user=${profileUser._id.toString()}&action=add&pickeduser=${user._id.toString()}&placement=team`} className="border border-orange-700 mx-2 px-4 py-2" key={`omada-oloi-${user._id.toString()}`}>
                           {user.firstName} {user.lastName}
                         </Link>
                       );
@@ -165,28 +165,28 @@ const Trader = async ({ searchParams }) => {
           </div>
         )}
         {(owner || leader) && (
-          <div className="border border-gray-300 p-4 flex flex-col gap-4 ">
-            <div className="flex justify-center">Δικαιούχοι</div>
-            <div className="flex justify-center">
+          <div className="border border-purple-700 p-4 flex flex-col gap-4 rounded max-w-[450px]">
+            <div className="flex justify-center text-gray-600">Δικαιούχοι</div>
+            <div className="flex justify-center border border-green-700 p-4 gap-4">
               {profileUser.beneficiaries &&
                 profileUser.beneficiaries.length > 0 &&
                 profileUser.beneficiaries.map((user) => {
                   return (
-                    <Link href={`/user?user=${profileUser._id.toString()}&action=remove&pickeduser=${user._id.toString()}&placement=beneficiaries`} key={`dikaiouxoi-uparxontes-${user._id.toString()}`} className="border border-gray-700 mx-2 px-4 py-2">
+                    <Link href={`/user?user=${profileUser._id.toString()}&action=remove&pickeduser=${user._id.toString()}&placement=beneficiaries`} key={`dikaiouxoi-uparxontes-${user._id.toString()}`} className="border border-green-700 text-green-500 mx-2 px-4 py-2">
                       {user.user.firstName} {user.user.lastName} - {user.percentage}%
                     </Link>
                   );
                 })}
             </div>
             {owner && (
-              <div className="flex justify-center flex-wrap">
+              <div className="flex justify-center flex-wrap border border-orange-700 p-4 text-orange-500 gap-4">
                 {users &&
                   users.length > 0 &&
                   users
                     .filter((user) => !profileUser.beneficiaries.some((beneficiaryMember) => beneficiaryMember._id.toString() === user._id.toString())) // Φιλτράρει όσους είναι ήδη στην ομάδα
                     .map((user) => {
                       return (
-                        <Link href={`/user?user=${profileUser._id.toString()}&action=add&pickeduser=${user._id.toString()}&placement=beneficiaries`} className="border border-gray-700 mx-2 px-4 py-2" key={`dikaiouxoi-oloi-${user._id.toString()}`}>
+                        <Link href={`/user?user=${profileUser._id.toString()}&action=add&pickeduser=${user._id.toString()}&placement=beneficiaries`} className="border border-orange-700 mx-2 px-4 py-2" key={`dikaiouxoi-oloi-${user._id.toString()}`}>
                           {user.firstName} {user.lastName}
                         </Link>
                       );

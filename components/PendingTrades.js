@@ -1,5 +1,6 @@
 import TradeButtonAcceptReject from "./TradeButtonAcceptReject";
 import Trade from "@/models/Trade";
+import User from "@/models/User";
 import { revalidatePath } from "next/cache";
 import dbConnect from "@/dbConnect";
 
@@ -7,12 +8,13 @@ export const SubmitTrade = async ({ userId, tradeId, account, action, points }) 
   "use server";
   // ----> Απορρίπτει ή αποδέχεται το trade
   const tradesSuggestionHours = {
-    starting: 0,
-    ending: 24,
-  }; // EDIT
+    starting: 3,
+    ending: 9,
+  };
+
   const now = new Date();
-  const greeceTime = Number(now.toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "2-digit", hour12: false }));
-  if (greeceTime < tradesSuggestionHours.starting || greeceTime > tradesSuggestionHours.ending) return false; // EDIT το > 0 να γίνει > 20
+  const greeceTime = 8 || Number(now.toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "2-digit", hour12: false })); // EDIT
+  if (greeceTime < tradesSuggestionHours.starting || greeceTime > tradesSuggestionHours.ending) return false;
 
   try {
     await dbConnect();
@@ -59,7 +61,7 @@ export const SubmitTrade = async ({ userId, tradeId, account, action, points }) 
 
 const PendingTrades = ({ trades, user }) => {
   return (
-    <div className="flex flex-wrap justify-center gap-8 my-8">
+    <div className="flex flex-wrap justify-center gap-8">
       {trades &&
         trades.length > 0 &&
         trades.map((trade) => {
@@ -84,7 +86,7 @@ const PendingTrades = ({ trades, user }) => {
           if (status !== "pending") return null;
 
           return (
-            <div key={`trade-${trade._id.toString()}`} className={`flex flex-col justify-center items-center rounded gap-2 px-4 py-4 ${priority === "high" ? "border-2 border-blue-500 bg-blue-800" : " border border-gray-500 bg-gray-800"}`}>
+            <div key={`trade-${trade._id.toString()}`} className={`flex flex-col justify-center items-center rounded gap-2 px-4 py-4 ${priority === "high" ? "border-2 border-blue-500 bg-blue-800" : "border-2 border-gray-500 bg-gray-800"}`}>
               <div className="text-center rounded flex gap-2 text-2xl font-bold">
                 <div>{date}</div>
                 <div>{day}</div>
@@ -92,8 +94,8 @@ const PendingTrades = ({ trades, user }) => {
               </div>
               <div className="text-lg flex items-center">στο {account}</div>
               <div className="flex gap-4 w-full">
-                <TradeButtonAcceptReject text="Accept" account={account} accept={true} trader={user._id.toString()} trade={trade._id.toString()} SubmitTrade={SubmitTrade} points={priority === "high" ? 0 : 1} />
-                <TradeButtonAcceptReject text="Reject" account={account} accept={false} trader={user._id.toString()} trade={trade._id.toString()} SubmitTrade={SubmitTrade} points={priority === "high" ? -4 : 0} />
+                <TradeButtonAcceptReject text="Αποδοχή" account={account} accept={true} trader={user._id.toString()} trade={trade._id.toString()} SubmitTrade={SubmitTrade} points={priority === "high" ? 0 : 1} />
+                <TradeButtonAcceptReject text="Απόρριψη" account={account} accept={false} trader={user._id.toString()} trade={trade._id.toString()} SubmitTrade={SubmitTrade} points={priority === "high" ? -4 : 0} />
               </div>
             </div>
           );

@@ -1,11 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
 
-const NewAccount = ({ id, SaveNewAccount }) => {
+const NewAccount = ({ admin, id, SaveNewAccount, DeleteAccount }) => {
   const [number, setNumber] = useState("");
-  const router = useRouter();
 
   const SaveAccount = async () => {
     if (!number) {
@@ -14,10 +12,14 @@ const NewAccount = ({ id, SaveNewAccount }) => {
     }
 
     const response = await SaveNewAccount({ number, id });
-    if (response) {
-      toast.success("Ο αριθμός του νέου account δηλώθηκε");
-      router.refresh();
-    } else {
+    if (!response) {
+      toast.warn("Κάτι πήγε στραβά, κάνε refresh και προσπάθησε ξανά");
+    }
+  };
+
+  const Delete = async () => {
+    const response = await DeleteAccount({ id });
+    if (!response) {
       toast.warn("Κάτι πήγε στραβά, κάνε refresh και προσπάθησε ξανά");
     }
   };
@@ -26,8 +28,13 @@ const NewAccount = ({ id, SaveNewAccount }) => {
     <div className="border border-gray-700 p-4 flex flex-col gap-4 rounded">
       <input type="text" required value={number} onChange={(e) => setNumber(e.target.value)} placeholder="Account Number" className="input" />
       <button className="bg-blue-500 p-4 rounded font-black w-full" onClick={SaveAccount}>
-        Save
+        &#128190;
       </button>
+      {admin && (
+        <button className="bg-red-500 p-4 rounded font-black w-full" onClick={Delete}>
+          ❌
+        </button>
+      )}
     </div>
   );
 };

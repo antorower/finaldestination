@@ -50,6 +50,25 @@ export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail,
   }
 };
 
+export const SaveQuestions = async ({ answers }) => {
+  "use server";
+  const { sessionClaims } = await auth();
+  console.log(answers);
+  console.log(sessionClaims.userId);
+  try {
+    await dbConnect();
+    const user = await User.findOne({ clerkId: sessionClaims.userId });
+    user.questions = answers;
+    await user.save();
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
 export const SaveHours = async ({ userId, startingHour, endingHour }) => {
   "use server";
   // ----> Ενημερώνει τις trading hours του χρήστη
@@ -153,7 +172,6 @@ export const GetSettings = async (userId) => {
 export default async function Home({ searchParams }) {
   // ---> Parameters
   const params = await searchParams;
-  const instructions = params?.instructions;
 
   // ---> User και SessionClaims
   const { sessionClaims } = await auth();
@@ -162,8 +180,9 @@ export default async function Home({ searchParams }) {
   //#region Έλεγχος User
   // Αν υπάρξει error τραβώντας τον user βγάλε μήνυμα λάθους
   // Αν ο user δεν υπάρχει βγάλε την φόρμα εγγραφής
-  if (!user) {
-    return <RegisterForm RegisterUser={RegisterUser} />;
+
+  if (!user || !user?.questions || user?.questions?.length === 0) {
+    return <RegisterForm RegisterUser={RegisterUser} SaveQuestions={SaveQuestions} register={Boolean(!user)} questions={Boolean(!user?.questions) || user?.questions.length === 0} />;
   }
   // Αν ο user δεν έχει γίνει ακόμα δεκτός του βγάζει μήνυμα
   if (!user.accepted) {
@@ -171,13 +190,14 @@ export default async function Home({ searchParams }) {
   }
   //#endregion
 
-  // ----> Οι ώρες που ο αλγόριθμος θα κάνει προτάσεις για τα αυριανά trades
+  //#region Οι ώρες που ο αλγόριθμος θα κάνει προτάσεις για τα αυριανά trades
   const now = new Date();
-  const greeceTime = Number(now.toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "2-digit", hour12: false }));
+  let greeceTime = Number(now.toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "2-digit", hour12: false }));
   const tradesSuggestionHours = {
     starting: 0,
     ending: 24,
   }; // EDIT 17 - 20
+  //#endregion
 
   //#region Update public note για ώρα κλεισίματος
   const settings = await GetSettings();
@@ -280,15 +300,21 @@ export default async function Home({ searchParams }) {
   });
   //#endregion
 
+  //#region Διαλογή των accounts
+  const waitingPurchaseAccounts = user.accounts.filter((account) => account.status === "WaitingPurchase");
+  const liveAccounts = user.accounts.filter((account) => account.status === "Live");
+  const needUpgradeAccounts = user.accounts.filter((account) => account.status === "NeedUpgrade");
+  const waitingPayoutAccounts = user.accounts.filter((account) => account.status === "WaitingPayout");
+  console.log(waitingPayoutAccounts);
+  //#endregion
+
   return (
     <div className="flex flex-col gap-4 p-8">
       <Menu activeMenu="Profile" />
 
-      <div className="m-auto text-2xl">
-        {user.firstName} {user.lastName}
+      <div className="p-4">
+        <WorkingHours name={`${user.firstName} ${user.lastName}`} startingTradingHour={user.tradingHours.startingTradingHour} endingTradingHour={user.tradingHours.endingTradingHour} userStatus={user.status} ChangeHours={SaveHours} ChangeStatus={SaveStatus} userId={user._id.toString()} />
       </div>
-
-      <WorkingHours startingTradingHour={user.tradingHours.startingTradingHour} endingTradingHour={user.tradingHours.endingTradingHour} userStatus={user.status} ChangeHours={SaveHours} ChangeStatus={SaveStatus} userId={user._id.toString()} />
 
       {publicNote && publicNote !== "" && (
         <div className="text-center p-4 bg-orange-700 w-full rounded-md text-3xl font-bold flex gap-8 flex-wrap justify-center">
@@ -299,91 +325,151 @@ export default async function Home({ searchParams }) {
       )}
 
       <div className="text-gray-700 flex flex-col gap-4 max-w-[800px] m-auto">
-        <Link href={instructions !== "true" ? "/?instructions=true" : "/"} className="text-center">
+        <Link href="/instructions" className="text-center">
           📑 Οδηγίες
         </Link>
-        {instructions && instructions === "true" && (
-          <div className="flex flex-col gap-4 items-center justify-center flex-wrap">
-            <div className="border border-gray-700 px-4 py-1 w-full">1. Βάζεις τα προγραμματισμένα trades σου οπωσδήποτε την ώρα που πρέπει</div>
-            <div className="text-justify w-full">
-              Το πρωί που θα ξυπνήσεις θα δεις το section "Επιβεβαίωση Παρουσίας". Εκεί θα πρέπει τουλάχιστον 10 λεπτά πριν το trade (αλλά όχι σε διάστημα μεγαλύτερο της μίας ώρας) να επιβεβαιώσεις ότι είσαι εδώ πατώντας το κουμπί "Είμαι εδώ". Δηλαδή αν το trade σου πρέπει να ανοίξει 7:42 θα πρέπει 6:42 με 7:32 να επιβεβαιώσεις ότι είσαι εδώ. Στην συνέχεια στο section "Άνοιγμα Trade" θα δεις το trade που πρέπει να ανοίξεις. Πάτα το "Άνοιγμα Trade" 10 λεπτά νωρίτερα (δηλαδή 7:32 με 7:34) ώστε να
-              έχεις τον χρόνο να το φτιάξεις και να το ελέγξεις. Πάτησε το κουμπί για να ανοίξει το trade στο MetaTrader ή το MatchTrader ακριβώς την ώρα που πρέπει (δηλαδή 7:42 στο παράδειγμά μας). Ούτε ένα λεπτό πάνω ούτε ένα λεπτό κάτω, και αυτό είναι σημαντικό. Το account θα πρέπει να είναι από την προηγούμενη μέρα τεσταρισμένο ότι παίρνει trades. Δηλαδή θα πρέπει να έχεις βάλει 0.01 ώστε να είσαι σίγουρος ότι μπορούν να μπουν trades για να μην ψάχνεις κατόπιν εορτής πώς θα διορθωθεί το
-              λάθος γιατί εκείνη την ώρα δεν θα βρεις κανέναν να σε βοηθήσει.
-            </div>
-            <div className="border border-gray-700 px-4 py-1 w-full">2. Κλείνεις όλα τα trades σου οπωσδήποτε την ώρα που πρέπει</div>
-            <div className="text-justify w-full">Ακριβώς από πάνω, στο κόκκινο πλαίσιο, γράφει κάθε μέρα τι ώρα πρέπει να κλείνουμε τα trades. Πρέπει να τα κλείνουμε σε αυτό το διάστημα που γράφει το πλαίσιο. Ούτε πιο νωρίς επειδή δεν θα μπορούμε αργότερα ούτε πιο μετά γιατί "κάναμε κάτι σημαντικό εκείνη την ώρα". Οι δικαιολογίες δεν ενδιαφέρουν κανέναν και κανένας δεν θα μας φέρει πίσω τα λεφτά του καμμένου account επειδή είχαμε καλή δικαιολογία. Είμαστε υπεύθυνοι!</div>
-            <div className="border border-gray-700 px-4 py-1 w-full">3. Πριν τις 4:30 το απόγευμα πρέπει να έχεις ενημερώσει το balance σου στην σελίδα</div>
-            <div className="text-justify w-full">Κάθε μέρα είναι υποχρεωτικό και απολύτως απαραίτητο να έχουμε ενημερώσει το balance όλων μας των account πριν τις 4:30 το απόγευμα αλλίως ο αλγόριθμος δεν θα μας συμπεριλάβει στα trades της επόμενης ημέρας. Που σημαίνει είμαστε ανεύθυνοι. Και η ανευθυνότητα δεν έχει θέση όταν κρατάμε accounts μεγάλης αξίας.</div>
-            <div className="border border-gray-700 px-4 py-1 w-full">4. 5:00 με 8:00 το βράδυ κάνεις accept/reject τα προτεινόμενα trades για την επόμενη μέρα</div>
-            <div className="text-justify w-full">
-              Κάθε μέρα από τις 5:00 το απόγευμα μέχρι τις 8:00 το βράδυ βλέπεις τα trades που σου έχει προτείνει ο αλγόριθμος και πατάς accept σε αυτά που μπορείς να βάλεις και reject σε αυτά που δεν μπορείς. Αν πατήσεις accept σε ένα γκρίζο trade που είναι εκτός των ωρών που έχεις δηλώσει ότι σε βολεύεουν τότε θα πάρεις EP, αν πατήσεις reject δεν θα χάσεις τίποτα. Αντίθετα, αν πατήσεις accept σε ένα μπλε trade που είναι στις ώρες που σε βολεύουν δεν θα πάρεις EP, αλλά αν πατήσεις reject θα
-              χάσεις. Εννοείται ότι αν δεν κάνεις τίποτα από τα δύο ο αλγόριθμος θα το εκλάβει σαν την απόλυτη ανευθυνότητα.
-            </div>
-            <div className="border border-gray-700 px-4 py-1 w-full">5. Μετά τις 8:00 το βράδυ μπορείς να δεις τα trades που πρέπει να βάλεις την επόμενη μέρα</div>
-            <div className="text-justify w-full">Μετά τις 8:00 το βράδυ μπορείς να μπεις και να δεις το αυριανό σου πρόγραμμα ώστε να σετάρεις τα ξυπνητήρια σου και λοιπά.</div>
-          </div>
-        )}
       </div>
 
-      <div className="flex flex-col gap-8">
-        {greeceTime > tradesSuggestionHours.starting && greeceTime < tradesSuggestionHours.ending && (
-          <div className="text-center flex flex-col gap-4">
-            <hr className="border-none h-[1px] bg-gray-800" />
-            <div>Προτάσεις Αλγορίθμου</div>
-            <div className="text-sm text-center text-gray-700">
-              📜 Οδηγίες: Κάθε απόγευμα 17:00 - 20:00 ώρα Ελλάδος, ακριβώς κάτω από εδώ, θα υπάρχουν προτάσεις από τον αλγόριθμο για τα trades που μπορείς να βάλεις την επόμενη μέρα. Εσύ μπορείς να πατάς Accept ή Reject αναλόγως αν μπορείς εκείνη την ώρα να το βάλεις. Οι προτάσεις είναι είτε με μπλε είτε με γκρι. Τα μπλε είναι εντός των ωρών που εσύ έχεις δηλώσει ότι μπορείς. Οπότε αν τα κάνεις Reject χάνεις τα EP που αναγράφονται στην παρένθεση λόγω ασυνέπειας. Τα γκρι από την άλλη είναι σε
-              ώρες που έχεις δηλώσει ότι δεν μπορείς. Οπότε αν τα κάνεις Accept κερδίζεις τα EP που αναγράφονται στην παρένθεση.
-            </div>
-            {pendingTrades && pendingTrades.length > 0 && <PendingTrades trades={pendingTrades} user={user} />}
-            {(!pendingTrades || pendingTrades.length === 0) && <div className="m-auto text-red-500 animate-pulse">Δεν υπάρχουν διαθέσιμα trades για επιλογή. Μετά τις 20:00, ώρα Ελλάδος, θα μπορείς να δεις τα trades σου για αύριο αν έχεις αποδεχτεί κάποιο σήμερα</div>}
-          </div>
-        )}
-
-        {greeceTime >= 3 && greeceTime <= 19 && acceptedTrades && acceptedTrades.length > 0 && (
-          <div className="text-center flex flex-col gap-4">
-            <hr className="border-none h-[1px] bg-gray-800" />
-            <div>Επιβεβαίωση Παρουσίας</div>
-            <div className="text-red-500 animate-pulse">Αν το account είναι καινούριο, πριν πατήσεις το κουμπί "Είμαι εδώ" βάλε ένα trade 0.01 στο account για να σιγουρευτείς ότι στο account μπορούν να μπουν trades</div>
-            <div className="text-sm text-center text-gray-700">📜 Οδηγίες: Το πρωί θα πρέπει να ξυπνήσεις νωρίτερα από το πρώτο σου trade έτσι ώστε να μπορέσεις τουλάχιστον 10 λεπτά πριν το trade να επιβεβαιώσεις ότι είσαι εδώ ώστε ο αλγόριθμος να ξέρει ότι θα το βάλεις. Αφού επιβεβαιώσεις την παρουσία σου θα βρεις το trade που πρέπει να ανοίξεις στο section "Άνοιγμα Trade".</div>
-            {acceptedTrades && acceptedTrades.length > 0 && <AcceptedTrades trades={acceptedTrades} user={user} />}
-            {(!acceptedTrades || acceptedTrades.length === 0) && <div className="m-auto text-red-500 animate-pulse">Δεν υπάρχουν trades για άνοιγμα</div>}
-          </div>
-        )}
-
-        {(awareTrades.length > 0 || openTrades.length > 0) && (
-          <div className="text-center flex flex-col gap-4">
-            <hr className="border-none h-[1px] bg-gray-800" />
-            <div>Τα Trades Σου</div>
-            <div className="text-sm text-center text-gray-700">📜 Οδηγίες: Τα μωβ trades ακριβώς από κάτω είναι αυτά που αναγράφεται ότι πρέπει να μπει πατώντας το κουμπί "Άνοιγμα". Φρόντισε να το πατήσες 10 λεπτά πριν την ώρα που πρέπει να μπει για να έχεις χρόνο να τα κάνεις σωστά και να τα ελέγξεις.</div>
-            {awareTrades.length > 0 && <AwareTrades trades={awareTrades} user={user} />}
-          </div>
-        )}
-
-        <div className="flex justify-center gap-8">
-          {user.accounts &&
-            user.accounts.length > 0 &&
-            user.accounts.map((account) => {
-              return (
-                <AccountCard
-                  key={`account-${account._id.toString()}`}
-                  id={account._id.toString()}
-                  status={account.status}
-                  number={account.number || "-"}
-                  company={account.company.name}
-                  balance={account.balance}
-                  phase={account.phase}
-                  note={account.note || "-"}
-                  link={account.company.link}
-                  instructions={account.company.phases[account.phase - 1].instructions}
-                  userId={account.user._id.toString()}
-                  companyId={account.company._id.toString()}
-                  capital={account.capital}
-                  isOnBoarding={account.isOnBoarding}
-                />
-              );
-            })}
+      {greeceTime > tradesSuggestionHours.starting && greeceTime < tradesSuggestionHours.ending && <hr className="border-none h-[1px] bg-gray-800" />}
+      {greeceTime > tradesSuggestionHours.starting && greeceTime < tradesSuggestionHours.ending && (
+        <div className="text-center flex flex-col gap-4">
+          <div>Προτάσεις Αλγορίθμου</div>
+          {pendingTrades && pendingTrades.length > 0 && <PendingTrades trades={pendingTrades} user={user} />}
+          {(!pendingTrades || pendingTrades.length === 0) && <div className="m-auto text-red-500 animate-pulse">Δεν υπάρχουν διαθέσιμα trades για επιλογή. Μετά τις 20:00, ώρα Ελλάδος, θα μπορείς να δεις τα trades σου για αύριο αν έχεις αποδεχτεί κάποιο σήμερα</div>}
         </div>
-      </div>
+      )}
+
+      {greeceTime >= 3 && greeceTime <= 19 && acceptedTrades && acceptedTrades.length > 0 && <hr className="border-none h-[1px] bg-gray-800" />}
+      {greeceTime >= 3 && greeceTime <= 19 && acceptedTrades && acceptedTrades.length > 0 && (
+        <div className="text-center flex flex-col gap-4">
+          <div>Επιβεβαίωση Παρουσίας</div>
+          <div className="text-red-500 animate-pulse">Αν το account είναι καινούριο, πριν πατήσεις το κουμπί "Είμαι εδώ" βάλε ένα trade 0.01 στο account για να σιγουρευτείς ότι στο account μπορούν να μπουν trades</div>
+          <div className="text-sm text-center text-gray-700">📜 Οδηγίες: Το πρωί θα πρέπει να ξυπνήσεις νωρίτερα από το πρώτο σου trade έτσι ώστε να μπορέσεις τουλάχιστον 10 λεπτά πριν το trade να επιβεβαιώσεις ότι είσαι εδώ ώστε ο αλγόριθμος να ξέρει ότι θα το βάλεις. Αφού επιβεβαιώσεις την παρουσία σου θα βρεις το trade που πρέπει να ανοίξεις στο section "Άνοιγμα Trade".</div>
+          {acceptedTrades && acceptedTrades.length > 0 && <AcceptedTrades trades={acceptedTrades} user={user} />}
+          {(!acceptedTrades || acceptedTrades.length === 0) && <div className="m-auto text-red-500 animate-pulse">Δεν υπάρχουν trades για άνοιγμα</div>}
+        </div>
+      )}
+
+      {(awareTrades.length > 0 || openTrades.length > 0) && <hr className="border-none h-[1px] bg-gray-800" />}
+      {(awareTrades.length > 0 || openTrades.length > 0) && (
+        <div className="text-center flex flex-col gap-4">
+          <div>Τα Trades Σου</div>
+          <div className="text-sm text-center text-gray-700">📜 Οδηγίες: Τα μωβ trades ακριβώς από κάτω είναι αυτά που αναγράφεται ότι πρέπει να μπει πατώντας το κουμπί "Άνοιγμα". Φρόντισε να το πατήσες 10 λεπτά πριν την ώρα που πρέπει να μπει για να έχεις χρόνο να τα κάνεις σωστά και να τα ελέγξεις.</div>
+          {awareTrades.length > 0 && <AwareTrades trades={awareTrades} user={user} />}
+        </div>
+      )}
+
+      {waitingPurchaseAccounts?.length > 0 && <hr className="border-none h-[1px] bg-gray-800" />}
+      {waitingPurchaseAccounts?.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-8 p-4">
+          {waitingPurchaseAccounts.map((account) => {
+            return (
+              <AccountCard
+                admin={sessionClaims.metadata.owner}
+                key={`account-${account._id.toString()}`}
+                id={account._id.toString()}
+                status={account.status}
+                number={account.number || "Account: Εκκρεμεί"}
+                company={account.company.name}
+                balance={account.balance}
+                phase={account.phase}
+                note={account.note || "-"}
+                link={account.company.link}
+                instructions={account.company.phases[account.phase - 1].instructions}
+                userId={account.user._id.toString()}
+                companyId={account.company._id.toString()}
+                capital={account.capital}
+                isOnBoarding={account.isOnBoarding}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {needUpgradeAccounts?.length > 0 && <hr className="border-none h-[1px] bg-gray-800" />}
+      {needUpgradeAccounts?.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-8 p-4">
+          {needUpgradeAccounts.map((account) => {
+            return (
+              <AccountCard
+                admin={sessionClaims.metadata.owner}
+                key={`account-${account._id.toString()}`}
+                id={account._id.toString()}
+                status={account.status}
+                number={account.number || "Account: Εκκρεμεί"}
+                company={account.company.name}
+                balance={account.balance}
+                phase={account.phase}
+                note={account.note || "-"}
+                link={account.company.link}
+                instructions={account.company.phases[account.phase - 1].instructions}
+                userId={account.user._id.toString()}
+                companyId={account.company._id.toString()}
+                capital={account.capital}
+                isOnBoarding={account.isOnBoarding}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {liveAccounts?.length > 0 && <hr className="border-none h-[1px] bg-gray-800" />}
+      {liveAccounts?.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-8 p-4">
+          {liveAccounts.map((account) => {
+            return (
+              <AccountCard
+                admin={sessionClaims.metadata.owner}
+                key={`account-${account._id.toString()}`}
+                id={account._id.toString()}
+                status={account.status}
+                number={account.number || "Account: Εκκρεμεί"}
+                company={account.company.name}
+                balance={account.balance}
+                phase={account.phase}
+                note={account.note || "-"}
+                link={account.company.link}
+                instructions={account.company.phases[account.phase - 1].instructions}
+                userId={account.user._id.toString()}
+                companyId={account.company._id.toString()}
+                capital={account.capital}
+                isOnBoarding={account.isOnBoarding}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {waitingPayoutAccounts?.length > 0 && <hr className="border-none h-[1px] bg-gray-800" />}
+      {waitingPayoutAccounts?.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-8 p-4">
+          {waitingPayoutAccounts.map((account) => {
+            return (
+              <AccountCard
+                admin={sessionClaims.metadata.owner}
+                key={`account-${account._id.toString()}`}
+                id={account._id.toString()}
+                status={account.status}
+                number={account.number || "Account: Εκκρεμεί"}
+                company={account.company.name}
+                balance={account.balance}
+                phase={account.phase}
+                note={account.note || "-"}
+                link={account.company.link}
+                instructions={account.company.phases[account.phase - 1].instructions}
+                userId={account.user._id.toString()}
+                companyId={account.company._id.toString()}
+                capital={account.capital}
+                isOnBoarding={account.isOnBoarding}
+                thereIsDate={Boolean(account.payoutRequestDate.day)}
+                payoutRequestDay={account.payoutRequestDate.day}
+                payoutRequestMonth={account.payoutRequestDate.month}
+                payoutRequestYear={account.payoutRequestDate.year}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

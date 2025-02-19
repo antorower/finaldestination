@@ -6,57 +6,61 @@ const Menu = async ({ activeMenu }) => {
   const owner = sessionClaims.metadata.owner;
   const leader = sessionClaims.metadata.leader;
 
+  const linkStyle = "text-center px-2 py-3 text-sm rounded";
+  const selectedStyle = "text-white bg-blue-800";
+  const deselectedStyle = "text-white bg-gray-800";
+
   return (
-    <div className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-12 text-white border-b border-gray-700 py-4">
-      <Link href="/" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Profile" && "text-orange-400"}`}>
+    <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4 text-white border-b border-gray-700 py-4">
+      <Link href="/" className={`${linkStyle} ${activeMenu === "Profile" ? selectedStyle : deselectedStyle}`}>
         Profile
       </Link>
       {owner && (
-        <Link href="/admin" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Admin" && "text-orange-400"}`}>
+        <Link href="/admin" className={`${linkStyle} ${activeMenu === "Admin" ? selectedStyle : deselectedStyle}`}>
           Admin
         </Link>
       )}
       {(owner || leader) && (
-        <Link href="/users" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Traders" && "text-orange-400"}`}>
+        <Link href="/users" className={`${linkStyle} ${activeMenu === "Traders" ? selectedStyle : deselectedStyle}`}>
           Traders
         </Link>
       )}
       {(owner || leader) && (
-        <Link href="/accounts" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Accounts" && "text-orange-400"}`}>
+        <Link href="/accounts" className={`${linkStyle} ${activeMenu === "Accounts" ? selectedStyle : deselectedStyle}`}>
           Accounts
         </Link>
       )}
       {(owner || leader) && (
-        <Link href="/" className="text-center p-2 text-sm hover:text-orange-200">
+        <Link href="/" className={`${linkStyle} ${activeMenu === "Accounts" ? selectedStyle : deselectedStyle}`}>
           Team
         </Link>
       )}
       {owner && (
-        <Link href="/" className="text-center p-2 text-sm hover:text-orange-200">
+        <Link href="/" className={`${linkStyle} ${activeMenu === "Accounts" ? selectedStyle : deselectedStyle}`}>
           Trades
         </Link>
       )}
       {(owner || leader) && (
-        <Link href="/" className="text-center p-2 text-sm hover:text-orange-200">
+        <Link href="/" className={`${linkStyle} ${activeMenu === "Accounts" ? selectedStyle : deselectedStyle}`}>
           Payouts
         </Link>
       )}
       {owner && (
-        <Link href="/" className="text-center p-2 text-sm hover:text-orange-200">
+        <Link href="/" className={`${linkStyle} ${activeMenu === "Accounts" ? selectedStyle : deselectedStyle}`}>
           Data
         </Link>
       )}
       {owner && (
-        <Link href="/companies" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Companies" && "text-orange-400"}`}>
+        <Link href="/companies" className={`${linkStyle} ${activeMenu === "Companies" ? selectedStyle : deselectedStyle}`}>
           Companies
         </Link>
       )}
       {owner && (
-        <Link href="/settings" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Settings" && "text-orange-400"}`}>
+        <Link href="/settings" className={`${linkStyle} ${activeMenu === "Settings" ? selectedStyle : deselectedStyle}`}>
           Settings
         </Link>
       )}
-      <Link href="/instructions" className={`text-center p-2 text-sm hover:text-orange-200 ${activeMenu === "Guide" && "text-orange-400"}`}>
+      <Link href="/instructions" className={`${linkStyle} ${activeMenu === "Guide" ? selectedStyle : deselectedStyle}`}>
         Guide
       </Link>
     </div>

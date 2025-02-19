@@ -9,12 +9,13 @@ const TradeButtonAcceptReject = ({ text, accept, trader, trade, SubmitTrade, acc
 
   const Submit = async () => {
     setIsDisabled(true);
-    const response = SubmitTrade({ userId: trader, account, tradeId: trade, points, action: accept ? "accept" : "reject" });
+    const response = await SubmitTrade({ userId: trader, account, tradeId: trade, points, action: accept ? "accept" : "reject" });
+
     if (response) {
-      const text = accept ? "Trade accepted successfully" : "Trade rejected successfully";
+      const text = accept ? "Το trade έγινε δεκτό" : "Το trade απορρίφθηκε";
       toast.success(text);
     } else {
-      toast.error("Something went wrong. Try again");
+      toast.error("Κάτι πήγε στραβά. Προσπάθησε ξανά.");
       setIsDisabled(false);
     }
   };
@@ -23,7 +24,7 @@ const TradeButtonAcceptReject = ({ text, accept, trader, trade, SubmitTrade, acc
     <button onClick={Submit} disabled={isDisabled} className={`${accept && "bg-green-600"} ${!accept && "bg-red-600"} w-full text-center px-2 py-1 rounded font-bold hover:scale-105 transition-transform duration-300 text-nowrap`}>
       {text}
       <span className="ml-1">
-        {accept && points > 0 && `(+${points} EP)`} {!accept && points < 0 && `(${points} EP)`}
+        {accept && points > 0 && `(+${points} EP)`} {!accept && points < 0 && `για ${points} EP`}
       </span>
     </button>
   );
