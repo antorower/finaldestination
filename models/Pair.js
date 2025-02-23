@@ -1,22 +1,31 @@
 import mongoose from "mongoose";
-import User from "./User";
-import Company from "./Company";
 
 const PairSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       unique: true,
+      trim: true,
+      required: true,
     },
-    lots: Number,
-    priority: Number,
-    expensesFactor: {
+    lots: {
+      type: Number,
+      required: true,
+    },
+    priority: {
+      type: Number,
+      required: true,
+    },
+    costFactor: {
       type: Number,
       default: 0,
+    },
+    active: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true }
 );
 
 export default mongoose.models.Pair || mongoose.model("Pair", PairSchema);
-// Τα lots είναι ανά 1000$ στο stoploss/takeprofit

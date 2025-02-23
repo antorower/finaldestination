@@ -5,6 +5,8 @@ import { auth } from "@clerk/nextjs/server";
 import AddAccountLink from "@/components/AddAccountLink";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import UserPaymentMethod from "@/components/UserPaymentMethod";
+import { revalidatePath } from "next/cache";
 
 const GetUser = async (id) => {
   "use server";
@@ -35,6 +37,23 @@ const GetAllUsers = async () => {
   } catch (error) {
     console.log(error);
     return false;
+  }
+};
+
+const SetPaymentMode = async ({ userId, mode, amount }) => {
+  "use server";
+  try {
+    dbConnect();
+    const user = await User.findById(userId);
+    if (!user) return false;
+    user.payment.mode = mode;
+    user.payment.amount = amount;
+    await user.save();
+    return true;
+  } catch (error) {
+    console.log(error);
+  } finally {
+    revalidatePath("/", "layout");
   }
 };
 
@@ -121,6 +140,8 @@ const Trader = async ({ searchParams }) => {
       </div>
       <div className="m-auto text-xl">Last Trade: {profileUser.lastTrade || "No date"}</div>
 
+      <UserPaymentMethod userId={profileUser._id.toString()} SetPaymentMode={SetPaymentMode} />
+
       <div className="grid grid-cols-12 gap-8 px-8">
         {profileUser.accounts &&
           profileUser.accounts.map((account) => {
@@ -196,6 +217,7 @@ const Trader = async ({ searchParams }) => {
           </div>
         )}
       </div>
+
       {sessionClaims?.metadata?.owner && (
         <div className="fixed right-8 bottom-8">
           <AddAccountLink userId={profileUser._id.toString()} />

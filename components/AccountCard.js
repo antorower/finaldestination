@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import ChangeAccountStatus from "./ChangeAccountStatus";
 import SavePayoutDate from "./SavePayoutDate";
 import PayoutRequestDone from "./PayoutRequestDone";
+import SendMoney from "./SendMoney";
 
 const SaveNewAccount = async ({ number, id }) => {
   "use server";
@@ -117,7 +118,6 @@ const SaveDate = async ({ number, day, month, year }) => {
     account.payoutRequestDate.month = month;
     account.payoutRequestDate.year = year;
     await account.save();
-    console.log(account);
     return true;
   } catch (error) {
     console.log(error);
@@ -132,7 +132,7 @@ const PayoutReqDone = async (number) => {
     dbConnect();
     const account = await Account.findOne({ number: number });
     if (!account) return false;
-    console.log("ACCC", account);
+
     if (!account?.activities) account.activities = {};
     account.activities.push({ title: "Έγινε payout request", description: `Το payout request για το account ${number} έχει γίνει` });
     account.status = "PayoutRequestDone";
@@ -248,6 +248,23 @@ const AccountCard = ({ admin, id, number, company, balance, phase, note, status,
                 Κάνε payout request από την {company} στις {payoutRequestDay}/{payoutRequestMonth}/{payoutRequestYear} και ΜΕΤΑ πάτησε το μπλε κουμπί. Δηλαδή αυτό το μπλε κουμπί πρέπει να το πατήσεις ΑΦΟΥ κάνεις payout request και περιμένεις να σου στείλουν τα λέφτα! ΟΧΙ ΤΩΡΑ ΠΟΥ ΔΕΝ ΕΧΕΙΣ ΚΑΝΕΙ ΑΚΟΜΑ.
               </div>
               <PayoutRequestDone number={number} PayoutReqDone={PayoutReqDone} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {status === "PayoutRequestDone" && (
+        <div>
+          <div>
+            <div className="flex flex-col gap-2">
+              <div className={`text-sm flex items-center justify-start gap-4 border border-gray-700 px-4 py-2 rounded ${note && note !== "" ? "animate-bounce" : "opacity-25"}`}>
+                <div className="">
+                  <Image src="/warning.svg" width={16} height={16} alt="" />
+                </div>
+                <div>Μοίρασε τα κέρδη</div>
+              </div>
+              <div className="text-sm text-gray-500 text-justify">Αφού η εταιρία σου στείλει τα λεφτά πήγαινε στο wallet σου και δες πόσα λεφτά σου έστειλε. ΜΗΝ υπολογίσεις με το μυαλό σου. ΜΗΝ βάλεις το νούμερο που είδες στην ιστοσελίδα τους. Μπες στο wallet σου και δεν πόσα λεφτά μπήκαν όντως! Γράψε το από κάτω και στείλε τα λεφτά που σου ζητάει.</div>
+              <SendMoney />
             </div>
           </div>
         </div>

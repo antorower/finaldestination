@@ -7,22 +7,44 @@ const CompanySchema = new mongoose.Schema(
       trim: true,
       unique: true,
     },
-    maxAccounts: Number,
-    phases: [
-      {
-        name: String,
-        dailyDrawdown: Number,
-        totalDrawdown: Number,
-        target: Number,
-        maxRiskPerTrade: Number,
-        instructions: {
-          type: String,
-          default: "",
-        },
+    maxAccounts: {
+      type: Number,
+      default: 1,
+    },
+    phases1: {
+      dailyDrawdown: Number,
+      totalDrawdown: Number,
+      target: Number,
+      maxRiskPerTrade: Number,
+      instructions: {
+        type: String,
+        default: "",
       },
-    ],
-    commissionFactor: Number,
-    link: String,
+    },
+    phases2: {
+      dailyDrawdown: Number,
+      totalDrawdown: Number,
+      target: Number,
+      maxRiskPerTrade: Number,
+      instructions: {
+        type: String,
+        default: "",
+      },
+    },
+    phases3: {
+      dailyDrawdown: Number,
+      totalDrawdown: Number,
+      target: Number,
+      maxRiskPerTrade: Number,
+      instructions: {
+        type: String,
+        default: "",
+      },
+    },
+    costFactor: {
+      type: Number,
+      default: 3,
+    },
     maxLots: {
       type: Number,
       default: 100,
