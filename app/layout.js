@@ -14,6 +14,7 @@ import MainMenu from "@/components/MainMenu/MainMenu";
 import { ToastProvider } from "@/components/ToastContext";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
+import { UserButton } from "@clerk/nextjs";
 
 const roboto = Roboto({
   subsets: ["latin", "greek"],
@@ -114,6 +115,7 @@ export default async function RootLayout({ children }) {
                   <Image src="/business-man.jpg" alt="Επαγγελματίας άνδρας" fill style={{ objectFit: "cover", objectPosition: "center top" }} quality={50} priority />
                 </div>
                 <div className="p-4 overflow-y-auto flex flex-col w-full items-center justify-center">
+                  <UserButton />
                   <RegisterForm RegisterUser={RegisterUser} />
                 </div>
               </div>
