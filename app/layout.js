@@ -65,6 +65,7 @@ export const GetUser = async () => {
   try {
     await dbConnect();
     const { sessionClaims } = await auth();
+    if (!sessionClaims?.userId) return false;
     return await User.findOne({ clerkId: sessionClaims.userId }).select("accepted");
   } catch (error) {
     console.log("Υπήρξε error στην GetUser στο root layout", error);
