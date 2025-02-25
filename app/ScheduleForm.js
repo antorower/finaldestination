@@ -33,10 +33,7 @@ const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeHourOffse
   };
 
   return (
-    <div className="w-full max-w-[400px] border border-gray-300 p-4 rounded flex flex-col gap-4 relative">
-      <Link href="/" onClick={ChangeOffset} className="p-1 rounded bg-white border-t border-r border-gray-300 text-white font-bold text-end absolute text-sm  top-[-10px] right-[-13px]">
-        ❌
-      </Link>
+    <div className="w-full max-w-[400px] border border-gray-300 p-4 rounded flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <div className="flex gap-2 items-center">
           <input value={startingHour} onChange={(e) => setStartingHour(e.target.value)} type="number" placeholder="Starting" className="input rounded" />

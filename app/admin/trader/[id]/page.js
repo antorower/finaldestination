@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import AddAccountLink from "./AddAccountLink";
 import AddAccountForm from "./AddAccountForm";
 import Link from "next/link";
+import { AddActivity } from "@/library/AddActivity";
 
 const GetUser = async (id) => {
   "use server";
@@ -32,7 +33,7 @@ const CreateNewAccount = async ({ id, company, capital }) => {
       status: "Pending Purchase",
       isOnBoarding: false,
       needBalanceUpdate: false,
-      activities: [{ title: "Αγορά account", description: `Εστάλησαν λεφτά για αγορά ενός account των $${capital}` }],
+      note: "Νέα Αγορά Account",
     });
     await newAccount.save();
 
@@ -41,6 +42,8 @@ const CreateNewAccount = async ({ id, company, capital }) => {
     user.accounts.push(newAccount._id);
     user.allAccounts.phase1 += 1;
     await user.save();
+
+    await AddActivity({ title: "Αγορά Νέου Account", description: `Εστάλησαν λεφτά για αγορά νέου account των $${capital} από την εταιρία ${company} στον χρήστη ${id}`, user: id, account: newAccount._id.toString() });
 
     return { error: false, message: "Το account προσετέθη" };
   } catch (error) {

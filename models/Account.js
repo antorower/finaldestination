@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "./User";
 import Company from "./Company";
+import Trade from "./Trade";
 
 const AccountSchema = new mongoose.Schema(
   {
@@ -55,16 +56,6 @@ const AccountSchema = new mongoose.Schema(
     },
 
     // 🟢 Progress
-    activities: {
-      type: [
-        {
-          title: String,
-          description: String,
-          dateTime: { type: Date, default: Date.now },
-        },
-      ],
-      default: [],
-    },
     lastTrade: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Trade",
@@ -96,6 +87,8 @@ const AccountSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+
+    note: String,
   },
   { timestamps: true }
 );

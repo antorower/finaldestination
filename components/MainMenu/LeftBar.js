@@ -25,16 +25,13 @@ export default function LeftBar({ active, isOwner, isLeader, isAdmin }) {
         </AnimatePresence>
       </button>
       <div className="overflow-y-auto overflow-x-hidden h-full flex flex-col text-gray-500 text-sm">
-        {isOwner && <MenuItem icon="/dashboard.svg" iconSize={23} text="Admin" link="/admin" symbol="💪" />}
+        {isOwner && <MenuItem icon="/dashboard.svg" iconSize={23} text="Διαχείριση" link="/admin" symbol="💪" />}
         <MenuItem icon="/profile.svg" text="Profile" link="/" symbol={active ? "🔵" : "🔴"} />
-        <MenuItem icon="/team.svg" text="Εργασίες" link="/" symbol="💎" />
-        <MenuItem icon="/team.svg" text="Accounts" link="/" symbol="" />
-        <MenuItem icon="/team.svg" text="Trades" link="/instructions" symbol="💎" />
-        <MenuItem icon="/calendar-gray.svg" text="Πρόγραμμα" link="/" symbol="" />
-        <MenuItem icon="/team.svg" text="Ταμείο" link="/" symbol="" />
-        <MenuItem icon="/team.svg" text="Στατιστικά" link="/" symbol="" />
-        {isLeader && <MenuItem icon="/team.svg" text="Ομάδα" link="/" symbol="💎" />}
-        <MenuItem icon="/team.svg" text="Οδηγοί" link="/" symbol="" />
+        {isLeader && <MenuItem icon="/team.svg" text="Ομάδα" link="/team" symbol="💎" />}
+        <MenuItem icon="/account-menu-icon-2.svg" text="Accounts" link="/accounts" symbol="" />
+        <MenuItem icon="/trade.svg" text="Trades" link="/trades" symbol="💎" />
+        <MenuItem icon="/dollar-icon.svg" text="Λογιστικά" link="/accounting" symbol="" />
+        <MenuItem icon="/info.svg" text="Οδηγοί" link="/guides" symbol="" />
       </div>
       <div className="flex items-center justify-center p-4 border-t border-gray-800">
         <UserButton />
@@ -58,3 +55,7 @@ const MenuItem = ({ icon, iconSize, text, link, symbol }) => {
     </motion.div>
   );
 };
+
+// <MenuItem icon="/team.svg" text="Εργασίες" link="/" symbol="💎" />
+// <MenuItem icon="/calendar-gray.svg" text="Πρόγραμμα" link="/" symbol="" />
+// <MenuItem icon="/team.svg" text="Στατιστικά" link="/" symbol="" />
