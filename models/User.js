@@ -140,17 +140,13 @@ const UserSchema = new mongoose.Schema({
       type: Number,
       min: 4,
       max: 16,
+      default: 4,
     },
     endingTradingHour: {
       type: Number,
       min: 5,
       max: 16,
-      validate: {
-        validator: function (value) {
-          return value > this.startingTradingHour;
-        },
-        message: "Η ώρα λήξης πρέπει να είναι μεγαλύτερη από την ώρα έναρξης.",
-      },
+      default: 5,
     },
   },
 
@@ -210,15 +206,15 @@ const UserSchema = new mongoose.Schema({
     },
   },
   allAccounts: {
-    bought: {
+    phase1: {
       type: Number,
       default: 0,
     },
-    passedPhase1: {
+    phase2: {
       type: Number,
       default: 0,
     },
-    passedPhase2: {
+    phase3: {
       type: Number,
       default: 0,
     },
@@ -229,50 +225,13 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  showGuidesOnWebsite: {
-    type: Boolean,
-    default: true,
-  },
   hourOffsetFromGreece: {
     type: Number,
     default: 0,
   },
-  openingReminder: {
-    type: Boolean,
-    default: false,
-  },
-  closingReminder: {
-    type: Boolean,
-    default: false,
-  },
 
-  // 🟢 Metadata
-  adminNote: {
-    type: String,
-    default: "",
-    trim: true,
-  },
-  userNote: {
-    type: String,
-    trim: true,
-    maxlength: 500,
-    default: "",
-  },
-
-  // 🟢 Companies Data
-  kycCompanies: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
-    },
-  ],
-  interviewCompanies: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
-    },
-  ],
-  inactiveCompanies: [
+  // 🟢 Εταιρίες
+  companies: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Company",

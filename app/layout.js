@@ -11,6 +11,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { Suspense } from "react";
 import MainMenuSkeleton from "@/components/MainMenu/MainMenuSkeleton";
 import MainMenu from "@/components/MainMenu/MainMenu";
+import { ToastProvider } from "@/components/ToastContext";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
@@ -85,7 +86,9 @@ export default async function RootLayout({ children }) {
                     <MainMenu />
                   </Suspense>
                 </div>
-                <main className="bg-white border rounded-l-[25px] border-gray-300 p-8 overflow-y-auto">{children}</main>
+                <ToastProvider>
+                  <main className="bg-white border rounded-l-[25px] border-gray-300 p-8 overflow-y-auto">{children}</main>
+                </ToastProvider>
               </div>
             </>
           )}

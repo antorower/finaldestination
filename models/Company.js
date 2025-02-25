@@ -11,7 +11,7 @@ const CompanySchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
-    phases1: {
+    phase1: {
       dailyDrawdown: Number,
       totalDrawdown: Number,
       target: Number,
@@ -21,7 +21,7 @@ const CompanySchema = new mongoose.Schema(
         default: "",
       },
     },
-    phases2: {
+    phase2: {
       dailyDrawdown: Number,
       totalDrawdown: Number,
       target: Number,
@@ -31,7 +31,7 @@ const CompanySchema = new mongoose.Schema(
         default: "",
       },
     },
-    phases3: {
+    phase3: {
       dailyDrawdown: Number,
       totalDrawdown: Number,
       target: Number,

@@ -26,16 +26,14 @@ export default function LeftBar({ active, isOwner, isLeader, isAdmin }) {
       </button>
       <div className="overflow-y-auto overflow-x-hidden h-full flex flex-col text-gray-500 text-sm">
         {isOwner && <MenuItem icon="/dashboard.svg" iconSize={23} text="Admin" link="/admin" symbol="💪" />}
-        <MenuItem icon="/team.svg" text="Εργασίες" link="/" symbol="" />
-        <MenuItem icon="/team.svg" text="Profile" link="/" symbol={active ? "🔵" : "🔴"} />
+        <MenuItem icon="/profile.svg" text="Profile" link="/" symbol={active ? "🔵" : "🔴"} />
+        <MenuItem icon="/team.svg" text="Εργασίες" link="/" symbol="💎" />
         <MenuItem icon="/team.svg" text="Accounts" link="/" symbol="" />
-        <MenuItem icon="/team.svg" text="Trades" link="/instructions" symbol="" />
-        <MenuItem icon="/calendar-gray.svg" text="Πρόγραμμα" link="/" symbol="🕛" />
+        <MenuItem icon="/team.svg" text="Trades" link="/instructions" symbol="💎" />
+        <MenuItem icon="/calendar-gray.svg" text="Πρόγραμμα" link="/" symbol="" />
         <MenuItem icon="/team.svg" text="Ταμείο" link="/" symbol="" />
         <MenuItem icon="/team.svg" text="Στατιστικά" link="/" symbol="" />
-        <MenuItem icon="/team.svg" text="Ρυθμίσεις" link="/" symbol="" />
-        {isLeader && <MenuItem icon="/team.svg" text="Ομάδα" link="/" symbol="" />}
-        {isLeader && <MenuItem icon="/team.svg" text="Διαχείριση" link="/" symbol="" />}
+        {isLeader && <MenuItem icon="/team.svg" text="Ομάδα" link="/" symbol="💎" />}
         <MenuItem icon="/team.svg" text="Οδηγοί" link="/" symbol="" />
       </div>
       <div className="flex items-center justify-center p-4 border-t border-gray-800">

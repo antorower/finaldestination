@@ -126,20 +126,16 @@ const SettingsSchema = new mongoose.Schema(
     targetsGap: {
       phase1: {
         type: Number,
-        default: 0,
+        default: 0.02,
       },
       phase2: {
         type: Number,
-        default: 0.001,
+        default: 0.1,
       },
       phase3: {
         type: Number,
-        default: 0.002,
+        default: 0.2,
       },
-    },
-    minimumDrawdown: {
-      type: Number,
-      default: 0.01,
     },
   },
   { timestamps: true }

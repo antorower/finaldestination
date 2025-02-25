@@ -96,50 +96,11 @@ const AccountSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-
-    // 🟢 Notes
-    notesVisibility: {
-      type: Boolean,
-      default: true,
-    },
-    adminNote: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-    userNote: {
-      type: String,
-      trim: true,
-      maxlength: 500,
-      default: "",
-    },
   },
   { timestamps: true }
 );
 
 AccountSchema.pre("save", async function (next) {
-  if (this.isModified("balance") || this.isNew) {
-    const company = await Company.findById(this.company).lean(); // Παίρνει την εταιρεία
-    const phase = company.phases[this.phase - 1];
-
-    const targetBalance = (1 + phase.target) * this.capital;
-    const drawdownBalance = (1 - phase.totalDrawdown) * this.capital;
-
-    // Κάθε φορά που αλλάζει το balance ελέγχεται αν το account πρέπει να αλλάξει status
-    if (this.phase + 1 < company.phases.length) {
-      if (this.balance >= targetBalance) {
-        this.targetReached();
-      }
-    } else {
-      if (this.balance >= targetBalance - targetBalance * 0.005) {
-        this.targetReached();
-      }
-    }
-
-    if (this.balance <= drawdownBalance) {
-      this.accountLost();
-    }
-  }
   next();
 });
 
