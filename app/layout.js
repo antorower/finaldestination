@@ -74,6 +74,7 @@ export const GetUser = async () => {
 };
 
 export default async function RootLayout({ children }) {
+  const { sessionClaims } = await auth();
   const user = await GetUser();
   return (
     <html lang="en">
@@ -106,7 +107,7 @@ export default async function RootLayout({ children }) {
               </div>
             </>
           )}
-          {!user && (
+          {!user && sessionClaims.userId && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-[1fr,1fr] h-dvh bg-gray-50">
                 <div className="relative w-full h-full hidden md:block">
