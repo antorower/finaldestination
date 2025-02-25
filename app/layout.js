@@ -79,7 +79,7 @@ export default async function RootLayout({ children }) {
     <html lang="en">
       <ClerkProvider>
         <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-gray-950 text-black`}>
-          {user && user.accepted && (
+          {((user && user.accepted) || user === 1) && (
             <>
               <div className={`grid ${user && "grid-cols-[auto,1fr]"} ${!user && "grid-cols-[1fr]"} h-dvh`}>
                 <div className="h-dvh">
