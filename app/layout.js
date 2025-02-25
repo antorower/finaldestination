@@ -78,7 +78,7 @@ export default async function RootLayout({ children }) {
     <html lang="en">
       <ClerkProvider>
         <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-gray-950 text-black`}>
-          {user && user.accepted && (
+          {user && user.accepted && sessionClaims.userId && (
             <>
               <div className={`grid ${user && "grid-cols-[auto,1fr]"} ${!user && "grid-cols-[1fr]"} h-dvh`}>
                 <div className="h-dvh">
@@ -92,7 +92,7 @@ export default async function RootLayout({ children }) {
               </div>
             </>
           )}
-          {user && !user.accepted && (
+          {user && !user.accepted && sessionClaims.userId && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-[1fr,1fr] h-dvh bg-gray-50">
                 <div className="relative w-full h-full hidden md:block">
@@ -105,7 +105,7 @@ export default async function RootLayout({ children }) {
               </div>
             </>
           )}
-          {!user && (
+          {!user && sessionClaims.userId && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-[1fr,1fr] h-dvh bg-gray-50">
                 <div className="relative w-full h-full hidden md:block">
