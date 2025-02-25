@@ -65,7 +65,7 @@ export const GetUser = async () => {
   try {
     await dbConnect();
     const { sessionClaims } = await auth();
-    if (!sessionClaims?.userId) return 14857;
+    if (!sessionClaims?.userId) return 1;
     return await User.findOne({ clerkId: sessionClaims.userId }).select("accepted");
   } catch (error) {
     console.log("Υπήρξε error στην GetUser στο root layout", error);
@@ -79,40 +79,34 @@ export default async function RootLayout({ children }) {
     <html lang="en">
       <ClerkProvider>
         <body className={`${roboto.variable} font-roboto antialiased flex flex-col bg-gray-950 text-black`}>
-          {user &&
-            user.accepted &&
-            user !==
-              14857(
-                <>
-                  <div className={`grid ${user && "grid-cols-[auto,1fr]"} ${!user && "grid-cols-[1fr]"} h-dvh`}>
-                    <div className="h-dvh">
-                      <Suspense fallback={<MainMenuSkeleton />}>
-                        <MainMenu />
-                      </Suspense>
-                    </div>
-                    <ToastProvider>
-                      <main className="bg-white border rounded-l-[25px] border-gray-300 p-8 overflow-y-auto">{children}</main>
-                    </ToastProvider>
-                  </div>
-                </>
-              )}
-          {user &&
-            !user.accepted &&
-            user !==
-              14857(
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr,1fr] h-dvh bg-gray-50">
-                    <div className="relative w-full h-full hidden md:block">
-                      <Image src="/business-man.jpg" alt="Επαγγελματίας άνδρας" fill style={{ objectFit: "cover", objectPosition: "center top" }} quality={50} priority />
-                    </div>
-                    <div className="p-4 overflow-y-auto flex flex-col w-full items-center justify-center animate-pulse">
-                      <div className="text-lg text-gray-800">Η εγγραφή σου έγινε επιτυχώς</div>
-                      <div className="text-sm text-gray-500">Περίμενε έγκριση από τους διαχειριστές</div>
-                    </div>
-                  </div>
-                </>
-              )}
-          {!user && user !== 14857 && (
+          {user && user.accepted && user !== 1 && (
+            <>
+              <div className={`grid ${user && "grid-cols-[auto,1fr]"} ${!user && "grid-cols-[1fr]"} h-dvh`}>
+                <div className="h-dvh">
+                  <Suspense fallback={<MainMenuSkeleton />}>
+                    <MainMenu />
+                  </Suspense>
+                </div>
+                <ToastProvider>
+                  <main className="bg-white border rounded-l-[25px] border-gray-300 p-8 overflow-y-auto">{children}</main>
+                </ToastProvider>
+              </div>
+            </>
+          )}
+          {user && !user.accepted && user !== 1 && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-[1fr,1fr] h-dvh bg-gray-50">
+                <div className="relative w-full h-full hidden md:block">
+                  <Image src="/business-man.jpg" alt="Επαγγελματίας άνδρας" fill style={{ objectFit: "cover", objectPosition: "center top" }} quality={50} priority />
+                </div>
+                <div className="p-4 overflow-y-auto flex flex-col w-full items-center justify-center animate-pulse">
+                  <div className="text-lg text-gray-800">Η εγγραφή σου έγινε επιτυχώς</div>
+                  <div className="text-sm text-gray-500">Περίμενε έγκριση από τους διαχειριστές</div>
+                </div>
+              </div>
+            </>
+          )}
+          {!user && user !== 1 && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-[1fr,1fr] h-dvh bg-gray-50">
                 <div className="relative w-full h-full hidden md:block">
