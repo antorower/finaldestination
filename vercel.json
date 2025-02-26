@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/matchmaking",
+      "path": "https://finaldestination.gr/api/matchmaking",
       "schedule": "*/5 * * * *"
     }
   ]
