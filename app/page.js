@@ -12,6 +12,7 @@ import Company from "@/models/Company";
 import Link from "next/link";
 import AccountsList from "./AccountsList";
 import Image from "next/image";
+import Settings from "@/models/Settings";
 
 const GetUser = async (id) => {
   await dbConnect();
@@ -19,6 +20,16 @@ const GetUser = async (id) => {
     return await User.findById(id).populate("companies").populate("accounts").populate("leader").populate("family").populate("team").populate("beneficiaries");
   } catch (error) {
     console.log("Υπήρξε error στην GetUser στο root", error);
+    return false;
+  }
+};
+
+const GetSettings = async (id) => {
+  await dbConnect();
+  try {
+    return await Settings.findOne();
+  } catch (error) {
+    console.log("Υπήρξε error στην GetSettings στο root", error);
     return false;
   }
 };
@@ -95,12 +106,16 @@ const GetCompanies = async () => {
 export default async function Home({ searchParams }) {
   const { sessionClaims } = await auth();
   const user = await GetUser(sessionClaims.metadata.mongoId);
+  const settings = await GetSettings();
+  const companies = await GetCompanies();
+
+  if (!user || !settings) return <div className="flex justify-center animate-pulse text-gray-700">Κάτι πήγε στραβά. Κάνε refresh.</div>;
   const { mode } = await searchParams;
 
   const status = user.status;
   const id = user._id.toString();
 
-  const companies = await GetCompanies();
+  const GreeceTime = Number(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens", hour: "numeric", hour12: false }));
 
   return (
     <PageTransition>
@@ -125,7 +140,8 @@ export default async function Home({ searchParams }) {
 
         <div className="grid grid-cols-12 gap-4">
           <div className="flex flex-col gap-4 xl:col-span-2">
-            <div className="p-4 flex w-full flex-row flex-wrap justify-between lg:flex-col gap-4 border h-[200px] border-gray-300 rounded">
+            <div className="p-4 flex w-full flex-row flex-wrap justify-between lg:flex-col gap-4 border h-[230px] border-gray-300 rounded">
+              <MenuItem link="/" name="Εργασίες" icon="account.svg" size={18} />
               <MenuItem link="/?mode=accounts" name="Accounts" icon="account.svg" size={18} />
               <MenuItem link="/?mode=tradingsettings" name="Ρυθμίσεις" icon="/settings-icon.svg" size={18} />
               <MenuItem link="/?mode=tickets" name="Tickets" icon="/tickets.svg" size={18} />
@@ -135,7 +151,7 @@ export default async function Home({ searchParams }) {
               <div className="">context</div>
             </div>
           </div>
-          <div className="col-span-12 lg:col-span-5 xl:col-span-10 px-4 overflow-y-auto h-[616px] p-4">
+          <div className="col-span-12 lg:col-span-5 xl:col-span-10 px-4 overflow-y-auto h-[646px] p-4">
             {mode === "accounts" && <AccountsList accounts={user.accounts.sort((a, b) => a.phase - b.phase)} />}
             {mode === "tradingsettings" && (
               <div className="flex justify-center">
@@ -146,6 +162,34 @@ export default async function Home({ searchParams }) {
             {mode === "companies" && (
               <div className="w-full text-center text-gray-400">
                 <ManageCompanies userId={user._id.toString()} allCompanies={companies} userCompanies={user.companies} />
+              </div>
+            )}
+            {!mode && (
+              <div className="flex flex-col gap-4">
+                {GreeceTime >= settings.tradingHours.startingHour && GreeceTime < settings.tradingHours.endingHour && (
+                  <div>
+                    <div>Trading Hour</div>
+                    <div>context</div>
+                  </div>
+                )}
+                {GreeceTime >= settings.updateBalanceHours.startingHour && GreeceTime < settings.updateBalanceHours.endingHour && (
+                  <div>
+                    <div>Update Balance</div>
+                    <div>context</div>
+                  </div>
+                )}
+                {GreeceTime >= settings.acceptTradesHours.startingHour && GreeceTime < settings.acceptTradesHours.endingHour && (
+                  <div>
+                    <div>Accept Trades Hours</div>
+                    <div>context</div>
+                  </div>
+                )}
+                {GreeceTime >= settings.seeScheduleHours.startingHour && GreeceTime < settings.seeScheduleHours.endingHour && (
+                  <div>
+                    <div>See Schedule Hours</div>
+                    <div>context</div>
+                  </div>
+                )}
               </div>
             )}
           </div>

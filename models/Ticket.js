@@ -2,26 +2,29 @@ import mongoose from "mongoose";
 
 const TicketSchema = new mongoose.Schema(
   {
-    sender: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    recipient: {
+    account: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
-    cc: {
+    trade: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Trade",
+    },
+    invoice: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Invoice",
     },
     subject: {
       type: String,
       required: true,
     },
-    notifySender: Boolean,
-    notifyRecipient: Boolean,
+    notifyUser: Boolean,
+    notifyAdmin: Boolean,
     status: {
       type: String,
       enum: ["open", "closed", "pending"],
@@ -64,6 +67,5 @@ TicketSchema.methods.changeStatus = function (newStatus) {
 
 TicketSchema.index({ status: 1, sender: 1 });
 TicketSchema.index({ status: 1, recipient: 1 });
-TicketSchema.index({ status: 1, cc: 1 });
 
 export default mongoose.models.Ticket || mongoose.model("Ticket", TicketSchema);

@@ -4,24 +4,34 @@ const AccountCard = ({ account }) => {
   let lightColor;
   let darkColor;
   let textColor;
+  let borderColor;
   if (account.phase === 1) {
     lightColor = "bg-blue-100";
     darkColor = "bg-blue-500";
     textColor = "text-blue-500";
+    borderColor = "border-blue-300";
   }
   if (account.phase === 2) {
     lightColor = "bg-purple-100";
     darkColor = "bg-purple-500";
     textColor = "text-purple-500";
+    borderColor = "border-purple-300";
   }
   if (account.phase === 3) {
     lightColor = "bg-orange-100";
     darkColor = "bg-orange-500";
     textColor = "text-orange-500";
+    borderColor = "border-orange-300";
+  }
+  if (account.isOnBoarding) {
+    lightColor = "bg-red-100";
+    darkColor = "bg-red-500";
+    textColor = "text-red-500";
+    borderColor = "border-red-300";
   }
 
   return (
-    <Link href={`/account/${account._id.toString()}`} className={`border border-gray-300 rounded p-4 w-full max-w-[250px] hover:scale-105 transition-transform duration-300 ${lightColor} flex flex-col gap-4`}>
+    <Link href={`/account/${account._id.toString()}`} className={`border ${borderColor} rounded p-4 w-full max-w-[250px] hover:scale-105 transition-transform duration-300 ${lightColor} flex flex-col gap-4`}>
       <div className="grid grid-cols-6">
         <div className="col-span-5">
           <div className={`text-lg font-bold ${textColor}`}>{account.number || "Εκκρεμεί"}</div>

@@ -1,7 +1,4 @@
 "use server";
-import User from "@/models/User";
-import Trade from "@/models/Trade";
-import Account from "@/models/Account";
 import { revalidatePath } from "next/cache";
 import dbConnect from "@/dbConnect";
 import Activity from "@/models/Activity";
