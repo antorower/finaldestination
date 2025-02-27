@@ -56,6 +56,7 @@ const AccountSchema = new mongoose.Schema(
     },
 
     // 🟢 Progress
+    progress: Number,
     lastTrade: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Trade",
@@ -94,7 +95,44 @@ const AccountSchema = new mongoose.Schema(
 );
 
 AccountSchema.pre("save", async function (next) {
-  next();
+  try {
+    if (!this.isModified("balance") && !this.isModified("capital") && !this.isModified("phase")) {
+      return next(); // Αν δεν άλλαξε κάτι σχετικό, προχωράμε χωρίς υπολογισμό
+    }
+    if (!this.company) {
+      return next(new Error("Company is required to calculate progress"));
+    }
+
+    // 🟢 Φόρτωσε τα δεδομένα της εταιρείας
+    const company = await mongoose.model("Company").findById(this.company);
+
+    if (!company) {
+      return next(new Error("Company data not found"));
+    }
+
+    const phases = ["phase1", "phase2", "phase3"];
+    const companyPhase = phases[this.phase - 1];
+
+    if (!company[companyPhase]) {
+      return next(new Error(`Phase data missing for ${companyPhase}`));
+    }
+
+    // Υπολογισμός στόχου και drawdown
+    const target = this.capital + (this.capital * company[companyPhase].target) / 100;
+    const finalDrawdownBalance = this.capital - (this.capital * company[companyPhase].totalDrawdown) / 100;
+    const totalAmount = target - finalDrawdownBalance;
+
+    // Υπολογισμός progress
+    if (totalAmount > 0) {
+      this.progress = Math.floor(((this.balance - finalDrawdownBalance) / totalAmount) * 100);
+    } else {
+      this.progress = 0;
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default mongoose.models.Account || mongoose.model("Account", AccountSchema);

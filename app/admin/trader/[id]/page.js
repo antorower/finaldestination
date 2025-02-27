@@ -21,21 +21,22 @@ const GetUser = async (id) => {
   }
 };
 
-const CreateNewAccount = async ({ id, company, capital }) => {
+const CreateNewAccount = async ({ id, company, capital, phase, balance, number }) => {
   "use server";
   if (!id || !company || !capital) return { error: true, message: "Συμπλήρωσε όλα τα στοιχεία" };
   try {
     await dbConnect();
     const newAccount = new Account({
       user: id,
+      number: number,
       company: company,
       capital: capital,
-      phase: 1,
-      balance: capital,
-      status: "Pending Purchase",
-      isOnBoarding: false,
+      phase: phase,
+      balance: balance,
+      status: phase === 1 ? "Pending Purchase" : "Live",
+      isOnBoarding: phase === 1 ? false : true,
       needBalanceUpdate: false,
-      note: "Νέα Αγορά Account",
+      note: phase === 1 ? "Νέα Αγορά Account" : "Νέο Account",
     });
     await newAccount.save();
 

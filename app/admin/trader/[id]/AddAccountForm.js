@@ -1,14 +1,18 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 const AddAccountForm = ({ CreateNewAccount, companies, id }) => {
   const [company, setCompany] = useState("");
   const [capital, setCapital] = useState("");
+  const [phase, setPhase] = useState(1);
+  const [balance, setBalance] = useState("");
+  const [number, setNumber] = useState("");
+
   const router = useRouter();
   const Create = async () => {
-    const response = await CreateNewAccount({ id, capital, company });
+    const response = await CreateNewAccount({ id, capital, company, phase, balance, number });
     if (response.error) {
       toast.error(response.message);
     }
@@ -17,6 +21,12 @@ const AddAccountForm = ({ CreateNewAccount, companies, id }) => {
       router.push(`/admin/trader/${id}`);
     }
   };
+
+  useEffect(() => {
+    if (capital) {
+      setBalance(capital);
+    }
+  }, [capital]);
 
   return (
     <div className="border border-gray-300 rounded w-full max-w-[400px] p-4 bg-gray-50">
@@ -38,6 +48,11 @@ const AddAccountForm = ({ CreateNewAccount, companies, id }) => {
           <CapitalButton setCapital={setCapital} capital={100000} activeCapital={capital} />
           <CapitalButton setCapital={setCapital} capital={200000} activeCapital={capital} />
           <CapitalButton setCapital={setCapital} capital={300000} activeCapital={capital} />
+        </div>
+        <div className="grid grid-cols-12 gap-4">
+          <input value={number} placeholder="Number" onChange={(e) => setNumber(e.target.value)} className="input rounded col-span-5" type="text" />
+          <input value={balance} placeholder="Balance" onChange={(e) => setBalance(e.target.value)} className="input rounded col-span-4" type="number" />
+          <input value={phase} placeholder="Phase" onChange={(e) => setPhase(e.target.value)} className="input rounded col-span-3" type="number" />
         </div>
         <button onClick={Create} className="bg-blue-500 hover:bg-blue-600 transition-colors duration-300 p-2 w-full text-white text-base rounded">
           ✔
