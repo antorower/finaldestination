@@ -24,7 +24,7 @@ const Trades = async () => {
           {trades.map((trade) => {
             return (
               <div key={`trade-${trade._id.toString()}`}>
-                {trade.user.firstName} {trade.user.lastName}
+                {trade.firstParticipant.user.firstName} {trade.secondParticipant.user.lastName}
               </div>
             );
           })}
