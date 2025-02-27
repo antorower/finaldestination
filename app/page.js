@@ -20,7 +20,7 @@ const GetUser = async (id) => {
   try {
     return await User.findById(id).populate("companies").populate("accounts").populate("leader").populate("family").populate("team").populate("beneficiaries");
   } catch (error) {
-    console.log("Υπήρξε error στην GetUser στο root", error);
+    console.log("Υπήρξε error στην GetUser στο root:", error);
     return false;
   }
 };
