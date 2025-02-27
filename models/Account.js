@@ -96,20 +96,23 @@ const AccountSchema = new mongoose.Schema(
 
 AccountSchema.pre("save", async function (next) {
   try {
+    // ✅ Αν δεν έχει αλλάξει κάτι σχετικό, δεν τρέχουμε τον υπολογισμό
     if (!this.isModified("balance") && !this.isModified("capital") && !this.isModified("phase")) {
-      return next(); // Αν δεν άλλαξε κάτι σχετικό, προχωράμε χωρίς υπολογισμό
+      return next();
     }
+
     if (!this.company) {
       return next(new Error("Company is required to calculate progress"));
     }
 
     // 🟢 Φόρτωσε τα δεδομένα της εταιρείας
-    const company = await mongoose.model("Company").findById(this.company);
+    const company = await mongoose.model("Company").findById(this.company).lean();
 
     if (!company) {
       return next(new Error("Company data not found"));
     }
 
+    // 🟢 Εξασφαλίζουμε ότι η phase είναι μεταξύ 1-3
     const phases = ["phase1", "phase2", "phase3"];
     const companyPhase = phases[this.phase - 1];
 
@@ -117,12 +120,20 @@ AccountSchema.pre("save", async function (next) {
       return next(new Error(`Phase data missing for ${companyPhase}`));
     }
 
-    // Υπολογισμός στόχου και drawdown
-    const target = this.capital + (this.capital * company[companyPhase].target) / 100;
-    const finalDrawdownBalance = this.capital - (this.capital * company[companyPhase].totalDrawdown) / 100;
+    // ✅ Έλεγχος αν τα απαραίτητα δεδομένα είναι αριθμοί
+    const targetPercentage = company[companyPhase].target;
+    const drawdownPercentage = company[companyPhase].totalDrawdown;
+
+    if (typeof targetPercentage !== "number" || typeof drawdownPercentage !== "number") {
+      return next(new Error(`Invalid data for ${companyPhase}: target or totalDrawdown is missing or incorrect`));
+    }
+
+    // 🟢 Υπολογισμός στόχου και drawdown
+    const target = this.capital + (this.capital * targetPercentage) / 100;
+    const finalDrawdownBalance = this.capital - (this.capital * drawdownPercentage) / 100;
     const totalAmount = target - finalDrawdownBalance;
 
-    // Υπολογισμός progress
+    // 🟢 Υπολογισμός progress
     if (totalAmount > 0) {
       this.progress = Math.floor(((this.balance - finalDrawdownBalance) / totalAmount) * 100);
     } else {
