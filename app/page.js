@@ -54,7 +54,9 @@ const ToggleStatus = async ({ id, status }) => {
 const SaveSchedule = async ({ id, startingHour, endingHour }) => {
   "use server";
   try {
-    if (startingHour >= endingHour) return { error: true, message: "Οι ώρες θα πρέπει να έχουμε λογική" };
+    console.log(startingHour + 1);
+    console.log(endingHour + 1);
+    if (Number(startingHour) >= Number(endingHour)) return { error: true, message: "Οι ώρες θα πρέπει να έχουνε λογική" };
     const tradingHours = { startingTradingHour: startingHour, endingTradingHour: endingHour };
     await dbConnect();
     await User.updateOne({ _id: id }, { $set: { tradingHours: tradingHours } });
