@@ -111,6 +111,7 @@ const GetCompanies = async () => {
 export default async function Home({ searchParams }) {
   const { sessionClaims } = await auth();
   const { mode, userid } = await searchParams;
+  console.log(userid);
 
   const user = await GetUser(userid ? userid : sessionClaims.metadata.mongoId);
   const settings = await GetSettings();
@@ -147,11 +148,11 @@ export default async function Home({ searchParams }) {
         <div className="grid grid-cols-12 gap-4">
           <div className="flex flex-col gap-4 xl:col-span-2">
             <div className="p-4 flex w-full flex-row flex-wrap justify-between lg:flex-col gap-4 border h-[230px] border-gray-300 rounded">
-              <MenuItem link="/" name="Εργασίες" icon="account.svg" size={18} />
-              <MenuItem link="/?mode=accounts" name="Accounts" icon="account.svg" size={18} />
-              <MenuItem link="/?mode=tradingsettings" name="Ρυθμίσεις" icon="/settings-icon.svg" size={18} />
-              <MenuItem link="/?mode=tickets" name="Tickets" icon="/tickets.svg" size={18} />
-              <MenuItem link="/?mode=companies" name="Εταιρίες" icon="/company-icon.svg" size={18} info="Πάτησε πάνω και ενεργοποίησε όποιες εταιρείες θέλεις να παίζεις. Αν κάποια εταιρεία δεν θέλεις να την παίζεις απλά απενεργοποίησε την." />
+              <MenuItem link={`/${userid ? `?userid=${userid}` : ""}`} name="Εργασίες" icon="account.svg" size={18} />
+              <MenuItem link={`/?mode=accounts${userid ? `&userid=${userid}` : ""}`} name="Accounts" icon="account.svg" size={18} />
+              <MenuItem link={`/?mode=tradingsettings${userid ? `&userid=${userid}` : ""}`} name="Ρυθμίσεις" icon="/settings-icon.svg" size={18} />
+              <MenuItem link={`/?mode=tickets${userid ? `&userid=${userid}` : ""}`} name="Tickets" icon="/tickets.svg" size={18} />
+              <MenuItem link={`/?mode=companies${userid ? `&userid=${userid}` : ""}`} name="Εταιρίες" icon="/company-icon.svg" size={18} info="Πάτησε πάνω και ενεργοποίησε όποιες εταιρείες θέλεις να παίζεις. Αν κάποια εταιρεία δεν θέλεις να την παίζεις απλά απενεργοποίησε την." />{" "}
             </div>
             <div className="col-span-12 h-[400px] lg:col-span-4 xl:col-span-3 p-4 border border-gray-300 rounded overflow-y-auto overflow-x-hidden">
               <div className="">context</div>
