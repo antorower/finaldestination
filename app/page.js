@@ -108,15 +108,15 @@ const GetCompanies = async () => {
   }
 };
 
-export default async function Home({ searchParams, params }) {
+export default async function Home({ searchParams }) {
   const { sessionClaims } = await auth();
-  const { userid } = await params;
+  const { mode, userid } = await searchParams;
+
   const user = await GetUser(userid ? userid : sessionClaims.metadata.mongoId);
   const settings = await GetSettings();
   const companies = await GetCompanies();
 
   if (!user || !settings) return <div className="flex justify-center animate-pulse text-gray-700">Κάτι πήγε στραβά. Κάνε refresh.</div>;
-  const { mode } = await searchParams;
 
   const status = user.status;
   const id = user._id.toString();
