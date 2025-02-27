@@ -33,7 +33,7 @@ const CreateNewAccount = async ({ id, company, capital, phase, balance, number }
       capital: capital,
       phase: phase,
       balance: balance,
-      status: phase === 1 ? "Pending Purchase" : "Live",
+      status: number ? "Live" : "Pending Purchase",
       isOnBoarding: phase === 1 ? false : true,
       needBalanceUpdate: false,
       note: number ? "Νέο Account" : "Νέα Αγορά Account",
