@@ -238,6 +238,7 @@ export async function GET() {
       if (firstAccount.matched) continue;
       if (i === j) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.user === secondAccount.user) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
       if (firstAccount.company === secondAccount.company) continue;
@@ -333,6 +334,7 @@ export async function GET() {
       if (i === j) continue;
       if (firstAccount.matched) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.user === secondAccount.user) continue;
       if (!secondAccount.flexibleTradesSuggestions) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
       if (secondAccount.matched) continue;
@@ -425,9 +427,10 @@ export async function GET() {
   for (let i = 0; i < updatedAccounts.length; i++) {
     const firstAccount = updatedAccounts[i];
     for (let j = 0; j < updatedAccounts.length; j++) {
-      if (firstAccount.matched) continue;
       if (i === j) continue;
+      if (firstAccount.matched) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.user === secondAccount.user) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.company === secondAccount.company) continue;
@@ -520,9 +523,10 @@ export async function GET() {
     const firstAccount = updatedAccounts[i];
     if (!firstAccount.flexibleTradesSuggestions) continue;
     for (let j = 0; j < updatedAccounts.length; j++) {
-      if (firstAccount.matched) continue;
       if (i === j) continue;
+      if (firstAccount.matched) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.user === secondAccount.user) continue;
       if (!secondAccount.flexibleTradesSuggestions) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
       if (secondAccount.matched) continue;
