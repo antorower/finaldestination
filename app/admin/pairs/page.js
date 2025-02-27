@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import AllPairs from "./AllPairs";
 import NewPair from "./NewPair";
 import dbConnect from "@/dbConnect";

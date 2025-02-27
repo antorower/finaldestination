@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import dbConnect from "@/dbConnect";
 import Account from "@/models/Account";
 import { revalidatePath } from "next/cache";

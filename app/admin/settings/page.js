@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import dbConnect from "@/dbConnect";
 import Settings from "@/models/Settings";
 import TradingHoursForm from "./TradingHoursForm";

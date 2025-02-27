@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import dbConnect from "@/dbConnect";
 import Settings from "@/models/Settings";
 import Pair from "@/models/Pair";

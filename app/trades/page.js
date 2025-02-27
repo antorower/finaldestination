@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 const Trades = () => {
   return <div>Trades</div>;
 };

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import User from "@/models/User";
 import dbConnect from "@/dbConnect";
 import PageTransition from "@/components/PageTransition";

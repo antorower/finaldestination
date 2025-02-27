@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import dbConnect from "@/dbConnect";
 import CreateCompany from "./CreateCompany";
 import Company from "@/models/Company";

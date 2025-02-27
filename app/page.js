@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { UserProfile } from "@clerk/nextjs";
 import PageTransition from "@/components/PageTransition";
 import dbConnect from "@/dbConnect";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 const Accounts = () => {
   return <div>Accounts</div>;
 };

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import PageTransition from "@/components/PageTransition";
 const Trades = () => {
   return (
