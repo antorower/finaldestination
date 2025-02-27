@@ -603,7 +603,7 @@ export async function GET() {
     }
   }
   console.log(trades.length);
-
+  console.log(Gooddd);
   return NextResponse.json({ trades });
   await Trade.insertMany(trades);
 }
