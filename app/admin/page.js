@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import AdminMenuItem from "./AdminMenuItem";
 import PageTransition from "@/components/PageTransition";
 
