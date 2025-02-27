@@ -6,7 +6,7 @@ import Trade from "@/models/Trade";
 
 export async function GET() {
   await dbConnect();
-  console.log("Done Done");
+  console.log("Staaaart");
 
   // --> Η today αποθηκεύει την σημερινή ημέρα με πεζά γράμματα
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -32,7 +32,7 @@ export async function GET() {
 
   // --> Τραβάει όλα τα accounts που δεν θέλει update το balance τους, δεν είναι isOnBoarding και το status τους είναι Live
   // --> Το match: { accepted: true, status: "active" } δεν θα φέρει το user που δεν είναι accepted και active
-  /*const requestedAccounts = await Account.find({
+  const requestedAccounts = await Account.find({
     needBalanceUpdate: false,
     isOnBoarding: false,
     status: "Live",
@@ -40,14 +40,14 @@ export async function GET() {
     .select("phase balance capital")
     .populate({
       path: "user",
-      select: "_id tradingHours",
+      select: "_id tradingHours flexibleTradesSuggestions timePreference modePreference",
       match: { accepted: true, status: "active" },
     })
     .populate({
       path: "company",
       select: "phase1 phase2 phase3",
     })
-    .lean();*/
+    .lean();
 
   function generateRandomAccounts(numEntries) {
     function getRandomInt(min, max) {
@@ -113,7 +113,7 @@ export async function GET() {
     return accounts;
   }
 
-  const requestedAccounts = generateRandomAccounts(50);
+  /*const requestedAccounts = generateRandomAccounts(50);*/
 
   // --> Ελέγχω αν το array των accounts είναι άδειο
   if (!requestedAccounts || requestedAccounts.length === 0) {
@@ -167,8 +167,9 @@ export async function GET() {
       progress: progress,
       minHour: account.user.tradingHours.startingTradingHour * 60,
       maxHour: account.user.tradingHours.endingTradingHour * 60,
-      timePreference: account.timePreference,
-      modePreference: account.modePreference,
+      timePreference: account.user.timePreference,
+      modePreference: account.user.modePreference,
+      flexibleTradesSuggestions: account.user.flexibleTradesSuggestions,
     };
   });
   // --> Τα κάνει sort με βάση το progress τους
@@ -327,10 +328,12 @@ export async function GET() {
   const progressCycle3 = 2;
   for (let i = 0; i < updatedAccounts.length; i++) {
     const firstAccount = updatedAccounts[i];
+    if (!firstAccount.flexibleTradesSuggestions) continue;
     for (let j = 0; j < updatedAccounts.length; j++) {
-      if (firstAccount.matched) continue;
       if (i === j) continue;
+      if (firstAccount.matched) continue;
       const secondAccount = updatedAccounts[j];
+      if (!secondAccount.flexibleTradesSuggestions) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.company === secondAccount.company) continue;
@@ -515,10 +518,12 @@ export async function GET() {
   const progressCycle4 = 5;
   for (let i = 0; i < updatedAccounts.length; i++) {
     const firstAccount = updatedAccounts[i];
+    if (!firstAccount.flexibleTradesSuggestions) continue;
     for (let j = 0; j < updatedAccounts.length; j++) {
       if (firstAccount.matched) continue;
       if (i === j) continue;
       const secondAccount = updatedAccounts[j];
+      if (!secondAccount.flexibleTradesSuggestions) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.company === secondAccount.company) continue;
@@ -603,8 +608,7 @@ export async function GET() {
       trades.push(newTrade);
     }
   }
-  console.log(trades.length);
-  console.log(Gooddd);
-  return NextResponse.json({ trades });
+  console.log("At the moooon");
   await Trade.insertMany(trades);
+  return NextResponse.json({ trades });
 }
