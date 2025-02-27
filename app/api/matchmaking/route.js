@@ -6,7 +6,7 @@ import Trade from "@/models/Trade";
 
 export async function GET() {
   await dbConnect();
-  console.log("Staaaart");
+  console.log("Cron Job Start");
 
   // --> Η today αποθηκεύει την σημερινή ημέρα με πεζά γράμματα
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -608,7 +608,8 @@ export async function GET() {
       trades.push(newTrade);
     }
   }
-  console.log("At the moooon");
+  console.log(trades.length);
+  console.log("GO GO GO GO GO");
   await Trade.insertMany(trades);
   return NextResponse.json({ trades });
 }
