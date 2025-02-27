@@ -6,7 +6,7 @@ const TraderCard = ({ trader }) => {
   return (
     <div className={`rounded-xl bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2`}>
       <div className={`p-4 border-b border-gray-300 rounded-t-lg `}>
-        <Link href={`/admin/trader/${trader._id.toString()}`} className="flex items-center justify-center gap-2 text-xl font-semibold">
+        <Link href={`/?userid=${trader._id.toString()}`} className="flex items-center justify-center gap-2 text-xl font-semibold">
           <div>{trader.firstName}</div>
           <div>{trader.lastName}</div>
         </Link>

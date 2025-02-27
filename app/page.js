@@ -108,9 +108,10 @@ const GetCompanies = async () => {
   }
 };
 
-export default async function Home({ searchParams }) {
+export default async function Home({ searchParams, params }) {
   const { sessionClaims } = await auth();
-  const user = await GetUser(sessionClaims.metadata.mongoId);
+  const { userid } = await params;
+  const user = await GetUser(userid ? userid : sessionClaims.metadata.mongoId);
   const settings = await GetSettings();
   const companies = await GetCompanies();
 
