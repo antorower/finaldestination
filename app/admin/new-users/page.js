@@ -65,7 +65,7 @@ const NewUsersList = async () => {
       <div className="flex flex-wrap gap-8 justify-center">
         {newUsers.map((user) => {
           return (
-            <div className="p-4 bg-purple-500 rounded-lg text-2xl text-white font-bold flex flex-col gap-2" key={`new-user-${user._id.toString()}`}>
+            <div className="p-4 bg-gray-100 border border-gray-200 rounded-lg text-2xl text-white font-bold flex flex-col gap-2" key={`new-user-${user._id.toString()}`}>
               <div className="text-center">
                 {user.firstName} {user.lastName}
               </div>
