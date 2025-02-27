@@ -6,6 +6,7 @@ import Trade from "@/models/Trade";
 
 export async function GET() {
   await dbConnect();
+  console.log("Done Done");
 
   // --> Η today αποθηκεύει την σημερινή ημέρα με πεζά γράμματα
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
