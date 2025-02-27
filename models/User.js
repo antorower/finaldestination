@@ -225,6 +225,16 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  timePreference: {
+    type: String,
+    enum: ["Early Hours", "Late Hours"],
+    default: "Early Hours",
+  },
+  modePreference: {
+    type: String,
+    enum: ["Βoundaries", "Condescending"],
+    default: "Βoundaries",
+  },
   hourOffsetFromGreece: {
     type: Number,
     default: 0,

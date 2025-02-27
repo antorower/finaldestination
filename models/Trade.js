@@ -25,31 +25,11 @@ const TradeSchema = new mongoose.Schema(
         enum: ["pending", "canceled", "accepted", "aware", "open", "closed"],
         default: "pending",
       },
-      checking: {
-        correctAccount: Boolean,
-        correctPair: Boolean,
-        correctPosition: Boolean,
-        correctLots: Boolean,
-        correctStoploss: Boolean,
-        correctTakeProfit: Boolean,
-        progress: [
-          {
-            title: String,
-            createdAt: {
-              type: Number,
-              default: () => Date.now(),
-            },
-          },
-        ],
-        rush: {
-          type: Boolean,
-          default: false,
-        },
-      },
       priority: {
         type: String,
         enum: ["high", "low"],
       },
+      progress: Number,
       profit: Number,
       loss: Number,
     },
@@ -74,62 +54,20 @@ const TradeSchema = new mongoose.Schema(
         enum: ["pending", "canceled", "accepted", "aware", "open", "closed"],
         default: "pending",
       },
-      checking: {
-        correctAccount: Boolean,
-        correctPair: Boolean,
-        correctPosition: Boolean,
-        correctLots: Boolean,
-        correctStoploss: Boolean,
-        correctTakeProfit: Boolean,
-        progress: [
-          {
-            title: String,
-            createdAt: {
-              type: Number,
-              default: () => Date.now(),
-            },
-          },
-        ],
-        rush: {
-          type: Boolean,
-          default: false,
-        },
-        time: Number,
-      },
       priority: {
         type: String,
         enum: ["high", "low"],
       },
+      progress: Number,
       profit: Number,
       loss: Number,
     },
-    openTime: {
-      year: Number,
-      month: Number,
-      day: Number,
-      dayString: String,
-      hour: Number,
-      minutes: Number,
-    },
-    cancelable: {
-      type: Boolean,
-      default: true,
-    },
+    openTime: Date,
     status: {
       type: String,
       enum: ["pending", "canceled", "accepted", "open", "openPending", "closePending", "aware", "awarePending", "completed", "review"],
       default: "pending",
     },
-    progress: [
-      {
-        title: String,
-        description: String,
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
     priority: {
       type: String,
       enum: ["high", "medium", "low"],

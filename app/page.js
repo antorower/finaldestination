@@ -13,6 +13,7 @@ import Link from "next/link";
 import AccountsList from "./AccountsList";
 import Image from "next/image";
 import Settings from "@/models/Settings";
+import Account from "@/models/Account";
 
 const GetUser = async (id) => {
   await dbConnect();
