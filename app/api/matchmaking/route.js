@@ -402,23 +402,27 @@ export async function GET() {
       };
 
       const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
-      tomorrow.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
+      const openTime = new Date(now);
+      openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
+      openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
-      // Υπολογίζουμε αν ισχύει θερινή ώρα (DST)
-      const greeceOffset = now.getTimezoneOffset() === -180 ? 180 : 120; // UTC+3 (θερινή ώρα) ή UTC+2 (χειμερινή ώρα)
+      // Υπολογίζουμε το offset της Ελλάδας
+      const greeceOffset = -now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
 
-      // Μετατροπή του `tomorrow` στην ώρα Ελλάδας
-      tomorrow.setUTCMinutes(tomorrow.getUTCMinutes() - greeceOffset);
+      // Μετατροπή του `openTime` στην ώρα Ελλάδας
+      openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
 
-      tomorrow.setUTCMinutes(tomorrow.getUTCMinutes() + selectedTime);
-      //console.log(tomorrow.toISOString());
+      // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
+      openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
+
+      console.log(openTime.toISOString()); // Η ώρα UTC που αντιστοιχεί στην αυριανή 04:00 Ελλάδας
+      //console.log(openTime.toISOString());
 
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
       if (newTrade.firstParticipant.priority === "low" && newTrade.secondParticipant.priority === "low") newTrade.priority = "low";
       if (newTrade.firstParticipant.priority !== newTrade.secondParticipant.priority) newTrade.priority = "medium";
 
+      newTrade.openTime = openTime;
       firstAccount.matched = true;
       secondAccount.matched = true;
       trades.push(newTrade);
@@ -497,23 +501,27 @@ export async function GET() {
       };
 
       const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
-      tomorrow.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
+      const openTime = new Date(now);
+      openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
+      openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
-      // Υπολογίζουμε αν ισχύει θερινή ώρα (DST)
-      const greeceOffset = now.getTimezoneOffset() === -180 ? 180 : 120; // UTC+3 (θερινή ώρα) ή UTC+2 (χειμερινή ώρα)
+      // Υπολογίζουμε το offset της Ελλάδας
+      const greeceOffset = -now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
 
-      // Μετατροπή του `tomorrow` στην ώρα Ελλάδας
-      tomorrow.setUTCMinutes(tomorrow.getUTCMinutes() - greeceOffset);
+      // Μετατροπή του `openTime` στην ώρα Ελλάδας
+      openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
 
-      tomorrow.setUTCMinutes(tomorrow.getUTCMinutes() + selectedTime);
-      //console.log(tomorrow.toISOString());
+      // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
+      openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
+
+      console.log(openTime.toISOString()); // Η ώρα UTC που αντιστοιχεί στην αυριανή 04:00 Ελλάδας
+      //console.log(openTime.toISOString());
 
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
       if (newTrade.firstParticipant.priority === "low" && newTrade.secondParticipant.priority === "low") newTrade.priority = "low";
       if (newTrade.firstParticipant.priority !== newTrade.secondParticipant.priority) newTrade.priority = "medium";
 
+      newTrade.openTime = openTime;
       firstAccount.matched = true;
       secondAccount.matched = true;
       trades.push(newTrade);
@@ -594,30 +602,34 @@ export async function GET() {
       };
 
       const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
-      tomorrow.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
+      const openTime = new Date(now);
+      openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
+      openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
-      // Υπολογίζουμε αν ισχύει θερινή ώρα (DST)
-      const greeceOffset = now.getTimezoneOffset() === -180 ? 180 : 120; // UTC+3 (θερινή ώρα) ή UTC+2 (χειμερινή ώρα)
+      // Υπολογίζουμε το offset της Ελλάδας
+      const greeceOffset = -now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
 
-      // Μετατροπή του `tomorrow` στην ώρα Ελλάδας
-      tomorrow.setUTCMinutes(tomorrow.getUTCMinutes() - greeceOffset);
+      // Μετατροπή του `openTime` στην ώρα Ελλάδας
+      openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
 
-      tomorrow.setUTCMinutes(tomorrow.getUTCMinutes() + selectedTime);
-      //console.log(tomorrow.toISOString());
+      // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
+      openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
+
+      console.log(openTime.toISOString()); // Η ώρα UTC που αντιστοιχεί στην αυριανή 04:00 Ελλάδας
+      //console.log(openTime.toISOString());
 
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
       if (newTrade.firstParticipant.priority === "low" && newTrade.secondParticipant.priority === "low") newTrade.priority = "low";
       if (newTrade.firstParticipant.priority !== newTrade.secondParticipant.priority) newTrade.priority = "medium";
 
+      newTrade.openTime = openTime;
       firstAccount.matched = true;
       secondAccount.matched = true;
       trades.push(newTrade);
     }
   }
   console.log(trades.length);
-  console.log("GO GO GO GO GO");
+  console.log("Total Trades created: ", trades.length);
   await Trade.insertMany(trades);
   return NextResponse.json({ trades });
 }
