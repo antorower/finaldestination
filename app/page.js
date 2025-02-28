@@ -235,7 +235,7 @@ export default async function Home({ searchParams }) {
               <MenuItem link={`/?mode=companies${userid ? `&userid=${userid}` : ""}`} name="Εταιρίες" icon="/company-icon.svg" size={18} info="Πάτησε πάνω και ενεργοποίησε όποιες εταιρείες θέλεις να παίζεις. Αν κάποια εταιρεία δεν θέλεις να την παίζεις απλά απενεργοποίησε την." />{" "}
             </div>
           </div>
-          <div className="col-span-12 md:col-span-9 xl:col-span-10 px-4 overflow-y-auto p-4">
+          <div className="col-span-12 md:col-span-9 xl:col-span-10 px-4 overflow-y-auto">
             {!mode && (
               <div className="flex flex-col gap-4">
                 {GreeceTime >= settings.tradingHours.startingHour && GreeceTime < settings.tradingHours.endingHour && (

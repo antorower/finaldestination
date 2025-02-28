@@ -77,27 +77,6 @@ const TradeSchema = new mongoose.Schema(
 );
 
 TradeSchema.pre("save", async function (next) {
-  // ----> Ελέγω το status του κάθε user και ορίζω το status του trade
-  const statuses = [this.firstParticipant.status, this.secondParticipant.status];
-
-  if (statuses.includes("canceled")) {
-    this.status = "canceled";
-  } else if (statuses.includes("pending")) {
-    this.status = "pending";
-  } else if (statuses.includes("aware") && !statuses.every((s) => s === "aware")) {
-    this.status = "awarePending";
-  } else if (statuses.every((s) => s === "aware")) {
-    this.status = "aware";
-  } else if (statuses.every((s) => s === "accepted")) {
-    this.status = "accepted";
-  } else if (statuses.every((s) => s === "open")) {
-    this.status = "open";
-  } else if (statuses.includes("open") && !statuses.every((s) => s === "open")) {
-    this.status = "openPending";
-  } else if (statuses.includes("closed") && !statuses.every((s) => s === "closed")) {
-    this.status = "closePending";
-  }
-
   next();
 });
 
