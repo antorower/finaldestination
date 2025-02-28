@@ -120,7 +120,7 @@ const GetTrades = async (userId) => {
         { "firstParticipant.user": userId, "firstParticipant.status": { $ne: "closed" } },
         { "secondParticipant.user": userId, "secondParticipant.status": { $ne: "closed" } },
       ],
-    });
+    }).populate("user account");
   } catch (error) {
     console.log("Υπήρξε error στην GetTrades στο root ", error);
     return false;
@@ -209,7 +209,53 @@ export default async function Home({ searchParams }) {
                       {trades &&
                         trades.length > 0 &&
                         trades.map((trade, index) => {
-                          return <TradeItem key={`trade-${trade.account}`} account={trade.account} priority={trade.priority} openDate="Δευτέρα, 23 Δεκεμβρίου" openTime="9:15" />;
+                          // Μετατροπή UTC σε ώρα Ελλάδας με αυτόματη διαχείριση θερινής/χειμερινής ώρας
+                          const greeceDate = new Date(trade.openTime).toLocaleString("el-GR", {
+                            timeZone: "Europe/Athens",
+                            weekday: "long",
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          });
+
+                          // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
+                          const greeceDateObject = new Date(trade.openTime);
+                          const greeceOffset = greeceDateObject.getTimezoneOffset() === -180 ? 3 : 2; // UTC+3 (θερινή ώρα) ή UTC+2 (χειμερινή ώρα)
+
+                          // Δημιουργούμε το τελικό Date object με το σωστό offset
+                          greeceDateObject.setHours(greeceDateObject.getHours() + greeceOffset + user.hourOffsetFromGreece);
+
+                          // Μορφοποίηση τελικής ώρας
+                          const finalTimeString = greeceDateObject.toLocaleString("el-GR", {
+                            weekday: "long",
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          });
+
+                          const formattedDate = greeceDateObject.toLocaleDateString("el-GR", {
+                            weekday: "long",
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          });
+
+                          const formattedTime = greeceDateObject.toLocaleTimeString("el-GR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          });
+
+                          let tradeUser;
+                          if (trade.firstParticipant.user === user._id.toString()) tradeUser = trade.firstParticipant;
+                          if (trade.secondParticipant.user === user._id.toString()) tradeUser = trade.firstParticipant;
+                          return <TradeItem key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} />;
                         })}
                     </div>
                   </div>
