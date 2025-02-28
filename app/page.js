@@ -120,11 +120,7 @@ const GetTrades = async (userId) => {
         { "firstParticipant.user": userId, "firstParticipant.status": { $ne: "closed" } },
         { "secondParticipant.user": userId, "secondParticipant.status": { $ne: "closed" } },
       ],
-    })
-      .populate("firstParticipant.user")
-      .populate("secondParticipant.user")
-      .populate("firstParticipant.account")
-      .populate("secondParticipant.account");
+    });
   } catch (error) {
     console.log("Υπήρξε error στην GetTrades στο root ", error);
     return false;
