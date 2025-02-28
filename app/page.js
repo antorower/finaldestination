@@ -19,6 +19,7 @@ import Account from "@/models/Account";
 import Step from "./Step";
 import Trade from "@/models/Trade";
 import TradeItem from "./TradeItem";
+import { AddActivity } from "@/library/AddActivity";
 
 const GetUser = async (id) => {
   await dbConnect();
@@ -132,6 +133,37 @@ const GetTrades = async (userId) => {
   }
 };
 
+const ChangeTradeStatus = async ({ tradeId, userId, status }) => {
+  "use server";
+  try {
+    await dbConnect();
+    const trade = await Trade.findById(tradeId);
+    if (!trade) return { error: true, message: "Δεν βρέθηκε το trade. Προσπάθησε ξανά." };
+    if (trade.firstParticipant.user._id.toString() === userId) {
+      trade.firstParticipant.status = status;
+    }
+    if (trade.secondParticipant.user._id.toString() === userId) {
+      trade.secondParticipant.status = status;
+    }
+    await trade.save();
+    let activityTitle;
+    let activityDescription;
+    if (status === "accepted") {
+      activityTitle = "Αποδοχή Trade";
+      activityDescription = "Ο χρήστης αποδέχτηκε το trade";
+    }
+    if (status === "canceled") {
+      activityTitle = "Απόρριψη Trade";
+      activityDescription = "Ο χρήστης απέρριψε το trade";
+    }
+    await AddActivity({ user: userId, trade: tradeId, title: activityTitle, description: activityDescription });
+    return { error: false };
+  } catch (error) {
+    console.log("Υπήρξε error στην ChangeTradeStatus στο root", error);
+    return false;
+  }
+};
+
 export default async function Home({ searchParams }) {
   const { sessionClaims } = await auth();
   const { mode, userid } = await searchParams;
@@ -235,7 +267,7 @@ export default async function Home({ searchParams }) {
                           let tradeUser;
                           if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
                           if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
-                          return <TradeItem key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} />;
+                          return <TradeItem ChangeTradeStatus={ChangeTradeStatus} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} status={tradeUser.status} />;
                         })}
                     </div>
                   </div>
