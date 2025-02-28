@@ -16,6 +16,10 @@ const InvoiceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Account",
     },
+    trade: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Trade",
+    },
 
     // 🟢 Details
     title: {
@@ -28,7 +32,7 @@ const InvoiceSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["User Commission", "Leader Commission", "User Payment", "Buy Account", "Mistake", "Add Profits", "Add Dept"],
+      enum: ["User Commission", "Leader Commission", "User Payment", "Buy Account", "Mistake", "Bonus", "Add Profits", "Add Dept"],
       required: true,
     },
 

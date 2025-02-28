@@ -6,7 +6,7 @@ import Trade from "@/models/Trade";
 
 export async function GET() {
   await dbConnect();
-  console.log("Cron Job Start");
+  console.log("Ξεκίνησε το Matchmaking");
 
   const greeceTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" }));
   const greeceHour = greeceTime.getHours();
@@ -20,12 +20,12 @@ export async function GET() {
   const settings = await Settings.findOne();
   if (!settings) {
     console.log("Τα Settings δεν βρέθηκαν");
-    return NextResponse.json({ stoped: true }, { status: 500 });
+    return NextResponse.json({ stopped: true }, { status: 500 });
   }
 
   if (Number(greeceHour) !== settings.updateBalanceHours.endingHour) {
-    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
-    return NextResponse.json({ stoped: true }, { status: 200 });
+    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour, `:00. Θα έπρεπε να είναι ${settings.updateBalanceHours.endingHour}:00`);
+    return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // <-- Είναι η ελάχιστη διαφορά λεπτών που πρέπει να έχουν τα trades ενός trader μεταξύ τους
@@ -35,7 +35,7 @@ export async function GET() {
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
   if (!settings[today]?.active) {
     console.log("Η ημέρα δεν είναι active");
-    return NextResponse.json({ stoped: true }, { status: 200 });
+    return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // --> Τραβάει όλα τα accounts που δεν θέλει update το balance τους, δεν είναι isOnBoarding και το status τους είναι Live
@@ -57,83 +57,17 @@ export async function GET() {
     })
     .lean();
 
-  function generateRandomAccounts(numEntries) {
-    function getRandomInt(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function generateObjectId() {
-      return Math.random().toString(16).slice(2, 10) + Math.random().toString(16).slice(2, 10);
-    }
-
-    // Σταθερά IDs για τις εταιρείες
-    const companies = [
-      { _id: "65fcbadf1a3e4b001c4f6a01", name: "FTMO" },
-      { _id: "65fcbadf1a3e4b001c4f6a02", name: "The5ers" },
-      { _id: "65fcbadf1a3e4b001c4f6a03", name: "Funding Pips" },
-      { _id: "65fcbadf1a3e4b001c4f6a04", name: "Funded Next" },
-    ];
-
-    const numUsers = Math.max(1, Math.floor(numEntries / 4));
-
-    // Δημιουργούμε users με σταθερά trading hours
-    const users = Array.from({ length: numUsers }, () => {
-      const startingHour = getRandomInt(4, 9);
-      const endingHour = getRandomInt(startingHour + 1, 10);
-      return {
-        _id: generateObjectId(),
-        tradingHours: {
-          startingTradingHour: startingHour,
-          endingTradingHour: endingHour,
-        },
-      };
-    });
-
-    const accounts = [];
-
-    for (let i = 0; i < numEntries; i++) {
-      const phase = getRandomInt(1, 3);
-      let balanceRange = { 1: [90000, 108000], 2: [90000, 105000], 3: [90000, 102000] };
-      let company = companies[i % companies.length]; // Κρατάμε σταθερά τα IDs των εταιρειών
-      let user = users[getRandomInt(0, numUsers - 1)]; // Επιλέγουμε έναν user
-
-      accounts.push({
-        _id: generateObjectId(),
-        phase: phase,
-        balance: getRandomInt(balanceRange[phase][0], balanceRange[phase][1]),
-        capital: 100000,
-        timePreference: Math.random() < 0.5 ? "Early Hours" : "Late Hours",
-        modePreference: Math.random() < 0.5 ? "Boundaries" : "Condescending",
-        user: {
-          _id: user._id,
-          tradingHours: user.tradingHours, // Χρησιμοποιεί τα ίδια trading hours
-        },
-        company: {
-          _id: company._id,
-          name: company.name,
-          phase1: { target: 8, totalDrawdown: 10 },
-          phase2: { target: 5, totalDrawdown: 10 },
-          phase3: { target: 2, totalDrawdown: 10 },
-        },
-      });
-    }
-
-    return accounts;
-  }
-
-  /*const requestedAccounts = generateRandomAccounts(50);*/
-
   // --> Ελέγχω αν το array των accounts είναι άδειο
   if (!requestedAccounts || requestedAccounts.length === 0) {
     console.log("Το array requestedAccounts είναι άδειο");
-    return NextResponse.json({ stoped: true }, { status: 500 });
+    return NextResponse.json({ stopped: true }, { status: 500 });
   }
 
   // --> Αυτό κρατάει μόνο τα accounts που έχουν user
   const filteredAccounts = requestedAccounts.filter((account) => account.user !== null);
   if (!filteredAccounts || filteredAccounts.length === 0) {
     console.log("Το array filteredAccounts είναι άδειο");
-    return NextResponse.json({ stoped: true }, { status: 500 });
+    return NextResponse.json({ stopped: true }, { status: 500 });
   }
 
   // --> Το Map users έχει όλους τους users, τις διαθέσιμες ώρες τους  και τα ωράρια τους
@@ -335,7 +269,7 @@ export async function GET() {
       trades.push(newTrade);
     }
   }
-  console.log(trades.length);
+  console.log("Trades μετά τον πρώτο κύκλο: ", trades.length);
 
   // --> Κύκλος 3: Ίδιο phase, progress 2
   const progressCycle3 = 2;
@@ -436,7 +370,7 @@ export async function GET() {
       trades.push(newTrade);
     }
   }
-  console.log(trades.length);
+  console.log("Trades μετά τον δεύτερο κύκλο: ", trades.length);
 
   // --> Κύκλος 2: Κοινές ώρες, ίδιο phase, progress 5
   const progressCycle2 = 5;
@@ -535,7 +469,7 @@ export async function GET() {
       trades.push(newTrade);
     }
   }
-  console.log(trades.length);
+  console.log("Trades μετά τον τρίτο κύκλο: ", trades.length);
 
   // --> Κύκλος 4: Ίδιο phase, progress 5
   const progressCycle4 = 5;
@@ -636,8 +570,10 @@ export async function GET() {
       trades.push(newTrade);
     }
   }
-  console.log(trades.length);
-  console.log("Total Trades created: ", trades.length);
+  console.log("Trades μετά τον τέταρτο κύκλο: ", trades.length);
+
+  console.log("Συνολικά trades που δημιουργήθηκαν: ", trades.length);
+  console.log("Επιτυχές MatchTrading");
   await Trade.insertMany(trades);
-  return NextResponse.json({ trades });
+  return NextResponse.json({ success: true });
 }

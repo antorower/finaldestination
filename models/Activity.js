@@ -23,6 +23,12 @@ const ActivitySchema = new mongoose.Schema(
       index: true,
     },
 
+    sign: {
+      type: String,
+      emum: ["positive", "neutral", "negative"],
+      default: "neutral",
+    },
+
     // 🟢 Info
     title: String,
     description: String,

@@ -65,19 +65,16 @@ const TradeSchema = new mongoose.Schema(
     openTime: Date,
     status: {
       type: String,
-      enum: ["pending", "canceled", "accepted", "open", "openPending", "closePending", "aware", "awarePending", "completed", "review"],
+      enum: ["pending", "accepted", "open", "completed", "review"],
       default: "pending",
     },
     priority: {
       type: String,
       enum: ["high", "medium", "low"],
     },
+    note: String,
   },
   { timestamps: true }
 );
-
-TradeSchema.pre("save", async function (next) {
-  next();
-});
 
 export default mongoose.models.Trade || mongoose.model("Trade", TradeSchema);

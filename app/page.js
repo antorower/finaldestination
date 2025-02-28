@@ -1,6 +1,5 @@
 export const dynamic = "force-dynamic";
 
-import { UserProfile } from "@clerk/nextjs";
 import PageTransition from "@/components/PageTransition";
 import dbConnect from "@/dbConnect";
 import User from "@/models/User";
@@ -20,6 +19,8 @@ import Step from "./Step";
 import Trade from "@/models/Trade";
 import TradeItem from "./TradeItem";
 import { AddActivity } from "@/library/AddActivity";
+import Explanation from "@/components/Explanation";
+import OpenTradeItem from "./OpenTradeItem";
 
 const GetUser = async (id) => {
   await dbConnect();
@@ -131,9 +132,9 @@ const GetTrades = async (userId) => {
     console.log("Υπήρξε error στην GetTrades στο root ", error);
     return false;
   }
-};
+}; // να μην ειναι το γενικο review ή completed
 
-const ChangeTradeStatus = async ({ tradeId, userId, status }) => {
+const ChangeTradeStatus = async ({ tradeId, userId, status, accountId }) => {
   "use server";
   try {
     await dbConnect();
@@ -156,11 +157,35 @@ const ChangeTradeStatus = async ({ tradeId, userId, status }) => {
       activityTitle = "Απόρριψη Trade";
       activityDescription = "Ο χρήστης απέρριψε το trade";
     }
-    await AddActivity({ user: userId, trade: tradeId, title: activityTitle, description: activityDescription });
+    await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, description: activityDescription });
     return { error: false };
   } catch (error) {
     console.log("Υπήρξε error στην ChangeTradeStatus στο root", error);
     return false;
+  }
+};
+
+const BeAwareOfTrade = async ({ tradeId, userId, accountId }) => {
+  "use server";
+  try {
+    await dbConnect();
+    const trade = await Trade.findById(tradeId);
+    if (!trade) return { error: true, message: "Δεν βρέθηκε το trade. Προσπάθησε ξανά." };
+    if (trade.firstParticipant.user._id.toString() === userId) {
+      trade.firstParticipant.status = "aware";
+    }
+    if (trade.secondParticipant.user._id.toString() === userId) {
+      trade.secondParticipant.status = "aware";
+    }
+    await trade.save();
+
+    const activityTitle = "Δήλωση Παρουσίας";
+    const activityDescription = "Ο χρήστης δήλωσε ότι είναι παρών για το επερχόμεον trade";
+    await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, description: activityDescription });
+    return { error: false };
+  } catch (error) {
+    console.log("Υπήρξε ένα πρόβλημα στην BeAwareOfTrade στο root", error);
+    return { error: true, message: error.message };
   }
 };
 
@@ -169,8 +194,46 @@ export default async function Home({ searchParams }) {
   const { mode, userid } = await searchParams;
 
   const user = await GetUser(userid ? userid : sessionClaims.metadata.mongoId);
+  if (!user) return <div>Δεν βρέθηκε χρήστης</div>;
   const trades = await GetTrades(user._id.toString());
-  console.log(trades[0]);
+
+  const forOpening = [];
+  const openTrades = [];
+  const tradeSuggestions = [];
+  if (trades && trades.length > 0) {
+    trades.forEach((trade) => {
+      let participant = null;
+      console.log(trade.firstParticipant?.user);
+      // Βρίσκουμε αν ο χρήστης είναι first ή second participant
+      if (trade.firstParticipant?.user?._id.toString() === user._id.toString()) {
+        participant = trade.firstParticipant;
+      } else if (trade.secondParticipant?.user?._id.toString() === user._id.toString()) {
+        participant = trade.secondParticipant;
+      }
+      // Αν δεν βρέθηκε participant, προχωράμε στο επόμενο trade
+      if (!participant) return;
+      console.log("dsf");
+
+      // 1️⃣ tradeSuggestions → (Participant: pending, accepted, canceled) & (Trade: pending)
+      if (["pending", "accepted", "canceled"].includes(participant.status) && trade.status === "pending") {
+        tradeSuggestions.push(trade);
+      }
+
+      // 2️⃣ forOpening → (Trade: accepted)
+      if (trade.status === "accepted") {
+        forOpening.push(trade);
+      }
+
+      // 3️⃣ openTrades → (Participant: open)
+      if (participant.status === "open") {
+        openTrades.push(trade);
+      }
+    });
+  }
+
+  console.log("Trade Suggestions:", tradeSuggestions);
+  console.log("For Opening:", forOpening);
+  console.log("Open Trades:", openTrades);
 
   const settings = await GetSettings();
   const companies = await GetCompanies();
@@ -240,14 +303,58 @@ export default async function Home({ searchParams }) {
               <div className="flex flex-col gap-4">
                 {GreeceTime >= settings.tradingHours.startingHour && GreeceTime < settings.tradingHours.endingHour && (
                   <div className="flex flex-col gap-4">
-                    <div className="font-semibold">
-                      Trading
-                      <InfoButton classes="text-sm ml-2" message="Πατώντας το στρογγυλό κουμπί στα αριστερά μπορείς να αλλάξεις το status σου. Αν είσαι κόκκινος σημαίνει ότι ο αλγόριθμος από εδω και πέρα δεν θα σε συμπεριλαμβάνει στα trades της επόμενης ημέρας" />
+                    <div className="font-semibold">Trading</div>
+                    <div className="flex flex-col gap-2">
+                      <Explanation
+                        text={`Κάθε μέρα από τις ${user.tradingHours.startingTradingHour + user.hourOffsetFromGreece}:00 έως τις ${user.tradingHours.endingTradingHour + user.hourOffsetFromGreece}:00 πρέπει να βάλεις τα trades σου ακριβώς την ώρα που γράφει στο κάθε ένα. Πρώτα... Μπορείς να αλλάξεις τα trading ωράρια σου από τις ρυθμίσεις. Επίσης στις ρυθμίσεις μπορείς να βάλεις την διαφορά ώρας που έχεις με την Ελλάδα ώστε οι ώρες που θα βλέπεις στην σελίδα να ταιριάζουν με την τοπική σου.`}
+                        lettersShow={50}
+                        classes="text-gray-400 text-sm"
+                      />
+                      <div className="text-sm text-gray-400 flex items-center gap-1">
+                        <div>Πήγαινε στις ρυθμίσες:</div>
+                        <Link href="/?mode=tradingsettings" className="text-blue-400 hover:underline">
+                          Αλλαγή ωραρίων
+                        </Link>
+                      </div>
                     </div>
                     <div className="flex flex-col gap-4">
-                      {trades &&
-                        trades.length > 0 &&
-                        trades.map((trade) => {
+                      {forOpening &&
+                        forOpening.length > 0 &&
+                        forOpening.map((trade) => {
+                          // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
+                          const greeceDateObject = new Date(trade.openTime);
+                          // Δημιουργούμε το τελικό Date object με το σωστό offset
+                          greeceDateObject.setHours(greeceDateObject.getHours() + user.hourOffsetFromGreece);
+                          const formattedDate = greeceDateObject.toLocaleDateString("el-GR", {
+                            weekday: "long",
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          });
+                          const formattedTime = greeceDateObject.toLocaleTimeString("el-GR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          });
+
+                          let tradeUser;
+                          if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
+                          if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
+                          return <OpenTradeItem BeAwareOfTrade={BeAwareOfTrade} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trading-${trade._id.toString()}`} account={tradeUser.account.number} accountId={tradeUser.account._id.toString()} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} status={tradeUser.status} />;
+                        })}
+                    </div>
+                  </div>
+                )}
+                {GreeceTime >= settings.updateBalanceHours.startingHour && GreeceTime < settings.updateBalanceHours.endingHour && (
+                  <div className="flex flex-col gap-4">
+                    <div className="font-semibold">Ενημέρωση</div>
+                    <div className="flex flex-col gap-1">
+                      <Explanation text={`Η φάση της ενημέρωσης είναι ενεργή κάθε μέρα από τις ${settings.updateBalanceHours.startingHour + user.hourOffsetFromGreece}:00 έως τις ${settings.updateBalanceHours.endingHour + user.hourOffsetFromGreece}:00. Σε αυτό το διάστημα θα πρέπει να ενημερώσεις το balance του account σου. Τα trades όμως θα πρέπει να ελέγχεις κάθε μέρα γιατί θα πρέπει να κλείνουν συγκεκριμένη ώρα.`} lettersShow={50} classes="text-gray-400 text-sm" />
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      {openTrades &&
+                        openTrades.length > 0 &&
+                        openTrades.map((trade) => {
                           // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
                           const greeceDateObject = new Date(trade.openTime);
                           // Δημιουργούμε το τελικό Date object με το σωστό offset
@@ -272,22 +379,62 @@ export default async function Home({ searchParams }) {
                     </div>
                   </div>
                 )}
-                {GreeceTime >= settings.updateBalanceHours.startingHour && GreeceTime < settings.updateBalanceHours.endingHour && (
-                  <div>
-                    <div>Update Balance</div>
-                    <div>context</div>
-                  </div>
-                )}
                 {GreeceTime >= settings.acceptTradesHours.startingHour && GreeceTime < settings.acceptTradesHours.endingHour && (
-                  <div>
-                    <div>Accept Trades Hours</div>
-                    <div>context</div>
+                  <div className="flex flex-col gap-4">
+                    <div className="font-semibold">Προγραμματισμός</div>
+                    <div className="flex flex-col gap-1">
+                      <Explanation
+                        text={`Η φάση του προγραμματισμού είναι ενεργή κάθε μέρα από τις ${settings.acceptTradesHours.startingHour + user.hourOffsetFromGreece}:00 έως τις ${
+                          settings.acceptTradesHours.endingHour + user.hourOffsetFromGreece
+                        }:00. Πάτησε Accept στα trades που μπορείς να βάλεις αύριο. Τα trades με ανοιχτό πορτοκαλί background είναι εντός ωρών που εσύ έχεις δηλώσει ότι μπορείς να βάλεις. Συνεπώς αν τα απορρίψεις θα χρεωθούν στον λογαριασμό σου 10$ για το κάθε ένα. Τα trades με το γκρι background
+                      είναι εκτός ωρών σου και μπορείς να τα απορρίψεις χωρίς κανένα πρόβλημα. Τις ημέρες που ξέρεις ότι σίγουρα δεν μπορείς να βάζεις trades εκτός των ωρών σου είναι καλό να απενεργοποιείς την λειτουργία Flexible Suggestions από τα settings ώστε να μην σε λαμβάνει υπόψην του ο αλγόριθμος. Αν πιστεύεις ότι υπάρχει έστω μια περίπτωση κάποια άλλη ώρα να μπορείς να βάλεις κάποιο trade ενεργοποίησε την λειτουργία Flexible Suggestions. Για κάθε trade που βάζεις εκτός των ωρών σου σου πιστώνεται και ένα μικρό bonus 3$.`}
+                        lettersShow={50}
+                        classes="text-gray-400 text-sm"
+                      />
+                      <div className="text-sm text-gray-400 flex items-center gap-2">
+                        <div>Πήγαινε στο:</div>
+                        <Link href="/?mode=tradingsettings" className="text-blue-400 hover:underline">
+                          Flexible Suggestions
+                        </Link>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      {tradeSuggestions &&
+                        tradeSuggestions.length > 0 &&
+                        tradeSuggestions.map((trade) => {
+                          // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
+                          const greeceDateObject = new Date(trade.openTime);
+                          // Δημιουργούμε το τελικό Date object με το σωστό offset
+                          greeceDateObject.setHours(greeceDateObject.getHours() + user.hourOffsetFromGreece);
+                          const formattedDate = greeceDateObject.toLocaleDateString("el-GR", {
+                            weekday: "long",
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          });
+                          const formattedTime = greeceDateObject.toLocaleTimeString("el-GR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          });
+
+                          let tradeUser;
+                          if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
+                          if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
+                          return <TradeItem ChangeTradeStatus={ChangeTradeStatus} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} status={tradeUser.status} />;
+                        })}
+                    </div>
                   </div>
                 )}
                 {GreeceTime >= settings.seeScheduleHours.startingHour && GreeceTime < settings.seeScheduleHours.endingHour && (
-                  <div>
-                    <div>See Schedule Hours</div>
-                    <div>context</div>
+                  <div className="flex flex-col gap-4">
+                    <div className="font-semibold">
+                      Προετοιμασία
+                      <InfoButton classes="text-sm ml-2" message="Πατώντας το στρογγυλό κουμπί στα αριστερά μπορείς να αλλάξεις το status σου. Αν είσαι κόκκινος σημαίνει ότι ο αλγόριθμος από εδω και πέρα δεν θα σε συμπεριλαμβάνει στα trades της επόμενης ημέρας" />
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      <div>Under Construction</div>
+                    </div>
                   </div>
                 )}
               </div>
