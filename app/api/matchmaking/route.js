@@ -8,6 +8,9 @@ export async function GET() {
   await dbConnect();
   console.log("Cron Job Start");
 
+  const greeceTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" }));
+  const greeceHour = greeceTime.getHours();
+
   // --> Η today αποθηκεύει την σημερινή ημέρα με πεζά γράμματα
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const todayNumber = new Date().getDay();
@@ -18,6 +21,11 @@ export async function GET() {
   if (!settings) {
     console.log("Τα Settings δεν βρέθηκαν");
     return NextResponse.json({ stoped: true }, { status: 500 });
+  }
+
+  if (Number(greeceHour) !== settings.updateBalanceHours.endingHour) {
+    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
+    return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // <-- Είναι η ελάχιστη διαφορά λεπτών που πρέπει να έχουν τα trades ενός trader μεταξύ τους

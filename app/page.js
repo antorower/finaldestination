@@ -16,6 +16,9 @@ import AccountsList from "./AccountsList";
 import Image from "next/image";
 import Settings from "@/models/Settings";
 import Account from "@/models/Account";
+import Step from "./Step";
+import Trade from "@/models/Trade";
+import TradeItem from "./TradeItem";
 
 const GetUser = async (id) => {
   await dbConnect();
@@ -108,12 +111,28 @@ const GetCompanies = async () => {
   }
 };
 
+const GetTrades = async (userId) => {
+  "use server";
+  try {
+    await dbConnect();
+    return await Trade.find({
+      $or: [
+        { "firstParticipant.user": userId, "firstParticipant.status": { $ne: "closed" } },
+        { "secondParticipant.user": userId, "secondParticipant.status": { $ne: "closed" } },
+      ],
+    });
+  } catch (error) {
+    console.log("Υπήρξε error στην GetTrades στο root ", error);
+    return false;
+  }
+};
+
 export default async function Home({ searchParams }) {
   const { sessionClaims } = await auth();
   const { mode, userid } = await searchParams;
-  console.log(userid);
 
   const user = await GetUser(userid ? userid : sessionClaims.metadata.mongoId);
+  const trades = await GetTrades(user._id.toString());
   const settings = await GetSettings();
   const companies = await GetCompanies();
 
@@ -145,38 +164,54 @@ export default async function Home({ searchParams }) {
           {user.share == 0 && <div className="hidden sm:block"> Ποσοστό: {user.salary}%</div>}
         </div>
 
+        <div className="hidden md:grid grid-cols-11 text-sm border border-gray-300 p-4 bg-gray-50 rounded">
+          <Step text="Trading" active={GreeceTime >= settings.tradingHours.startingHour && GreeceTime < settings.tradingHours.endingHour} startingHour={settings.tradingHours.startingHour + user.hourOffsetFromGreece} endingHour={settings.tradingHours.endingHour + user.hourOffsetFromGreece} info="Στην φάση του trading έρχεσαι στις εργασίες στο section Trading και βλέπεις τα trades που πρέπει να βάλεις" />
+          <div className="flex flex-col items-center gap-2 self-center">
+            <Image src="/right-arrow.svg" alt="" width={20} height={20} />
+          </div>
+          <Step
+            text="Ενημέρωση"
+            active={GreeceTime >= settings.updateBalanceHours.startingHour && GreeceTime < settings.updateBalanceHours.endingHour}
+            startingHour={settings.updateBalanceHours.startingHour + user.hourOffsetFromGreece}
+            endingHour={settings.updateBalanceHours.endingHour + user.hourOffsetFromGreece}
+            info="Στην φάση της ενημέρωσης μπορείς να ενημερώσεις το balance των accounts σου όταν θα κλείσουν τα trades. Αν δεν κλείσουν μόνα τους θα πρέπει να τα κλείσεις εσύ την ώρα ακριβώς που αναγράφεται στο section Ενημέρωση στις εργασίες."
+          />
+          <div className="flex flex-col items-center gap-2 self-center">
+            <Image src="/right-arrow.svg" alt="" width={20} height={20} />
+          </div>
+          <Step text="Προγραμματισμός" active={GreeceTime >= settings.acceptTradesHours.startingHour && GreeceTime < settings.acceptTradesHours.endingHour} startingHour={settings.acceptTradesHours.startingHour + user.hourOffsetFromGreece} endingHour={settings.acceptTradesHours.endingHour + user.hourOffsetFromGreece} info="Στην φάση του προγραμματισμού στο ομώνυμο section θα δεις τις προτάσεις του αλγόριθμου για να φτιάξεις το αυριανό πρόγραμμά σου." />
+          <div className="flex flex-col items-center gap-2 self-center">
+            <Image src="/right-arrow.svg" alt="" width={20} height={20} />
+          </div>
+          <Step text="Προετοιμασία" active={GreeceTime >= settings.seeScheduleHours.startingHour && GreeceTime < settings.seeScheduleHours.endingHour} startingHour={settings.seeScheduleHours.startingHour + user.hourOffsetFromGreece} endingHour={settings.seeScheduleHours.endingHour + user.hourOffsetFromGreece} info="Στην φάση της προετοιμασίας μπορείς να δεις τα trades που έχεις τελικά να βάλεις αύριο και τις ώρες του ώστε να βάλεις τα ξυπνητήρια σου την ώρα που πρέπει." />
+        </div>
+
         <div className="grid grid-cols-12 gap-4">
-          <div className="flex flex-col gap-4 xl:col-span-2">
-            <div className="p-4 flex w-full flex-row flex-wrap justify-between lg:flex-col gap-4 border h-[230px] border-gray-300 rounded">
+          <div className="flex flex-col gap-4 col-span-12 md:col-span-3 xl:col-span-2">
+            <div className="p-4 flex w-full flex-row flex-wrap justify-between lg:flex-col gap-4 border h-auto md:h-[230px] border-gray-300 rounded">
               <MenuItem link={`/${userid ? `?userid=${userid}` : ""}`} name="Εργασίες" icon="task.svg" size={18} />
               <MenuItem link={`/?mode=accounts${userid ? `&userid=${userid}` : ""}`} name="Accounts" icon="account.svg" size={18} />
               <MenuItem link={`/?mode=tradingsettings${userid ? `&userid=${userid}` : ""}`} name="Ρυθμίσεις" icon="/settings-icon.svg" size={18} />
               <MenuItem link={`/?mode=tickets${userid ? `&userid=${userid}` : ""}`} name="Tickets" icon="/tickets.svg" size={18} />
               <MenuItem link={`/?mode=companies${userid ? `&userid=${userid}` : ""}`} name="Εταιρίες" icon="/company-icon.svg" size={18} info="Πάτησε πάνω και ενεργοποίησε όποιες εταιρείες θέλεις να παίζεις. Αν κάποια εταιρεία δεν θέλεις να την παίζεις απλά απενεργοποίησε την." />{" "}
             </div>
-            <div className="col-span-12 h-[400px] lg:col-span-4 xl:col-span-3 p-4 border border-gray-300 rounded overflow-y-auto overflow-x-hidden">
-              <div className="">context</div>
-            </div>
           </div>
-          <div className="col-span-12 lg:col-span-5 xl:col-span-10 px-4 overflow-y-auto h-[646px] p-4">
-            {mode === "accounts" && <AccountsList accounts={user.accounts.sort((a, b) => a.phase - b.phase)} />}
-            {mode === "tradingsettings" && (
-              <div className="flex justify-center">
-                <ScheduleForm SaveSchedule={SaveSchedule} ToggleFlexibleSuggestions={ToggleFlexibleSuggestions} ChangeHourOffsetFromGreece={ChangeHourOffsetFromGreece} id={id} oldStartingHour={user.tradingHours.startingTradingHour} oldEndingHour={user.tradingHours.endingTradingHour} oldSuggestionsStatus={user.flexibleTradesSuggestions} oldOffset={user.hourOffsetFromGreece} />
-              </div>
-            )}
-            {mode === "tickets" && <div className="w-full text-center animate-pulse text-gray-400">Under Construction</div>}
-            {mode === "companies" && (
-              <div className="w-full text-center text-gray-400">
-                <ManageCompanies userId={user._id.toString()} allCompanies={companies} userCompanies={user.companies} />
-              </div>
-            )}
+          <div className="col-span-12 md:col-span-9 xl:col-span-10 px-4 overflow-y-auto p-4">
             {!mode && (
               <div className="flex flex-col gap-4">
                 {GreeceTime >= settings.tradingHours.startingHour && GreeceTime < settings.tradingHours.endingHour && (
-                  <div>
-                    <div>Trading Hour</div>
-                    <div>context</div>
+                  <div className="flex flex-col gap-4">
+                    <div className="font-semibold">
+                      Trading
+                      <InfoButton classes="text-sm ml-2" message="Πατώντας το στρογγυλό κουμπί στα αριστερά μπορείς να αλλάξεις το status σου. Αν είσαι κόκκινος σημαίνει ότι ο αλγόριθμος από εδω και πέρα δεν θα σε συμπεριλαμβάνει στα trades της επόμενης ημέρας" />
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      {trades &&
+                        trades.length > 0 &&
+                        trades.map((trade, index) => {
+                          return <TradeItem key={`trade-${trade.account}`} account={trade.account} priority={trade.priority} openDate="Δευτέρα, 23 Δεκεμβρίου" openTime="9:15" />;
+                        })}
+                    </div>
                   </div>
                 )}
                 {GreeceTime >= settings.updateBalanceHours.startingHour && GreeceTime < settings.updateBalanceHours.endingHour && (
@@ -199,6 +234,18 @@ export default async function Home({ searchParams }) {
                 )}
               </div>
             )}
+            {mode === "accounts" && <AccountsList accounts={user.accounts.sort((a, b) => a.phase - b.phase)} />}
+            {mode === "tradingsettings" && (
+              <div className="flex justify-center">
+                <ScheduleForm SaveSchedule={SaveSchedule} ToggleFlexibleSuggestions={ToggleFlexibleSuggestions} ChangeHourOffsetFromGreece={ChangeHourOffsetFromGreece} id={id} oldStartingHour={user.tradingHours.startingTradingHour} oldEndingHour={user.tradingHours.endingTradingHour} oldSuggestionsStatus={user.flexibleTradesSuggestions} oldOffset={user.hourOffsetFromGreece} />
+              </div>
+            )}
+            {mode === "tickets" && <div className="text-gray-400 animate-pulse">Under Construction</div>}
+            {mode === "companies" && (
+              <div className="w-full text-center text-gray-400">
+                <ManageCompanies userId={user._id.toString()} allCompanies={companies} userCompanies={user.companies} />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -211,7 +258,7 @@ const MenuItem = ({ name, link, info, icon, size }) => {
     <Link className="text-blue-500 font-semibold hover:text-blue-400 flex items-center justify-between gap-4" href={link}>
       <div className="flex items-center gap-4">
         <Image src={icon} alt="" width={size} height={size} />
-        <div>{name}</div>
+        <div className="hidden md:block">{name}</div>
       </div>
       {info && <InfoButton message={info} />}
     </Link>

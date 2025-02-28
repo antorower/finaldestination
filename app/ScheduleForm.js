@@ -42,7 +42,14 @@ const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeHourOffse
         </div>
         <div className="text-sm text-gray-500 flex items-center justify-between">
           <div>
-            Τρέχουσες Ώρες Ελλάδος: {oldStartingHour}:00 - {oldEndingHour}:00
+            <div>
+              Τρέχουσες Ώρες Ελλάδος: {oldStartingHour}:00 - {oldEndingHour}:00
+            </div>
+            {oldOffset !== 0 && (
+              <div>
+                Τρέχουσες Τοπικές Ώρες: {oldStartingHour + oldOffset}:00 - {oldEndingHour + oldOffset}:00
+              </div>
+            )}
           </div>
           <InfoButton classes="text-sm" message="Όσες περισσότερες ώρες δηλώσεις διαθέσιμες, τόσο πιο εύκολα θα σου βρίσκει trades ο αλγοριθμος, άρα τόσο πιο γρήγορα θα προχωράς, άρα τόσο περισσότερα θα βγάζεις." />
         </div>
@@ -67,7 +74,7 @@ const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeHourOffse
         </div>
         <div className="text-sm text-gray-500 flex items-center justify-between">
           <div>
-            Διαφορά Ωρών με Ελλάδα: {oldOffset} ώρ{oldOffset === 1 || oldOffset === -1 ? "α" : "ες"}
+            Διαφορά Ώρας με Ελλάδα: {oldOffset} ώρ{oldOffset === 1 || oldOffset === -1 ? "α" : "ες"}
           </div>
           <InfoButton classes="text-sm" message="Εδώ μπορείς να βάλεις πόσες ώρες διαφορά έχει η χώρα σου με την Ελλάδα. Έτσι, στην σελίδα θα βλέπεις τα πάντα σε ώρες της χώρας σου και όχι σε ώρες Ελλάδος. Αν η τιμή είναι 0 τότε θα βλέπεις ώρες Ελλάδος." />
         </div>
