@@ -35,13 +35,14 @@ const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeHourOffse
   return (
     <div className="w-full max-w-[400px] border border-gray-300 p-4 rounded flex flex-col gap-4">
       <div className="flex flex-col gap-2">
+        <div className="text-gray-500 text-sm">Συμπλήρωσε Ώρα Ελλάδος:</div>
         <div className="flex gap-2 items-center">
           <input value={startingHour} onChange={(e) => setStartingHour(e.target.value)} type="number" placeholder="Starting" className="input rounded" />
           <input value={endingHour} onChange={(e) => setEndingHour(e.target.value)} type="number" placeholder="Ending" className="input rounded" />
         </div>
         <div className="text-sm text-gray-500 flex items-center justify-between">
           <div>
-            Τρέχουσες Ώρες: {oldStartingHour}:00 - {oldEndingHour}:00
+            Τρέχουσες Ώρες Ελλάδος: {oldStartingHour}:00 - {oldEndingHour}:00
           </div>
           <InfoButton classes="text-sm" message="Όσες περισσότερες ώρες δηλώσεις διαθέσιμες, τόσο πιο εύκολα θα σου βρίσκει trades ο αλγοριθμος, άρα τόσο πιο γρήγορα θα προχωράς, άρα τόσο περισσότερα θα βγάζεις." />
         </div>
@@ -66,7 +67,7 @@ const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeHourOffse
         </div>
         <div className="text-sm text-gray-500 flex items-center justify-between">
           <div>
-            Διαφορά με Ελλάδα: {oldOffset} ώρ{oldOffset === 1 ? "α" : "ες"}
+            Διαφορά Ωρών με Ελλάδα: {oldOffset} ώρ{oldOffset === 1 || oldOffset === -1 ? "α" : "ες"}
           </div>
           <InfoButton classes="text-sm" message="Εδώ μπορείς να βάλεις πόσες ώρες διαφορά έχει η χώρα σου με την Ελλάδα. Έτσι, στην σελίδα θα βλέπεις τα πάντα σε ώρες της χώρας σου και όχι σε ώρες Ελλάδος. Αν η τιμή είναι 0 τότε θα βλέπεις ώρες Ελλάδος." />
         </div>

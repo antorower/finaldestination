@@ -148,7 +148,7 @@ export default async function Home({ searchParams }) {
         <div className="grid grid-cols-12 gap-4">
           <div className="flex flex-col gap-4 xl:col-span-2">
             <div className="p-4 flex w-full flex-row flex-wrap justify-between lg:flex-col gap-4 border h-[230px] border-gray-300 rounded">
-              <MenuItem link={`/${userid ? `?userid=${userid}` : ""}`} name="Εργασίες" icon="account.svg" size={18} />
+              <MenuItem link={`/${userid ? `?userid=${userid}` : ""}`} name="Εργασίες" icon="task.svg" size={18} />
               <MenuItem link={`/?mode=accounts${userid ? `&userid=${userid}` : ""}`} name="Accounts" icon="account.svg" size={18} />
               <MenuItem link={`/?mode=tradingsettings${userid ? `&userid=${userid}` : ""}`} name="Ρυθμίσεις" icon="/settings-icon.svg" size={18} />
               <MenuItem link={`/?mode=tickets${userid ? `&userid=${userid}` : ""}`} name="Tickets" icon="/tickets.svg" size={18} />
