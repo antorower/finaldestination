@@ -10,9 +10,9 @@ const Step = ({ text, active, info, startingHour, endingHour }) => {
         </div>
         <div className="font-semibold">{text}</div>
       </div>
-      <div className="w-[20px] h-[20px] bg-blue-500 rounded-full flex justify-center items-center relative">
-        <div className="w-[10px] h-[10px] bg-blue-200 rounded-full"></div>
-        <div className={`w-[10px] h-[10px] bg-blue-200 rounded-full absolute ${active ? "animate-ping" : ""}`}></div>
+      <div className={`w-[20px] h-[20px] ${active ? "bg-blue-500" : "bg-red-500"} rounded-full flex justify-center items-center relative`}>
+        <div className={`w-[10px] h-[10px] rounded-full ${active ? "bg-blue-100" : "bg-red-300"}`}></div>
+        <div className={`w-[10px] h-[10px] ${active ? "bg-blue-100 animate-ping" : "bg-red-300"} rounded-full absolute`}></div>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import Trade from "@/models/Trade";
 export async function GET() {
   await dbConnect();
   console.log("Ξεκίνησε το Matchmaking");
+  // Ελεγμένο
 
   const greeceTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" }));
   const greeceHour = greeceTime.getHours();

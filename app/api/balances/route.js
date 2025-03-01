@@ -6,10 +6,11 @@ import Trade from "@/models/Trade";
 
 export async function GET() {
   await dbConnect();
-  console.log("Ξεκινάει ο έλεγχος του trading");
-  // Αυτό τρέχει ακριβώς μετά το άνοιγμα των trades
-  // Για να δούμε αν κάποιος δεν άνοιξε τα trades του
-  // Ελεγμένο
+  console.log("Ξεκινάει ο έλεγχος της αποδοχής των trades");
+  // Αυτό τρέχει αμέσως μετά που θα έχουν αποδεχτούν οι users τα trades τους
+  // Σκοπός είνα να δεί αν κάποια high priority trades έχουν γίνει cancel
+  // Αν κάποιοι δεν έχουν κάνει καν τον κόπο να αποδεχτούν ή να απορρίψουν
+  //Πρέπει να ελέγξω και τα balances
 
   const greeceTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" }));
   const greeceHour = greeceTime.getHours();
@@ -26,7 +27,7 @@ export async function GET() {
     return NextResponse.json({ stoped: true }, { status: 500 });
   }
 
-  if (Number(greeceHour) !== settings.tradingHours.endingHour) {
+  if (Number(greeceHour) !== settings.updateBalanceHours.endingHour) {
     console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
     return NextResponse.json({ stoped: true }, { status: 200 });
   }
@@ -45,9 +46,7 @@ export async function GET() {
   todayEnd.setUTCDate(todayStart.getUTCDate() + 1);
 
   const trades = await Trade.find({
-    status: {
-      $in: ["accepted", "open"],
-    },
+    status: "open",
     openTime: { $gte: todayStart, $lt: todayEnd },
   }).populate([
     { path: "firstParticipant.user", select: "_id leader" },
@@ -72,27 +71,11 @@ export async function GET() {
       let description = "";
       let adminNote = "";
 
-      // 🟥 CASE 1: Accepted -> Ποινή 30$
-      if (participant.status === "accepted") {
-        penaltyAmount = -30;
-        title = "Missed Trade";
-        description = `Ο χρήστης δήλωσε ότι θα βάλει το trade και δεν το έβαλε. Ποινή 30$.`;
-      }
-
-      // 🟥 CASE 2: Aware -> Ποινή 100$
-      if (participant.status === "aware") {
+      // 🟥 CASE 1: Δεν ενημερώθηκε το balance -> Ποινή 100$
+      if (participant.status === "open") {
         penaltyAmount = -100;
-        title = "Missed Trade";
-        adminNote = "Πρέπει να χρεωθεί και την αξία του trade χειροκίνητα γιατί πάτησε aware αλλά δεν έβαλε το trade.";
-        description = `Ο χρήστης δήλωσε ότι ήταν στον υπολογιστή την ώρα του trade ${trade._id.toString()} και τελικά δεν το έβαλε. Εκτός από τα 100$ που χρεώθηκε ήδη θα χρεωθεί και την αξία του trade χειροκίνητα. Ποινή 100$.`;
-      }
-
-      // 🟩 CASE 4: Open (Low Priority) -> Bonus 3
-      if (participant.status === "open" && participant.priority === "low") {
-        penaltyAmount = 3;
-        category = "Bonus";
-        title = "Low Priority Execution";
-        description = "Ο χρήστης άνοιξε ένα low priority trade. Μπόνους +3.";
+        title = "Μη ενημερωμένο balance";
+        description = `Ο χρήστης δεν έχει κλείσει το trade του ή/και δεν έχει ενημερώσει το balance του. Ποινή 100$.`;
       }
 
       if (penaltyAmount !== 0) {
@@ -117,7 +100,7 @@ export async function GET() {
       }
     });
 
-    if (trade.firstParticipant.status !== "open" || trade.secondParticipant.status !== "open") {
+    if (trade.firstParticipant.status === "open" || trade.secondParticipant.status === "open") {
       tradeUpdates.push({
         updateOne: {
           filter: { _id: trade._id },
@@ -128,7 +111,7 @@ export async function GET() {
       tradeUpdates.push({
         updateOne: {
           filter: { _id: trade._id },
-          update: { status: "open", note: tradeNote.trim() },
+          update: { status: "completed", note: tradeNote.trim() },
         },
       });
     }

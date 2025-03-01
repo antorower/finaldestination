@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/dbConnect";
 import Settings from "@/models/Settings";
-import Account from "@/models/Account";
 import Trade from "@/models/Trade";
+import Invoice from "@/models/Invoice";
+import User from "@/models/User";
 
 export async function GET() {
   await dbConnect();
-  console.log("Ξεκινάει ο έλεγχος του trading");
-  // Αυτό τρέχει ακριβώς μετά το άνοιγμα των trades
-  // Για να δούμε αν κάποιος δεν άνοιξε τα trades του
-  // Ελεγμένο
+  console.log("Ξεκινάει ο έλεγχος της αποδοχής των trades");
+  // Αυτό τρέχει αμέσως μετά που θα έχουν αποδεχτούν οι users τα trades τους
+  // Σκοπός είνα να δεί αν κάποια high priority trades έχουν γίνει cancel
+  // Αν κάποιοι δεν έχουν κάνει καν τον κόπο να αποδεχτούν ή να απορρίψουν
+  // Τέλος - Ελεγμένο
 
   const greeceTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" }));
   const greeceHour = greeceTime.getHours();
@@ -26,40 +28,41 @@ export async function GET() {
     return NextResponse.json({ stoped: true }, { status: 500 });
   }
 
-  if (Number(greeceHour) !== settings.tradingHours.endingHour) {
+  if (Number(greeceHour) !== settings.acceptTradesHours.endingHour) {
     console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
     return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
   if (!settings[today]?.active) {
-    console.log("Η ημέρα δεν είναι active");
-    return NextResponse.json({ stoped: true }, { status: 200 });
+    //console.log("Η ημέρα δεν είναι active");
+    //return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --------------------------------------------------------------------------------------------------------
-
   const now = new Date();
   const todayStart = new Date(now.setUTCHours(0, 0, 0, 0));
-  const todayEnd = new Date(todayStart);
-  todayEnd.setUTCDate(todayStart.getUTCDate() + 1);
+  const tomorrowStart = new Date(todayStart);
+  tomorrowStart.setUTCDate(todayStart.getUTCDate() + 1);
+  const tomorrowEnd = new Date(tomorrowStart);
+  tomorrowEnd.setUTCDate(tomorrowStart.getUTCDate() + 1);
 
   const trades = await Trade.find({
-    status: {
-      $in: ["accepted", "open"],
-    },
-    openTime: { $gte: todayStart, $lt: todayEnd },
-  }).populate([
-    { path: "firstParticipant.user", select: "_id leader" },
-    { path: "secondParticipant.user", select: "_id leader" },
-  ]);
+    status: "pending",
+    openTime: { $gte: tomorrowStart, $lt: tomorrowEnd },
+  })
+    .populate([
+      { path: "firstParticipant.user", select: "_id leader" },
+      { path: "secondParticipant.user", select: "_id leader" },
+    ])
+    .lean();
 
   const invoices = [];
-  const userPenalties = {}; // Για συγκέντρωση των συνολικών ποινών/μπόνους ανά χρήστη
+  const userPenalties = {};
   const tradeUpdates = [];
 
   trades.forEach((trade) => {
-    let tradeNote = `Trade #${trade._id}: `; // Κρατάμε αναλυτική περιγραφή
+    let tradeNote = "";
 
     ["firstParticipant", "secondParticipant"].forEach((participantKey) => {
       const participant = trade[participantKey];
@@ -72,35 +75,33 @@ export async function GET() {
       let description = "";
       let adminNote = "";
 
-      // 🟥 CASE 1: Accepted -> Ποινή 30$
-      if (participant.status === "accepted") {
-        penaltyAmount = -30;
-        title = "Missed Trade";
-        description = `Ο χρήστης δήλωσε ότι θα βάλει το trade και δεν το έβαλε. Ποινή 30$.`;
+      // Ακυρωμένο high priority
+      if (participant.status === "canceled") {
+        if (participant.priority === "high") {
+          penaltyAmount = -20;
+          title = "High Priority Ακυρωμένο";
+          description = `Ο χρήστης ακύρωσε high priority trade. Χρέωση: 20$.`;
+        }
       }
 
-      // 🟥 CASE 2: Aware -> Ποινή 100$
-      if (participant.status === "aware") {
-        penaltyAmount = -100;
-        title = "Missed Trade";
-        adminNote = "Πρέπει να χρεωθεί και την αξία του trade χειροκίνητα γιατί πάτησε aware αλλά δεν έβαλε το trade.";
-        description = `Ο χρήστης δήλωσε ότι ήταν στον υπολογιστή την ώρα του trade ${trade._id.toString()} και τελικά δεν το έβαλε. Εκτός από τα 100$ που χρεώθηκε ήδη θα χρεωθεί και την αξία του trade χειροκίνητα. Ποινή 100$.`;
-      }
-
-      // 🟩 CASE 4: Open (Low Priority) -> Bonus 3
-      if (participant.status === "open" && participant.priority === "low") {
-        penaltyAmount = 3;
-        category = "Bonus";
-        title = "Low Priority Execution";
-        description = "Ο χρήστης άνοιξε ένα low priority trade. Μπόνους +3.";
+      // Μας έγραψε
+      if (participant.status === "pending") {
+        if (participant.priority === "high") {
+          penaltyAmount = -50;
+          title = "High Priority ξεχασμένο";
+          description = `Ο χρήστης ούτε αποδέχτηκε ούτε απέρριψε high priority trade. Χρέωση 50$.`;
+        }
+        if (participant.priority === "low") {
+          penaltyAmount = -5;
+          title = "Low Priority Ξεχασμένο";
+          description = `Ο χρήστης ούτε αποδέχτηκε ούτε απέρριψε low priority trade. Ποινή 5$.`;
+        }
       }
 
       if (penaltyAmount !== 0) {
-        const leader = participant?.user?.leader || null;
-
         invoices.push({
           user: participant.user._id,
-          leader: leader,
+          leader: participant?.user?.leader || null,
           account: participant.account,
           trade: trade._id,
           title: title,
@@ -117,7 +118,7 @@ export async function GET() {
       }
     });
 
-    if (trade.firstParticipant.status !== "open" || trade.secondParticipant.status !== "open") {
+    if (trade.firstParticipant.status === "pending" || trade.firstParticipant.status === "canceled" || trade.secondParticipant.status === "pending" || trade.secondParticipant.status === "canceled") {
       tradeUpdates.push({
         updateOne: {
           filter: { _id: trade._id },
@@ -128,7 +129,7 @@ export async function GET() {
       tradeUpdates.push({
         updateOne: {
           filter: { _id: trade._id },
-          update: { status: "open", note: tradeNote.trim() },
+          update: { status: "accepted", note: tradeNote.trim() },
         },
       });
     }
@@ -146,9 +147,8 @@ export async function GET() {
   }));
 
   if (userUpdates.length > 0) await User.bulkWrite(userUpdates);
-
-  // Μαζική ενημέρωση των trades σε status "review"
   if (tradeUpdates.length > 0) await Trade.bulkWrite(tradeUpdates);
 
+  console.log("Ως εδώ φτάσαμε");
   return NextResponse.json({ success: true });
 }

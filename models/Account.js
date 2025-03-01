@@ -89,6 +89,11 @@ const AccountSchema = new mongoose.Schema(
       min: 0,
     },
 
+    // 🟢 Credentials
+    login: String,
+    password: String,
+    server: String,
+
     note: String,
   },
   { timestamps: true }
