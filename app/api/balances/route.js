@@ -58,7 +58,7 @@ export async function GET() {
   const tradeUpdates = [];
 
   trades.forEach((trade) => {
-    let tradeNote = `Trade #${trade._id}: `; // Κρατάμε αναλυτική περιγραφή
+    let tradeNote = "";
 
     ["firstParticipant", "secondParticipant"].forEach((participantKey) => {
       const participant = trade[participantKey];
@@ -75,7 +75,7 @@ export async function GET() {
       if (participant.status === "open") {
         penaltyAmount = -100;
         title = "Μη ενημερωμένο balance";
-        description = `Ο χρήστης δεν έχει κλείσει το trade του ή/και δεν έχει ενημερώσει το balance του. Ποινή 100$.`;
+        description = `Ο χρήστης δεν έχει ενημερώσει το balance του ή/και δεν έχει κλείσει το trade του. Ποινή 100$.`;
       }
 
       if (penaltyAmount !== 0) {
@@ -99,6 +99,18 @@ export async function GET() {
         tradeNote += ` [${participant.user._id}] ${title}: ${description} `;
       }
     });
+
+    let needReview = false;
+    if (trade.firstParticipant.status === "open" || trade.secondParticipant.status === "open") {
+      needReview = true;
+    } else {
+      if (trade.firstParticipant.profit < 0 && trade.secondParticipant.profit < 0) needReview = true;
+      if (trade.firstParticipant.profit > 0 && trade.secondParticipant.profit > 0) needReview = true;
+      if (trade.firstParticipant.profit > trade.firstParticipant.trade.takeProfit * 1.1) needReview = true;
+      if (trade.firstParticipant.profit < 0 && Math.abs(trade.firstParticipant.profit) > trade.firstParticipant.trade.stopLoss * 1.1) needReview = true;
+      if (trade.secondParticipant.profit > trade.secondParticipant.trade.takeProfit * 1.1) needReview = true;
+      if (trade.secondParticipant.profit < 0 && Math.abs(trade.secondParticipant.profit) > trade.secondParticipant.trade.stopLoss * 1.1) needReview = true;
+    }
 
     if (trade.firstParticipant.status === "open" || trade.secondParticipant.status === "open") {
       tradeUpdates.push({

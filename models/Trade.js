@@ -31,7 +31,6 @@ const TradeSchema = new mongoose.Schema(
       },
       progress: Number,
       profit: Number,
-      loss: Number,
     },
     secondParticipant: {
       user: {
@@ -60,7 +59,6 @@ const TradeSchema = new mongoose.Schema(
       },
       progress: Number,
       profit: Number,
-      loss: Number,
     },
     openTime: Date,
     status: {
@@ -72,6 +70,7 @@ const TradeSchema = new mongoose.Schema(
       type: String,
       enum: ["high", "medium", "low"],
     },
+    profit: Number,
     note: String,
   },
   { timestamps: true }
