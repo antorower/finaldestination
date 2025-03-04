@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/mistakes",
   "/api/(.*)", // Προσθέτουμε όλα τα API routes ως public
+  "/education",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {

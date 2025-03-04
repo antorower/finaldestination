@@ -25,8 +25,8 @@ export async function GET() {
   }
 
   if (Number(greeceHour) !== settings.updateBalanceHours.endingHour) {
-    //console.log("Η ώρα δεν είναι η σωστή: ", greeceHour, `:00. Θα έπρεπε να είναι ${settings.updateBalanceHours.endingHour}:00`);
-    //return NextResponse.json({ stopped: true }, { status: 200 });
+    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour, `:00. Θα έπρεπε να είναι ${settings.updateBalanceHours.endingHour}:00`);
+    return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // <-- Είναι η ελάχιστη διαφορά λεπτών που πρέπει να έχουν τα trades ενός trader μεταξύ τους
@@ -35,8 +35,8 @@ export async function GET() {
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
   if (!settings[today] || !settings[today].active) {
-    //console.log("Η ημέρα δεν είναι active");
-    //return NextResponse.json({ stopped: true }, { status: 200 });
+    console.log("Η ημέρα δεν είναι active");
+    return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // --> Τραβάει όλα τα accounts που δεν θέλει update το balance τους, δεν είναι isOnBoarding και το status τους είναι Live

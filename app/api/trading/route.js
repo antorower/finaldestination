@@ -29,14 +29,14 @@ export async function GET() {
   }
 
   if (Number(greeceHour) !== settings.tradingHours.endingHour) {
-    //console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
-    //return NextResponse.json({ stoped: true }, { status: 200 });
+    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
+    return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
   if (!settings[today] || !settings[today].active) {
-    //console.log("Η ημέρα δεν είναι active");
-    //return NextResponse.json({ stoped: true }, { status: 200 });
+    console.log("Η ημέρα δεν είναι active");
+    return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --------------------------------------------------------------------------------------------------------
