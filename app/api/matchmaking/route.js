@@ -46,7 +46,7 @@ export async function GET() {
     needBalanceUpdate: false,
     isOnBoarding: false,
     status: "Live",
-    adminCaseOn: false,
+    $or: [{ adminCaseOn: false }, { adminCaseOn: { $exists: false } }],
   })
     .select("phase balance capital")
     .populate({
