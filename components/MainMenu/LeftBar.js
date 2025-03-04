@@ -31,7 +31,7 @@ export default function LeftBar({ active, isOwner, isLeader, isAdmin }) {
         <MenuItem icon="/account-menu-icon-2.svg" text="Accounts" link="/accounts" symbol="" />
         <MenuItem icon="/trade.svg" text="Trades" link="/trades" symbol="💎" />
         <MenuItem icon="/dollar-icon.svg" text="Λογιστικά" link="/accounting" symbol="" />
-        <MenuItem icon="/info.svg" text="Οδηγοί" link="/guides" symbol="" />
+        <MenuItem icon="/info.svg" text="Οδηγοί" link="/education" symbol="" />
       </div>
       <div className="flex items-center justify-center p-4 border-t border-gray-800">
         <UserButton />
