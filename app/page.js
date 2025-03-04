@@ -572,18 +572,26 @@ const UpdateBalance = async ({ tradeId, userId, newBalance }) => {
     await dbConnect();
     const trade = await Trade.findById(tradeId).populate("firstParticipant.account").populate("secondParticipant.account");
     if (!trade) return { error: true, message: "Δεν βρέθηκε το trade. Προσπάθησε ξανά." };
-
+    let targetedAccount;
+    let oldBalance;
     if (trade.firstParticipant.user._id.toString() === userId) {
       trade.firstParticipant.status = "closed";
+      oldBalance = trade.firstParticipant.account.balance;
       trade.firstParticipant.profit = newBalance - trade.firstParticipant.account.balance;
+      targetedAccount = trade.firstParticipant.account;
       await trade.firstParticipant.account.updateBalance(newBalance, trade.firstParticipant.trade.takeProfit, trade.firstParticipant.trade.stopLoss);
     }
     if (trade.secondParticipant.user._id.toString() === userId) {
       trade.secondParticipant.status = "closed";
+      oldBalance = trade.secondParticipant.account.balance;
       trade.secondParticipant.profit = newBalance - trade.secondParticipant.account.balance;
+      targetedAccount = trade.secondParticipant.account;
       await trade.secondParticipant.account.updateBalance(newBalance, trade.secondParticipant.trade.takeProfit, trade.secondParticipant.trade.stopLoss);
     }
     await trade.save();
+
+    await AddActivity({ user: userId, account: targetedAccount?._id.toString(), trade: tradeId, title: `Ο χρήστης ενημέρωσε το balance του account ${targetedAccount?.number} από $${oldBalance} σε $${newBalance}` });
+
     return { error: false, message: "Το balance σου ενημερώθηκε επιτυχώς!" };
   } catch (error) {
     console.log("Υπήρξε ένα πρόβλημα στην UpdateBalance στο root", error);

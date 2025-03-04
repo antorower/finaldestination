@@ -53,9 +53,21 @@ export async function GET() {
     { path: "secondParticipant.user", select: "_id leader" },
   ]);
 
+  if (trades.length === 0) {
+    console.log("Δεν υπάρχουν trades για έλεγχο.");
+    return NextResponse.json({ stoped: true }, { status: 200 });
+  }
+
   const invoices = [];
-  const userPenalties = {}; // Για συγκέντρωση των συνολικών ποινών/μπόνους ανά χρήστη
+  const userTotalProfits = {}; // Για συγκέντρωση των συνολικών ποινών/μπόνους ανά χρήστη
+  const userPenaltiesCount = {};
+  const userPenaltiesAmount = {};
+  const userBonusesCount = {};
+  const userBonusesAmount = {};
   const tradeUpdates = [];
+  const forgetedTrades = {};
+  const winTrades = {};
+  const loseTrades = {};
 
   trades.forEach((trade) => {
     let tradeNote = "";
@@ -65,7 +77,7 @@ export async function GET() {
 
       if (!participant.user) return;
 
-      let penaltyAmount = 0;
+      let profitAmount = 0;
       let category = "Mistake";
       let title = "";
       let description = "";
@@ -73,12 +85,25 @@ export async function GET() {
 
       // 🟥 CASE 1: Δεν ενημερώθηκε το balance -> Ποινή 100$
       if (participant.status === "open") {
-        penaltyAmount = -100;
+        profitAmount = -100;
         title = "Μη ενημερωμένο balance";
         description = `Ο χρήστης δεν έχει ενημερώσει το balance του ή/και δεν έχει κλείσει το trade του. Ποινή 100$.`;
+        if (!forgetedTrades[participant.user._id]) {
+          forgetedTrades[participant.user._id] = {};
+        }
+        forgetedTrades[participant.user._id].toUpdateBalance = (forgetedTrades[participant.user._id].toUpdateBalance || 0) + 1;
       }
 
-      if (penaltyAmount !== 0) {
+      if (participant.profit) {
+        if (participant.profit > 0) {
+          winTrades[participant.user._id] = (winTrades[participant.user._id] || 0) + 1;
+        }
+        if (participant.profit < 0) {
+          loseTrades[participant.user._id] = (loseTrades[participant.user._id] || 0) + 1;
+        }
+      }
+
+      if (profitAmount !== 0) {
         const leader = participant?.user?.leader || null;
 
         invoices.push({
@@ -89,13 +114,20 @@ export async function GET() {
           title: title,
           description: description,
           category: category,
-          amount: Math.abs(penaltyAmount),
+          amount: Math.abs(profitAmount),
           status: "Completed",
           adminNote: adminNote,
         });
 
-        userPenalties[participant.user._id] = (userPenalties[participant.user._id] || 0) + penaltyAmount;
-
+        userTotalProfits[participant.user._id] = (userTotalProfits[participant.user._id] || 0) + profitAmount;
+        if (profitAmount < 0) {
+          userPenaltiesCount[participant.user._id] = (userPenaltiesCount[participant.user._id] || 0) + 1;
+          userPenaltiesAmount[participant.user._id] = (userPenaltiesAmount[participant.user._id] || 0) + Math.abs(profitAmount);
+        }
+        if (profitAmount > 0) {
+          userBonusesCount[participant.user._id] = (userBonusesCount[participant.user._id] || 0) + 1;
+          userBonusesAmount[participant.user._id] = (userBonusesAmount[participant.user._id] || 0) + profitAmount;
+        }
         tradeNote += `${title}: ${description} `;
       }
     });
@@ -107,13 +139,13 @@ export async function GET() {
       if (trade.firstParticipant.profit < 0 && trade.secondParticipant.profit < 0) needReview = true;
       if (trade.firstParticipant.profit > 0 && trade.secondParticipant.profit > 0) needReview = true;
       if (trade.firstParticipant.profit > trade.firstParticipant.trade.takeProfit * 1.1) needReview = true;
-      if (trade.firstParticipant.profit < 0 && Math.abs(trade.firstParticipant.profit) > trade.firstParticipant.trade.stopLoss * 1.1) needReview = true;
+      if (trade.firstParticipant.profit < 0 && Math.abs(trade.firstParticipant.profit) > trade.firstParticipant.trade.stopLoss * 1.15) needReview = true;
       if (trade.secondParticipant.profit > trade.secondParticipant.trade.takeProfit * 1.1) needReview = true;
-      if (trade.secondParticipant.profit < 0 && Math.abs(trade.secondParticipant.profit) > trade.secondParticipant.trade.stopLoss * 1.1) needReview = true;
+      if (trade.secondParticipant.profit < 0 && Math.abs(trade.secondParticipant.profit) > trade.secondParticipant.trade.stopLoss * 1.15) needReview = true;
     }
 
     let totalProfit;
-    if (trade.firstParticipant.profit && trade.secondParticipant.profit) totalProfit = Math.max(trade.firstParticipant.profit, trade.secondParticipant.profit) + Math.min(trade.firstParticipant.profit, trade.secondParticipant.profit);
+    if (typeof trade.firstParticipant.profit === "number" && typeof trade.secondParticipant.profit === "number") totalProfit = trade.firstParticipant.profit + trade.secondParticipant.profit;
 
     if (needReview) {
       tradeUpdates.push({
@@ -135,13 +167,50 @@ export async function GET() {
   // Μαζική εισαγωγή invoices
   if (invoices.length > 0) await Invoice.insertMany(invoices);
 
-  // Μαζικό update profits των χρηστών
-  const userUpdates = Object.entries(userPenalties).map(([userId, amount]) => ({
-    updateOne: {
-      filter: { _id: userId },
-      update: { $inc: { profits: amount } },
-    },
-  }));
+  // Μαζικό update profits των χρηστών και ενημέρωση των στατιστικών
+  const userUpdates = Object.entries(userTotalProfits).map(([userId, totalProfit]) => {
+    const updateFields = { $inc: {} };
+
+    if (totalProfit !== 0) {
+      updateFields.$inc["profits"] = totalProfit;
+    }
+
+    const penaltyCount = userPenaltiesCount[userId] || 0;
+    const penaltyAmount = userPenaltiesAmount[userId] || 0;
+    const bonusCount = userBonusesCount[userId] || 0;
+    const bonusAmount = userBonusesAmount[userId] || 0;
+    const winTradesCount = winTrades[userId] || 0;
+    const loseTradesCount = loseTrades[userId] || 0;
+
+    if (winTradesCount > 0) {
+      updateFields.$inc["trades.win"] = winTradesCount;
+    }
+
+    if (loseTradesCount > 0) {
+      updateFields.$inc["trades.lose"] = loseTradesCount;
+    }
+
+    if (penaltyCount > 0) {
+      updateFields.$inc["mistakes.withoutCost.count"] = penaltyCount;
+      updateFields.$inc["mistakes.withoutCost.amount"] = penaltyAmount;
+    }
+
+    if (bonusCount > 0) {
+      updateFields.$inc["bonuses.count"] = bonusCount;
+      updateFields.$inc["bonuses.amount"] = bonusAmount;
+    }
+
+    if (Object.keys(updateFields.$inc).length === 0) {
+      return null;
+    }
+
+    return {
+      updateOne: {
+        filter: { _id: userId },
+        update: updateFields,
+      },
+    };
+  });
 
   if (userUpdates.length > 0) await User.bulkWrite(userUpdates);
 

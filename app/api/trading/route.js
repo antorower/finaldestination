@@ -57,8 +57,13 @@ export async function GET() {
   ]);
 
   const invoices = [];
-  const userPenalties = {}; // Για συγκέντρωση των συνολικών ποινών/μπόνους ανά χρήστη
+  const userTotalProfits = {}; // Για συγκέντρωση των συνολικών ποινών/μπόνους ανά χρήστη
+  const userPenaltiesCount = {};
+  const userPenaltiesAmount = {};
+  const userBonusesCount = {};
+  const userBonusesAmount = {};
   const tradeUpdates = [];
+  const forgetedTrades = {};
 
   trades.forEach((trade) => {
     let tradeNote = ""; // Κρατάμε αναλυτική περιγραφή
@@ -68,7 +73,7 @@ export async function GET() {
 
       if (!participant.user) return;
 
-      let penaltyAmount = 0;
+      let profitAmount = 0;
       let category = "Mistake";
       let title = "";
       let description = "";
@@ -76,34 +81,42 @@ export async function GET() {
 
       // 🟥 CASE 1: Accepted -> Ποινή 30$
       if (participant.status === "accepted") {
-        penaltyAmount = -30;
+        profitAmount = -30;
         title = "Missed Trade";
         description = `Ο χρήστης δήλωσε ότι θα βάλει το trade και δεν το έβαλε. Ποινή 30$.`;
+        if (!forgetedTrades[participant.user._id]) {
+          forgetedTrades[participant.user._id] = {};
+        }
+        forgetedTrades[participant.user._id].toOpen = (forgetedTrades[participant.user._id].toOpen || 0) + 1;
       }
 
       if (!participant.checked) {
-        penaltyAmount = -15;
+        profitAmount = -15;
         title = "Δεν Έγινε Έλεγχος";
         description = `Ο χρήστης δεν έκανε έλεγχο αφού έβαλε το trade. Ποινή 15$.`;
       }
 
       // 🟥 CASE 2: Aware -> Ποινή 100$
       if (participant.status === "aware") {
-        penaltyAmount = -100;
+        profitAmount = -100;
         title = "Missed Trade";
         adminNote = "Πρέπει να χρεωθεί και την αξία του trade χειροκίνητα γιατί πάτησε aware αλλά δεν έβαλε το trade.";
         description = `Ο χρήστης δήλωσε ότι ήταν στον υπολογιστή την ώρα του trade ${trade._id.toString()} και τελικά δεν το έβαλε. Εκτός από τα 100$ που χρεώθηκε ήδη θα χρεωθεί και την αξία του trade χειροκίνητα. Ποινή 100$.`;
+        if (!forgetedTrades[participant.user._id]) {
+          forgetedTrades[participant.user._id] = {};
+        }
+        forgetedTrades[participant.user._id].toOpen = (forgetedTrades[participant.user._id].toOpen || 0) + 1;
       }
 
       // 🟩 CASE 4: Open (Low Priority) -> Bonus 3
       if (participant.status === "open" && participant.priority === "low") {
-        penaltyAmount = 5;
+        profitAmount = 5;
         category = "Bonus";
         title = "Low Priority Execution";
         description = "Ο χρήστης άνοιξε ένα low priority trade. Μπόνους 5$.";
       }
 
-      if (penaltyAmount !== 0) {
+      if (profitAmount !== 0) {
         const leader = participant?.user?.leader || null;
 
         invoices.push({
@@ -114,12 +127,20 @@ export async function GET() {
           title: title,
           description: description,
           category: category,
-          amount: Math.abs(penaltyAmount),
+          amount: Math.abs(profitAmount),
           status: "Completed",
           adminNote: adminNote,
         });
 
-        userPenalties[participant.user._id] = (userPenalties[participant.user._id] || 0) + penaltyAmount;
+        userTotalProfits[participant.user._id] = (userTotalProfits[participant.user._id] || 0) + profitAmount;
+        if (profitAmount < 0) {
+          userPenaltiesCount[participant.user._id] = (userPenaltiesCount[participant.user._id] || 0) + 1;
+          userPenaltiesAmount[participant.user._id] = (userPenaltiesAmount[participant.user._id] || 0) + Math.abs(profitAmount);
+        }
+        if (profitAmount > 0) {
+          userBonusesCount[participant.user._id] = (userBonusesCount[participant.user._id] || 0) + 1;
+          userBonusesAmount[participant.user._id] = (userBonusesAmount[participant.user._id] || 0) + profitAmount;
+        }
 
         tradeNote += `${title}: ${description} `;
       }
@@ -146,12 +167,44 @@ export async function GET() {
   if (invoices.length > 0) await Invoice.insertMany(invoices);
 
   // Μαζικό update profits των χρηστών
-  const userUpdates = Object.entries(userPenalties).map(([userId, amount]) => ({
-    updateOne: {
-      filter: { _id: userId },
-      update: { $inc: { profits: amount } },
-    },
-  }));
+  const userUpdates = Object.entries(userTotalProfits).map(([userId, totalProfit]) => {
+    const updateFields = { $inc: {} };
+
+    if (totalProfit !== 0) {
+      updateFields.$inc["profits"] = totalProfit;
+    }
+
+    const penaltyCount = userPenaltiesCount[userId] || 0;
+    const penaltyAmount = userPenaltiesAmount[userId] || 0;
+    const bonusCount = userBonusesCount[userId] || 0;
+    const bonusAmount = userBonusesAmount[userId] || 0;
+    const forgetedTradesToOpen = forgetedTrades[userId]?.toOpen || 0;
+
+    if (forgetedTradesToOpen > 0) {
+      updateFields.$inc["trades.forgeted.toOpen"] = forgetedTradesToAccept;
+    }
+
+    if (penaltyCount > 0) {
+      updateFields.$inc["mistakes.withoutCost.count"] = penaltyCount;
+      updateFields.$inc["mistakes.withoutCost.amount"] = penaltyAmount;
+    }
+
+    if (bonusCount > 0) {
+      updateFields.$inc["bonuses.count"] = bonusCount;
+      updateFields.$inc["bonuses.amount"] = bonusAmount;
+    }
+
+    if (Object.keys(updateFields.$inc).length === 0) {
+      return null;
+    }
+
+    return {
+      updateOne: {
+        filter: { _id: userId },
+        update: updateFields,
+      },
+    };
+  });
 
   if (userUpdates.length > 0) await User.bulkWrite(userUpdates);
 

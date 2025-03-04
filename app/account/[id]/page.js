@@ -33,6 +33,7 @@ const SaveNewAccountNumber = async ({ accountId, newNumber }) => {
     account.status = "Live";
     account.isOnBoarding = true;
     account.note = "Χρειάζεται Ενεργοποίηση";
+
     await account.save();
     await AddActivity({ title: "Έγινε Αγορά Νέου Account", description: "Έγινε αγορά account από τον χρήστη", user: account.user, account: account._id });
     return { error: false };

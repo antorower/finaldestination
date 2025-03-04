@@ -152,6 +152,28 @@ const UserSchema = new mongoose.Schema({
 
   // 🟢 Stats
   mistakes: {
+    withCost: {
+      count: {
+        type: Number,
+        default: 0,
+      },
+      amount: {
+        type: Number,
+        default: 0,
+      },
+    },
+    withoutCost: {
+      count: {
+        type: Number,
+        default: 0,
+      },
+      amount: {
+        type: Number,
+        default: 0,
+      },
+    },
+  },
+  bonuses: {
     count: {
       type: Number,
       default: 0,
@@ -192,6 +214,20 @@ const UserSchema = new mongoose.Schema({
         default: 0,
       },
       lowPriority: {
+        type: Number,
+        default: 0,
+      },
+    },
+    forgeted: {
+      toAccept: {
+        type: Number,
+        default: 0,
+      },
+      toOpen: {
+        type: Number,
+        default: 0,
+      },
+      toUpdateBalance: {
         type: Number,
         default: 0,
       },

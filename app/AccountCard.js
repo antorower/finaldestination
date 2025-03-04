@@ -52,6 +52,9 @@ const AccountCard = ({ account }) => {
         </div>
       </div>
       <div className={`${account.note && "animate-bounce"} ${darkColor} text-sm text-white rounded p-2 text-center`}>{account.note || "-"}</div>
+      <div className={`w-full relative h-2 bg-gray-200 rounded-full overflow-hidden border border-gray-300`}>
+        <div className={`absolute top-0 left-0 h-full rounded-full transition-all duration-300 ${account.progress < 20 && "bg-red-500"} ${account.progress >= 20 && account.progress < 50 && "bg-orange-500"} ${account.progress >= 50 && account.progress < 80 && "bg-blue-500"} ${account.progress >= 80 && "bg-green-500"}`} style={{ width: `${account.progress}%` }}></div>
+      </div>
     </Link>
   );
 };
