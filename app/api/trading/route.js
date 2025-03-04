@@ -3,6 +3,8 @@ import dbConnect from "@/dbConnect";
 import Settings from "@/models/Settings";
 import Account from "@/models/Account";
 import Trade from "@/models/Trade";
+import Invoice from "@/models/Invoice";
+import User from "@/models/User";
 
 export async function GET() {
   await dbConnect();
@@ -27,14 +29,14 @@ export async function GET() {
   }
 
   if (Number(greeceHour) !== settings.tradingHours.endingHour) {
-    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
-    return NextResponse.json({ stoped: true }, { status: 200 });
+    //console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
+    //return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
-  if (!settings[today]?.active) {
-    console.log("Η ημέρα δεν είναι active");
-    return NextResponse.json({ stoped: true }, { status: 200 });
+  if (!settings[today] || !settings[today].active) {
+    //console.log("Η ημέρα δεν είναι active");
+    //return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --------------------------------------------------------------------------------------------------------
@@ -59,7 +61,7 @@ export async function GET() {
   const tradeUpdates = [];
 
   trades.forEach((trade) => {
-    let tradeNote = `Trade #${trade._id}: `; // Κρατάμε αναλυτική περιγραφή
+    let tradeNote = ""; // Κρατάμε αναλυτική περιγραφή
 
     ["firstParticipant", "secondParticipant"].forEach((participantKey) => {
       const participant = trade[participantKey];
@@ -79,6 +81,12 @@ export async function GET() {
         description = `Ο χρήστης δήλωσε ότι θα βάλει το trade και δεν το έβαλε. Ποινή 30$.`;
       }
 
+      if (!participant.checked) {
+        penaltyAmount = -15;
+        title = "Δεν Έγινε Έλεγχος";
+        description = `Ο χρήστης δεν έκανε έλεγχο αφού έβαλε το trade. Ποινή 15$.`;
+      }
+
       // 🟥 CASE 2: Aware -> Ποινή 100$
       if (participant.status === "aware") {
         penaltyAmount = -100;
@@ -89,10 +97,10 @@ export async function GET() {
 
       // 🟩 CASE 4: Open (Low Priority) -> Bonus 3
       if (participant.status === "open" && participant.priority === "low") {
-        penaltyAmount = 3;
+        penaltyAmount = 5;
         category = "Bonus";
         title = "Low Priority Execution";
-        description = "Ο χρήστης άνοιξε ένα low priority trade. Μπόνους +3.";
+        description = "Ο χρήστης άνοιξε ένα low priority trade. Μπόνους 5$.";
       }
 
       if (penaltyAmount !== 0) {
@@ -113,7 +121,7 @@ export async function GET() {
 
         userPenalties[participant.user._id] = (userPenalties[participant.user._id] || 0) + penaltyAmount;
 
-        tradeNote += ` [${participant.user._id}] ${title}: ${description} `;
+        tradeNote += `${title}: ${description} `;
       }
     });
 

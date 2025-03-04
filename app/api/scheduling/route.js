@@ -29,12 +29,12 @@ export async function GET() {
   }
 
   if (Number(greeceHour) !== settings.acceptTradesHours.endingHour) {
-    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
-    return NextResponse.json({ stoped: true }, { status: 200 });
+    //console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
+    //return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
-  if (!settings[today]?.active) {
+  if (!settings[today] || !settings[today].active) {
     //console.log("Η ημέρα δεν είναι active");
     //return NextResponse.json({ stoped: true }, { status: 200 });
   }
@@ -114,7 +114,7 @@ export async function GET() {
 
         userPenalties[participant.user._id] = (userPenalties[participant.user._id] || 0) + penaltyAmount;
 
-        tradeNote += ` [${participant.user._id}] ${title}: ${description} `;
+        tradeNote += `${title}: ${description} `;
       }
     });
 

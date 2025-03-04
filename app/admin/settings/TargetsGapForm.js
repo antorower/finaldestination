@@ -21,9 +21,9 @@ const TargetsGapForm = ({ UpdateTargetsGap, oldPhase1, oldPhase2, oldPhase3 }) =
   return (
     <div className="flex flex-col gap-2 border border-gray-300 p-4 rounded-lg w-full max-w-[350px]">
       <div className="text-center text-gray-500 text-xs flex items-center justify-between">
-        <div>Phase 1: {oldPhase1}%</div>
-        <div>Phase 2: {oldPhase2}%</div>
-        <div>Phase 3: {oldPhase3}%</div>
+        <div>Phase 1: {oldPhase1} Lots</div>
+        <div>Phase 2: {oldPhase2} Lots</div>
+        <div>Phase 3: {oldPhase3} Lots</div>
       </div>
       <div className="flex gap-2">
         <input value={phase1} onChange={(e) => setPhase1(e.target.value)} className="input rounded" type="number" placeholder="Phase 1" />

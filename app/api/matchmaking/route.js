@@ -25,8 +25,8 @@ export async function GET() {
   }
 
   if (Number(greeceHour) !== settings.updateBalanceHours.endingHour) {
-    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour, `:00. Θα έπρεπε να είναι ${settings.updateBalanceHours.endingHour}:00`);
-    return NextResponse.json({ stopped: true }, { status: 200 });
+    //console.log("Η ώρα δεν είναι η σωστή: ", greeceHour, `:00. Θα έπρεπε να είναι ${settings.updateBalanceHours.endingHour}:00`);
+    //return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // <-- Είναι η ελάχιστη διαφορά λεπτών που πρέπει να έχουν τα trades ενός trader μεταξύ τους
@@ -34,9 +34,9 @@ export async function GET() {
   const minutesSpaceBetweenTrades = settings.minutesSpaceBetweenTrades;
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
-  if (!settings[today]?.active) {
-    console.log("Η ημέρα δεν είναι active");
-    return NextResponse.json({ stopped: true }, { status: 200 });
+  if (!settings[today] || !settings[today].active) {
+    //console.log("Η ημέρα δεν είναι active");
+    //return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // --> Τραβάει όλα τα accounts που δεν θέλει update το balance τους, δεν είναι isOnBoarding και το status τους είναι Live
@@ -45,6 +45,7 @@ export async function GET() {
     needBalanceUpdate: false,
     isOnBoarding: false,
     status: "Live",
+    adminCaseOn: false,
   })
     .select("phase balance capital")
     .populate({
@@ -70,7 +71,7 @@ export async function GET() {
     console.log("Το array filteredAccounts είναι άδειο");
     return NextResponse.json({ stopped: true }, { status: 500 });
   }
-
+  console.log("Συνολικός αριθμός accounts: ", filteredAccounts.length);
   // --> Το Map users έχει όλους τους users, τις διαθέσιμες ώρες τους  και τα ωράρια τους
   const users = new Map();
 
@@ -172,7 +173,7 @@ export async function GET() {
 
   // --> Κυρίως αλγόριθμος
 
-  // --> Κύκλος 1: Κοινές ώρες, ίδιο phase, progress 2
+  // --> Κοινές ώρες, ίδιο phase, progress 2
   const trades = [];
   const progressCycle1 = 2;
   for (let i = 0; i < updatedAccounts.length; i++) {
@@ -249,7 +250,7 @@ export async function GET() {
       openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
       // Υπολογίζουμε το offset της Ελλάδας
-      const greeceOffset = -now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
+      const greeceOffset = now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
 
       // Μετατροπή του `openTime` στην ώρα Ελλάδας
       openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
@@ -272,7 +273,7 @@ export async function GET() {
   }
   console.log("Trades μετά τον πρώτο κύκλο: ", trades.length);
 
-  // --> Κύκλος 3: Ίδιο phase, progress 2
+  // --> Ίδιο phase, progress 2
   const progressCycle3 = 2;
   for (let i = 0; i < updatedAccounts.length; i++) {
     const firstAccount = updatedAccounts[i];
@@ -288,7 +289,6 @@ export async function GET() {
       if (firstAccount.company === secondAccount.company) continue;
       if (firstAccount.phase !== secondAccount.phase) continue;
       if (Math.abs(firstAccount.progress - secondAccount.progress) > progressCycle3) continue;
-
       const availableMinutes = AvailableMinutes(firstAccount.user, firstAccount.minHour, firstAccount.maxHour, secondAccount.user, secondAccount.minHour, secondAccount.maxHour, false);
       if (!availableMinutes || availableMinutes.length === 0) continue;
 
@@ -298,6 +298,7 @@ export async function GET() {
         // Επιλέγει τυχαία από τις πρώτες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
         selectedTime = availableMinutes[Math.floor(Math.random() * Math.min(5, availableMinutes.length))];
       }
+
       if (firstAccount.timePreference === "Late Hours" && secondAccount.timePreference === "Late Hours") {
         // Επιλέγει τυχαία από τις τελευταίες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
         let startIndex = Math.max(0, availableMinutes.length - 5);
@@ -343,14 +344,13 @@ export async function GET() {
         status: "pending",
         priority: "",
       };
-
       const now = new Date();
       const openTime = new Date(now);
       openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
       openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
       // Υπολογίζουμε το offset της Ελλάδας
-      const greeceOffset = -now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
+      const greeceOffset = now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
 
       // Μετατροπή του `openTime` στην ώρα Ελλάδας
       openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
@@ -369,11 +369,12 @@ export async function GET() {
       firstAccount.matched = true;
       secondAccount.matched = true;
       trades.push(newTrade);
+      //return NextResponse.json({ data: newTrade }, { status: 200 });
     }
   }
   console.log("Trades μετά τον δεύτερο κύκλο: ", trades.length);
 
-  // --> Κύκλος 2: Κοινές ώρες, ίδιο phase, progress 5
+  // --> Κοινές ώρες, ίδιο phase, progress 5
   const progressCycle2 = 5;
   for (let i = 0; i < updatedAccounts.length; i++) {
     const firstAccount = updatedAccounts[i];
@@ -449,7 +450,7 @@ export async function GET() {
       openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
       // Υπολογίζουμε το offset της Ελλάδας
-      const greeceOffset = -now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
+      const greeceOffset = now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
 
       // Μετατροπή του `openTime` στην ώρα Ελλάδας
       openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
@@ -472,7 +473,7 @@ export async function GET() {
   }
   console.log("Trades μετά τον τρίτο κύκλο: ", trades.length);
 
-  // --> Κύκλος 4: Ίδιο phase, progress 5
+  // --> Ίδιο phase, progress 5
   const progressCycle4 = 5;
   for (let i = 0; i < updatedAccounts.length; i++) {
     const firstAccount = updatedAccounts[i];
@@ -550,7 +551,7 @@ export async function GET() {
       openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
       // Υπολογίζουμε το offset της Ελλάδας
-      const greeceOffset = -now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
+      const greeceOffset = now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
 
       // Μετατροπή του `openTime` στην ώρα Ελλάδας
       openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);

@@ -16,13 +16,12 @@ const GetAccountTickets = async ({ accountId }) => {
 
 const AccountTickets = async ({ accountId }) => {
   const tickets = await GetAccountTickets({ accountId });
-  console.log(tickets);
+
   if (!tickets || tickets.length === 0 || tickets.error) return <div>Δεν υπάρχουν tickets για αυτό το account</div>;
-  console.log(tickets.length);
+
   return (
     <div className="h-full flex flex-col gap-2">
       {tickets.map((ticket) => {
-        console.log(ticket.messages[0]);
         return <TicketListItem subject={ticket.subject} message={ticket.messages[0].content} notifyUser={ticket.notifyUser} key={`ticket-account-${ticket._id.toString()}`} />;
       })}
     </div>

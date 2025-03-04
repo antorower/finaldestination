@@ -30,7 +30,6 @@ const SaveNewPair = async ({ name, lots, priority, costFactor }) => {
 
 const Pairs = async ({ searchParams }) => {
   const { name, lots, priority, costFactor } = await searchParams;
-  console.log(name);
   return (
     <PageTransition>
       <div className="flex flex-col gap-8">

@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import dbConnect from "@/dbConnect";
 import Activity from "@/models/Activity";
 
-export const AddActivity = async ({ user, account, trade, title, description }) => {
+export const AddActivity = async ({ user, account, trade, title, description, sign }) => {
   try {
     await dbConnect();
 
@@ -14,6 +14,7 @@ export const AddActivity = async ({ user, account, trade, title, description }) 
       ...(trade && { trade }),
       ...(title && { title }),
       ...(description && { description }),
+      ...(sign && { sign }),
     };
 
     // Δημιουργία νέου Activity με τα υπάρχοντα δεδομένα

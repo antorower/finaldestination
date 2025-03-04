@@ -31,7 +31,7 @@ const AccountCard = ({ account }) => {
   }
 
   return (
-    <Link href={`/account/${account._id.toString()}`} className={`border ${borderColor} rounded p-4 w-full max-w-[250px] hover:scale-105 transition-transform duration-300 ${lightColor} flex flex-col gap-4`}>
+    <Link href={`/account/${account._id.toString()}`} className={`border ${borderColor} rounded p-4 w-full max-w-[250px] ${lightColor} flex flex-col gap-4`}>
       <div className="grid grid-cols-6">
         <div className="col-span-5">
           <div className={`text-lg font-bold ${textColor}`}>{account.number || "Εκκρεμεί"}</div>

@@ -36,17 +36,23 @@ const CreateNewAccount = async ({ id, company, capital, phase, balance, number }
       status: number ? "Live" : "Pending Purchase",
       isOnBoarding: phase === 1 ? false : true,
       needBalanceUpdate: false,
-      note: number ? "Νέο Account" : "Νέα Αγορά Account",
+      note: number ? null : "Νέα Αγορά Account",
     });
     await newAccount.save();
 
     const user = await User.findById(id);
     if (!user) return { error: true, message: "Δεν βρέθηκε ο χρήστης. Επικοιώνησε με τον Αντώνη." };
     user.accounts.push(newAccount._id);
-    user.allAccounts.phase1 += 1;
+    if (phase === 1) user.allAccounts.phase1 += 1;
+    if (phase === 2) user.allAccounts.phase2 += 1;
+    if (phase === 3) user.allAccounts.phase3 += 1;
     await user.save();
 
-    await AddActivity({ title: "Αγορά Νέου Account", description: `Εστάλησαν λεφτά για αγορά νέου account των $${capital} από την εταιρία ${company} στον χρήστη ${id}`, user: id, account: newAccount._id.toString() });
+    if (number) {
+      await AddActivity({ title: "Προστέθηκε Account", description: `Ο διαχειριστής πρόσθεσε ένα υφιστάμενο account στον χρήστη`, user: id, account: newAccount._id.toString() });
+    } else {
+      await AddActivity({ title: "Αγορά Νέου Account", description: `Εστάλησαν λεφτά για αγορά νέου account`, user: id, account: newAccount._id.toString() });
+    }
 
     return { error: false, message: "Το account προσετέθη" };
   } catch (error) {

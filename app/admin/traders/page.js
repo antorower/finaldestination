@@ -19,7 +19,6 @@ const GetAllUsers = async () => {
 
 const Traders = async () => {
   const traders = await GetAllUsers();
-  console.log(traders);
   return (
     <PageTransition>
       {traders && traders.length > 0 && (

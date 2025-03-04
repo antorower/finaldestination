@@ -54,6 +54,11 @@ const AccountSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    adminCaseOn: {
+      type: Boolean,
+      default: false,
+    },
+    adminNote: String,
 
     // 🟢 Progress
     progress: Number,
@@ -150,5 +155,72 @@ AccountSchema.pre("save", async function (next) {
     next(error);
   }
 });
+
+AccountSchema.methods.updateBalance = async function (newBalance, tp, sl) {
+  try {
+    // 🟢 Έλεγχος Κλεισίματος
+    if (tp && sl) {
+      const tpMin = this.balance + tp * 0.8;
+      const tpMax = this.balance + tp * 1.2;
+      const slMin = this.balance - sl * 1.2;
+      const slMax = this.balance - sl * 0.8;
+
+      if (!(newBalance >= tpMin && newBalance <= tpMax) && !(newBalance >= slMin && newBalance <= slMax)) {
+        this.adminCaseOn = true;
+        this.adminNote = `Το παλιό balance ήταν ${this.balance} και το νέο ${newBalance} με take profit ${tp} και stoploss ${sl}`;
+      }
+    }
+
+    // 🟢 Ενημέρωση του balance
+    this.balance = newBalance;
+    this.needBalanceUpdate = false;
+
+    // 🟢 Φόρτωσε τα δεδομένα της εταιρείας
+    const company = await mongoose.model("Company").findById(this.company).lean();
+    if (!company) {
+      throw new Error("Company data not found");
+    }
+
+    // 🟢 Επιλογή της σωστής φάσης
+    const phases = ["phase1", "phase2", "phase3"];
+    const companyPhase = phases[this.phase - 1];
+
+    if (!company[companyPhase]) {
+      throw new Error(`Phase data missing for ${companyPhase}`);
+    }
+
+    // ✅ Υπολογισμός στόχου και drawdown
+    const targetPercentage = company[companyPhase].target;
+    const drawdownPercentage = company[companyPhase].totalDrawdown;
+
+    const target = this.capital + (this.capital * targetPercentage) / 100;
+    const finalDrawdownBalance = this.capital - (this.capital * drawdownPercentage) / 100;
+
+    const now = new Date();
+
+    // 🟢 Έλεγχος αν έπιασε τον στόχο
+    if (this.balance >= target) {
+      if (this.phase === 3) {
+        this.status = "Pending Payout";
+        this.targetReachedDate = now;
+        this.note = "Ημερομηνία Payout";
+      } else {
+        this.status = "Pending Upgrade";
+        this.targetReachedDate = now;
+        this.note = "Κάνε Upgrade";
+      }
+    }
+    // 🟢 Έλεγχος αν έχασε το όριο
+    else if (this.balance <= finalDrawdownBalance) {
+      this.status = "Review";
+      this.lostDate = now;
+    }
+
+    // ✅ Αποθήκευση των αλλαγών
+    await this.save();
+  } catch (error) {
+    throw new Error(`Error updating balance: ${error.message}`);
+  }
+};
 
 export default mongoose.models.Account || mongoose.model("Account", AccountSchema);

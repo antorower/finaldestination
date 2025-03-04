@@ -134,9 +134,7 @@ const Schedule = async ({ searchParams }) => {
 
   const settings = await GetSchedule();
   const pairs = await GetActivePairs();
-  console.log(settings);
 
-  console.log(pairs);
   return (
     <PageTransition>
       <div className="flex flex-col gap-4 w-full">

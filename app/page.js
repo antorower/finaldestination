@@ -22,6 +22,8 @@ import { AddActivity } from "@/library/AddActivity";
 import Explanation from "@/components/Explanation";
 import OpenTradeItem from "./OpenTradeItem";
 import Pair from "@/models/Pair";
+import CloseTradeForm from "./CloseTradeForm";
+import TomorrowTradeItem from "./TomorrowTradeItem";
 
 const GetUser = async (id) => {
   await dbConnect();
@@ -135,7 +137,7 @@ const GetTrades = async (userId) => {
   }
 }; // να μην ειναι το γενικο review ή completed
 
-const ChangeTradeStatus = async ({ tradeId, userId, status, accountId }) => {
+const ChangeTradeStatus = async ({ tradeId, userId, status, accountId, priority }) => {
   "use server";
   try {
     await dbConnect();
@@ -152,36 +154,46 @@ const ChangeTradeStatus = async ({ tradeId, userId, status, accountId }) => {
     // Έλεγχος αν η ώρα είναι μέσα στο acceptTradesHours
     const { startingHour, endingHour } = settings.acceptTradesHours;
     if (greekHour < startingHour || greekHour >= endingHour) {
-      return { error: true, message: "Δεν μπορείτε να αλλάξετε το trade αυτή τη στιγμή. Έχει παρέλθει η ώρα αποδοχής." };
+      return { error: true, message: "Δεν μπορείτε να αποδεχτείτε ή απορρίψετε το trade αυτή τη στιγμή. Έχει παρέλθει η ώρα του προγραμματισμού." };
     }
 
     // Αλλαγή status του trade για τον user
-    const trade = await Trade.findById(tradeId);
+    const trade = await Trade.findById(tradeId).populate("firstParticipant.account").populate("secondParticipant.account");
+
     if (!trade) return { error: true, message: "Δεν βρέθηκε το trade. Προσπάθησε ξανά." };
     if (trade.firstParticipant.user._id.toString() === userId) {
       trade.firstParticipant.status = status;
+      trade.firstParticipant.account.note = status === "accepted" ? "Επερχόμενο Trade" : "";
+      await trade.firstParticipant.account.save();
     }
     if (trade.secondParticipant.user._id.toString() === userId) {
       trade.secondParticipant.status = status;
+      trade.secondParticipant.account.note = status === "accepted" ? "Επερχόμενο Trade" : "";
+      await trade.secondParticipant.account.save();
     }
     await trade.save();
 
     // Εισαγωγή του activity
     let activityTitle;
     let activityDescription;
+    let activitySign = "neutral";
     if (status === "accepted") {
       activityTitle = "Αποδοχή Trade";
       activityDescription = "Ο χρήστης αποδέχτηκε το trade";
+      if (priority === "low") activitySign = "positive";
     }
     if (status === "canceled") {
       activityTitle = "Απόρριψη Trade";
       activityDescription = "Ο χρήστης απέρριψε το trade";
+      if (priority === "high") activitySign = "negative";
     }
-    await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, description: activityDescription });
+    await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, description: activityDescription, sign: activitySign });
     return { error: false };
   } catch (error) {
     console.log("Υπήρξε error στην ChangeTradeStatus στο root", error);
     return false;
+  } finally {
+    revalidatePath("/", "layout");
   }
 };
 
@@ -189,8 +201,18 @@ const BeAwareOfTrade = async ({ tradeId, userId, accountId }) => {
   "use server";
   try {
     await dbConnect();
+
     const trade = await Trade.findById(tradeId);
     if (!trade) return { error: true, message: "Δεν βρέθηκε το trade. Προσπάθησε ξανά." };
+
+    const nowUTC = new Date(); // Τρέχουσα UTC ώρα
+    const openTimeUTC = new Date(trade.openTime); // Ώρα ανοίγματος trade (υποθέτουμε ότι είναι ήδη σε UTC)
+
+    const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000); // 10 λεπτά πριν
+    const oneHourBefore = new Date(openTimeUTC.getTime() - 60 * 60 * 1000); // 1 ώρα πριν
+    console.log(oneHourBefore);
+    if (nowUTC < oneHourBefore || nowUTC > tenMinutesBefore) return { error: true, message: "Δεν μπορείς να δηλώσεις παρών για αυτό το trade αυτήν την ώρα." };
+
     if (trade.firstParticipant.user._id.toString() === userId) {
       trade.firstParticipant.status = "aware";
     }
@@ -200,18 +222,24 @@ const BeAwareOfTrade = async ({ tradeId, userId, accountId }) => {
     await trade.save();
 
     const activityTitle = "Δήλωση Παρουσίας";
-    const activityDescription = "Ο χρήστης δήλωσε ότι είναι παρών για το επερχόμεον trade";
-    await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, description: activityDescription });
+    const activityDescription = "Ο χρήστης δήλωσε ότι είναι παρών για το επερχόμενο trade";
+    const activitySign = "neutral";
+    await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, activitySign, description: activityDescription });
     return { error: false };
   } catch (error) {
     console.log("Υπήρξε ένα πρόβλημα στην BeAwareOfTrade στο root", error);
     return { error: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
   }
 };
 
 const OpenTrade = async ({ tradeId, userId, accountId }) => {
   "use server";
   try {
+    console.log(tradeId);
+    console.log(userId);
+    console.log(accountId);
     await dbConnect();
 
     // Το trade που προσπαθούμε να ανοίξουμε
@@ -219,19 +247,73 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       .populate({ path: "firstParticipant.account", populate: { path: "company" } })
       .populate({ path: "secondParticipant.account", populate: { path: "company" } });
 
-    if (!currentTrade) {
-      return { error: true, message: "Το trade δεν βρέθηκε." };
+    if (!currentTrade) return { error: true, message: "Το trade δεν βρέθηκε." };
+
+    // Παίρνουμε την τρέχουσα UTC ώρα
+    const nowUTC = new Date();
+
+    // Παίρνουμε την UTC ώρα του openTime του trade
+    const openTimeUTC = new Date(currentTrade.openTime);
+
+    // Υπολογίζουμε 10 λεπτά πριν από το openTime
+    const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000);
+
+    // Έλεγχος αν η τρέχουσα ώρα είναι μεταξύ 10 λεπτών και ακριβώς πριν το openTime
+
+    if (nowUTC < tenMinutesBefore) return { error: true, message: "Πάτησε Open Trade 7 με 10 λεπτά πριν την ώρα του trade." };
+    if (nowUTC > openTimeUTC) return { error: true, message: "Δυτυχώς η ώρα πέρασε. Δεν μπορείς να βάλεις trade τώρα και αυτό δεν πρέπει να ξαναγίνει!" };
+
+    // Ελέγχω αν και οι δύο traders έχουν δηλώσει το παρών
+    if (currentTrade.firstParticipant.user.toString() === userId) {
+      if (currentTrade.secondParticipant.status === "accepted") {
+        currentTrade.firstParticipant.status = "try";
+        await currentTrade.save();
+        const activityTitle = "Προσπάθεια ανοίγματος trade";
+        const activityDescription = "Ο χρήστης προσπάθησε να τραβήξει trade αλλά το trade ακυρώθηκε.";
+        const activitySign = "neutral";
+        await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, activitySign, description: activityDescription });
+        return { error: true, message: "Το trade ακυρώθηκε" };
+      }
+    }
+    if (currentTrade.secondParticipant.user.toString() === userId) {
+      if (currentTrade.firstParticipant.status === "accepted") {
+        currentTrade.secondParticipant.status = "try";
+        await currentTrade.save();
+        const activityTitle = "Προσπάθεια ανοίγματος trade";
+        const activityDescription = "Ο χρήστης προσπάθησε να τραβήξει trade αλλά το trade ακυρώθηκε.";
+        const activitySign = "neutral";
+        await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, activitySign, description: activityDescription });
+        return { error: true, message: "Το trade ακυρώθηκε" };
+      }
     }
 
     // Εντοπισμός του σωστού participant και αλλαγή του status του σε "open" αν υπάρχει ήδη trade
-    if (currentTrade.firstParticipant.user.equals(userId) && currentTrade.firstParticipant?.trade?.pair) {
+    if (currentTrade.firstParticipant.user.toString() === userId && currentTrade.firstParticipant?.trade?.pair) {
       currentTrade.firstParticipant.status = "open";
+      currentTrade.firstParticipant.account.needBalanceUpdate = true;
+      currentTrade.firstParticipant.account.note = "Ενημέρωσε Balance";
+      await currentTrade.firstParticipant.account.save();
       await currentTrade.save();
+
+      const activityTitle = "'Ανοιγμα Trade";
+      const activityDescription = "Ο χρήστης τράβηξε το trade από την σελίδα.";
+      const activitySign = "neutral";
+      await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, activitySign, description: activityDescription });
       return { error: false, message: "Το trade σου άνοιξε επιτυχώς." };
     }
-    if (currentTrade.secondParticipant.user.equals(userId) && currentTrade.secondParticipant?.trade?.pair) {
+
+    if (currentTrade.secondParticipant.user.toString() === userId && currentTrade.secondParticipant?.trade?.pair) {
       currentTrade.secondParticipant.status = "open";
+      currentTrade.secondParticipant.account.needBalanceUpdate = true;
+      currentTrade.secondParticipant.account.note = "Ενημέρωσε Balance";
+      await currentTrade.secondParticipant.account.save();
       await currentTrade.save();
+
+      const activityTitle = "'Ανοιγμα Trade";
+      const activityDescription = "Ο χρήστης τράβηξε το trade από την σελίδα.";
+      const activitySign = "neutral";
+      await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, activitySign, description: activityDescription });
+
       return { error: false, message: "Το trade σου άνοιξε επιτυχώς." };
     }
 
@@ -252,9 +334,9 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     const today = new Date().toLocaleString("en-us", { weekday: "long" }).toLowerCase();
     const todaySettings = settings[today];
 
-    /*if (!todaySettings.active) {
-      return { error: true, message: `Οι συναλλαγές δεν είναι ενεργές για σήμερα (${today}).` };
-    }*/
+    if (!todaySettings?.active) {
+      // return { error: true, message: "Οι συναλλαγές δεν είναι ενεργές για σήμερα." }; EDIT
+    }
 
     // Όλα τα διαθέσιμα pairs από τα settings της ημέρας
     //let availablePairs = todaySettings.pairs;
@@ -322,18 +404,18 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (firstParticipantAccount.phase === 1) firstParticipantPhase = "phase1";
     if (firstParticipantAccount.phase === 2) firstParticipantPhase = "phase2";
     if (firstParticipantAccount.phase === 3) firstParticipantPhase = "phase3";
-    const firstParticipantRemainingProfit = 100 || (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].target) / 100;
-    const firstParticipantRemainingLoss = 15000 || (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].totalDrawdown) / 100;
-    const firstParticipantMaxLoss = 3000 || (firstParticipantAccount.company[firstParticipantPhase].maxRiskPerTrade * firstParticipantAccount.capital) / 100;
+    const firstParticipantRemainingProfit = (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].target) / 100;
+    const firstParticipantRemainingLoss = (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].totalDrawdown) / 100;
+    const firstParticipantMaxLoss = (firstParticipantAccount.company[firstParticipantPhase].maxRiskPerTrade * firstParticipantAccount.capital) / 100;
 
     const secondParticipantAccount = currentTrade.secondParticipant.account;
     let secondParticipantPhase;
     if (secondParticipantAccount.phase === 1) secondParticipantPhase = "phase1";
     if (secondParticipantAccount.phase === 2) secondParticipantPhase = "phase2";
     if (secondParticipantAccount.phase === 3) secondParticipantPhase = "phase3";
-    const secondParticipantRemainingProfit = 4500 || (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].target) / 100;
-    const secondParticipantRemainingLoss = 15000 || (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].totalDrawdown) / 100;
-    const secondParticipantMaxLoss = 3000 || (secondParticipantAccount.company[secondParticipantPhase].maxRiskPerTrade * secondParticipantAccount.capital) / 100;
+    const secondParticipantRemainingProfit = (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].target) / 100;
+    const secondParticipantRemainingLoss = (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].totalDrawdown) / 100;
+    const secondParticipantMaxLoss = (secondParticipantAccount.company[secondParticipantPhase].maxRiskPerTrade * secondParticipantAccount.capital) / 100;
 
     let firstTakeProfit;
     let secondTakeProfit;
@@ -424,15 +506,26 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       stopLoss: Math.floor(secondStopLoss),
     };
 
-    console.log("First: ", currentTrade.firstParticipant.trade);
-    console.log("First Cost", firstCost);
-    console.log("First Gap TP", firstGapTp);
-    console.log("First Gap SL", firstGapSl);
-    console.log("Second: ", currentTrade.secondParticipant.trade);
-    console.log("Second Cost", secondCost);
-    console.log("Second Gap TP", secondGapTp);
-    console.log("Second Gap SL", secondGapSl);
-    return { error: false, message: "Good" };
+    if (currentTrade.firstParticipant.user.toString() === userId && currentTrade.firstParticipant?.trade?.pair) {
+      currentTrade.firstParticipant.status = "open";
+      currentTrade.firstParticipant.account.needBalanceUpdate = true;
+      currentTrade.firstParticipant.account.note = "Ενημέρωσε Balance";
+      await currentTrade.firstParticipant.account.save();
+    }
+    if (currentTrade.secondParticipant.user.toString() === userId && currentTrade.secondParticipant?.trade?.pair) {
+      currentTrade.secondParticipant.status = "open";
+      currentTrade.secondParticipant.account.needBalanceUpdate = true;
+      currentTrade.secondParticipant.account.note = "Ενημέρωσε Balance";
+      await currentTrade.secondParticipant.account.save();
+    }
+
+    const activityTitle = "'Ανοιγμα Trade";
+    const activityDescription = "Ο χρήστης τράβηξε το trade από την σελίδα.";
+    const activitySign = "neutral";
+    await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, activitySign, description: activityDescription });
+
+    await currentTrade.save();
+    return { error: false, message: "Το trade σου άνοιξε επιτυχώς." };
   } catch (error) {
     console.log("Υπήρξε ένα error στην OpenTrade στο root", error);
     return { error: true, message: error.message };
@@ -441,9 +534,68 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
   }
 };
 
+const TradeChecked = async ({ tradeId, userId, accountId }) => {
+  "use server";
+  try {
+    await dbConnect();
+
+    let trade = await Trade.findById(tradeId);
+    if (!trade) return { error: true, message: "Το trade δεν βρέθηκε." };
+
+    if (trade.firstParticipant.user._id.toString() === userId) {
+      trade.firstParticipant.checked = true;
+      await trade.save();
+    }
+    if (trade.secondParticipant.user._id.toString() === userId) {
+      trade.secondParticipant.checked = true;
+      await trade.save();
+    }
+
+    const activityTitle = "Το trade ελέχθηκε";
+    const activityDescription = "Ο χρήστης έχει ελέγξει το trade.";
+    const activitySign = "neutral";
+    await AddActivity({ user: userId, trade: tradeId, account: accountId, title: activityTitle, activitySign, description: activityDescription });
+
+    return { error: false, message: "Η διαδικασία ολοκληρώθηκε επιτυχώς!" };
+  } catch (error) {
+    console.log(error);
+    return { error: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
+const UpdateBalance = async ({ tradeId, userId, newBalance }) => {
+  "use server";
+
+  try {
+    await dbConnect();
+    const trade = await Trade.findById(tradeId).populate("firstParticipant.account").populate("secondParticipant.account");
+    if (!trade) return { error: true, message: "Δεν βρέθηκε το trade. Προσπάθησε ξανά." };
+
+    if (trade.firstParticipant.user._id.toString() === userId) {
+      trade.firstParticipant.status = "closed";
+      trade.firstParticipant.profit = newBalance - trade.firstParticipant.account.balance;
+      await trade.firstParticipant.account.updateBalance(newBalance, trade.firstParticipant.trade.takeProfit, trade.firstParticipant.trade.stopLoss);
+    }
+    if (trade.secondParticipant.user._id.toString() === userId) {
+      trade.secondParticipant.status = "closed";
+      trade.secondParticipant.profit = newBalance - trade.secondParticipant.account.balance;
+      await trade.secondParticipant.account.updateBalance(newBalance, trade.secondParticipant.trade.takeProfit, trade.secondParticipant.trade.stopLoss);
+    }
+    await trade.save();
+    return { error: false, message: "Το balance σου ενημερώθηκε επιτυχώς!" };
+  } catch (error) {
+    console.log("Υπήρξε ένα πρόβλημα στην UpdateBalance στο root", error);
+    return { error: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
 export default async function Home({ searchParams }) {
   const { sessionClaims } = await auth();
-  const { mode, userid } = await searchParams;
+  const { mode, userid, accountcheck, tradecheck } = await searchParams;
 
   const user = await GetUser(userid ? userid : sessionClaims.metadata.mongoId);
   if (!user) return <div>Δεν βρέθηκε χρήστης</div>;
@@ -548,12 +700,14 @@ export default async function Home({ searchParams }) {
             {!mode && (
               <div className="flex flex-col gap-4">
                 {/* Trading */}
-                {GreeceTime >= settings.tradingHours.startingHour && GreeceTime < settings.tradingHours.endingHour && (
+                {GreeceTime >= settings.tradingHours.startingHour - 1 && GreeceTime < settings.tradingHours.endingHour && (
                   <div className="flex flex-col gap-4">
                     <div className="font-semibold">Trading</div>
                     <div className="flex flex-col gap-2">
                       <Explanation
-                        text={`Κάθε μέρα από τις ${user.tradingHours.startingTradingHour + user.hourOffsetFromGreece}:00 έως τις ${user.tradingHours.endingTradingHour + user.hourOffsetFromGreece}:00 πρέπει να βάλεις τα trades σου ακριβώς την ώρα που γράφει στο κάθε ένα. Πρώτα... Μπορείς να αλλάξεις τα trading ωράρια σου από τις ρυθμίσεις. Επίσης στις ρυθμίσεις μπορείς να βάλεις την διαφορά ώρας που έχεις με την Ελλάδα ώστε οι ώρες που θα βλέπεις στην σελίδα να ταιριάζουν με την τοπική σου.`}
+                        text={`Κάθε μέρα από τις ${user.tradingHours.startingTradingHour + user.hourOffsetFromGreece}:00 έως τις ${
+                          user.tradingHours.endingTradingHour + user.hourOffsetFromGreece
+                        }:00 πρέπει να βάλεις τα trades σου ακριβώς την ώρα που γράφει στο κάθε ένα. Μια ώρα με 10 λεπτά πριν την ώρα που πρέπει να ανοίξει το trade πρέπει να πατήσεις Aware και 7 με 10 λεπτά πριν την ώρα που πρέπει να ανοίξει το trade πρέπει να πατήσεις Open Trade και να προετοιμάσεις το trade σου ώστε να ανοίξει ακριβώς την ώρα που γράφει. Μπορείς να αλλάξεις τα trading ωράρια σου από τις ρυθμίσεις. Επίσης στις ρυθμίσεις μπορείς να βάλεις την διαφορά ώρας που έχεις με την Ελλάδα ώστε οι ώρες που θα βλέπεις στην σελίδα να ταιριάζουν με την τοπική σου. Θυμήσου ότι για να πατήσεις Aware θα πρέπει να είσαι σίγουρος ότι μπορείς να κάνεις login στο account σου και το account μπορεί να δεχτεί trades. Αν δεν είσαι σίγουρος για αυτά τα δύο αργά ή γρήγορα θα έρθει η ώρα που θα έχεις 5-6 λεπτά να βάλεις το trade και δεν θα μπορείς να μπεις στο account ή το account δεν θα είναι έτοιμο να δεχτεί trade ενώ εσύ το έχεις τραβήξει. Αυτό σημαίνει ότι θα χρεωθείς το λάθος αυτόματα, από 100$ μέχρι και 1600$ ανάλογα την περίπτωση.`}
                         lettersShow={50}
                         classes="text-gray-400 text-sm"
                       />
@@ -587,7 +741,26 @@ export default async function Home({ searchParams }) {
                           let tradeUser;
                           if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
                           if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
-                          return <OpenTradeItem BeAwareOfTrade={BeAwareOfTrade} OpenTrade={OpenTrade} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trading-${trade._id.toString()}`} account={tradeUser.account.number} accountId={tradeUser.account._id.toString()} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} status={tradeUser.status} />;
+                          return (
+                            <OpenTradeItem
+                              BeAwareOfTrade={BeAwareOfTrade}
+                              OpenTrade={OpenTrade}
+                              tradeId={trade._id.toString()}
+                              userId={tradeUser.user._id.toString()}
+                              key={`trading-${trade._id.toString()}`}
+                              account={tradeUser.account.number}
+                              accountId={tradeUser.account._id.toString()}
+                              priority={tradeUser.priority}
+                              openDate={formattedDate}
+                              openTime={formattedTime}
+                              status={tradeUser.status}
+                              checked={tradeUser.checked}
+                              accountCheck={accountcheck === "true" ? true : false}
+                              tradeCheck={tradecheck === "true" ? true : false}
+                              trade={tradeUser.trade}
+                              TradeChecked={TradeChecked}
+                            />
+                          );
                         })}
                     </div>
                   </div>
@@ -622,7 +795,7 @@ export default async function Home({ searchParams }) {
                           let tradeUser;
                           if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
                           if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
-                          return <TradeItem ChangeTradeStatus={ChangeTradeStatus} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} status={tradeUser.status} />;
+                          return <CloseTradeForm UpdateBalance={UpdateBalance} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} prevBalance={tradeUser.account.balance} tp={tradeUser.trade.takeProfit} sl={tradeUser.trade.stopLoss} />;
                         })}
                     </div>
                   </div>
@@ -668,6 +841,7 @@ export default async function Home({ searchParams }) {
                           });
 
                           let tradeUser;
+
                           if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
                           if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
                           return <TradeItem ChangeTradeStatus={ChangeTradeStatus} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} status={tradeUser.status} />;
@@ -678,12 +852,35 @@ export default async function Home({ searchParams }) {
                 {/* Προετοιμασία */}
                 {GreeceTime >= settings.seeScheduleHours.startingHour && GreeceTime < settings.seeScheduleHours.endingHour && (
                   <div className="flex flex-col gap-4">
-                    <div className="font-semibold">
-                      Προετοιμασία
-                      <InfoButton classes="text-sm ml-2" message="Πατώντας το στρογγυλό κουμπί στα αριστερά μπορείς να αλλάξεις το status σου. Αν είσαι κόκκινος σημαίνει ότι ο αλγόριθμος από εδω και πέρα δεν θα σε συμπεριλαμβάνει στα trades της επόμενης ημέρας" />
+                    <div className="font-semibold">Προετοιμασία</div>
+                    <div className="flex flex-col gap-1">
+                      <Explanation text={`Ακριβώς από κάτω, κάθε μέρα μετά τις ${settings.seeScheduleHours.startingHour + user.hourOffsetFromGreece}:00, θα βρίσκεις τα trades που πρέπει να βάλεις την επόμενη ημέρα. Θα πρέπει να βάλεις τα ξυπνητήρια σου ώρες τέτοιες ώστε να μπορέσεις να διεκπεραιώσεις τα trades σίγουρα, χωρίς βιασύνη, με άνεση χρόνου.`} lettersShow={50} classes="text-gray-400 text-sm" />
                     </div>
-                    <div className="flex flex-col gap-4">
-                      <div>Under Construction</div>
+                    <div className="flex gap-4">
+                      {forOpening &&
+                        forOpening.length > 0 &&
+                        forOpening.map((trade) => {
+                          // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
+                          const greeceDateObject = new Date(trade.openTime);
+                          // Δημιουργούμε το τελικό Date object με το σωστό offset
+                          greeceDateObject.setHours(greeceDateObject.getHours() + user.hourOffsetFromGreece);
+                          const formattedDate = greeceDateObject.toLocaleDateString("el-GR", {
+                            weekday: "long",
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          });
+                          const formattedTime = greeceDateObject.toLocaleTimeString("el-GR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          });
+
+                          let tradeUser;
+                          if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
+                          if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
+                          return <TomorrowTradeItem key={`tomorrow-${trade._id.toString()}`} account={tradeUser.account.number} openDate={formattedDate} openTime={formattedTime} />;
+                        })}
                     </div>
                   </div>
                 )}

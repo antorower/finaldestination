@@ -74,6 +74,12 @@ const InvoiceSchema = new mongoose.Schema(
       maxlength: 500,
       default: "",
     },
+    leaderNote: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: "",
+    },
   },
   { timestamps: true }
 );

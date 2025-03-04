@@ -18,7 +18,6 @@ const GetPairs = async () => {
 const ChangeStatus = async ({ pairId, active }) => {
   "use server";
   try {
-    console.log(pairId);
     await dbConnect();
     await Pair.findByIdAndUpdate(pairId, { $set: { active: !active } });
     return { error: false };

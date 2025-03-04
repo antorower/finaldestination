@@ -1,9 +1,9 @@
 "use client";
 import { toast } from "react-toastify";
 
-const RejectTradeButton = ({ ChangeTradeStatus, tradeId, userId, status }) => {
+const RejectTradeButton = ({ ChangeTradeStatus, priority, tradeId, userId, status }) => {
   const ChangeStatus = async () => {
-    const response = await ChangeTradeStatus({ tradeId, userId, status: "canceled" });
+    const response = await ChangeTradeStatus({ tradeId, userId, status: "canceled", priority });
     if (response.error) toast.error(response.message);
   };
 

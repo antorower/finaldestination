@@ -28,14 +28,14 @@ export async function GET() {
   }
 
   if (Number(greeceHour) !== settings.updateBalanceHours.endingHour) {
-    console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
-    return NextResponse.json({ stoped: true }, { status: 200 });
+    //console.log("Η ώρα δεν είναι η σωστή: ", greeceHour);
+    //return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
-  if (!settings[today]?.active) {
-    console.log("Η ημέρα δεν είναι active");
-    return NextResponse.json({ stoped: true }, { status: 200 });
+  if (!settings[today] || !settings[today].active) {
+    //console.log("Η ημέρα δεν είναι active");
+    //return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --------------------------------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ export async function GET() {
 
         userPenalties[participant.user._id] = (userPenalties[participant.user._id] || 0) + penaltyAmount;
 
-        tradeNote += ` [${participant.user._id}] ${title}: ${description} `;
+        tradeNote += `${title}: ${description} `;
       }
     });
 
@@ -112,18 +112,21 @@ export async function GET() {
       if (trade.secondParticipant.profit < 0 && Math.abs(trade.secondParticipant.profit) > trade.secondParticipant.trade.stopLoss * 1.1) needReview = true;
     }
 
-    if (trade.firstParticipant.status === "open" || trade.secondParticipant.status === "open") {
+    let totalProfit;
+    if (trade.firstParticipant.profit && trade.secondParticipant.profit) totalProfit = Math.max(trade.firstParticipant.profit, trade.secondParticipant.profit) + Math.min(trade.firstParticipant.profit, trade.secondParticipant.profit);
+
+    if (needReview) {
       tradeUpdates.push({
         updateOne: {
           filter: { _id: trade._id },
-          update: { status: "review", note: tradeNote.trim() },
+          update: { status: "review", note: tradeNote.trim(), profit: totalProfit || null },
         },
       });
     } else {
       tradeUpdates.push({
         updateOne: {
           filter: { _id: trade._id },
-          update: { status: "completed", note: tradeNote.trim() },
+          update: { status: "completed", note: tradeNote.trim(), profit: totalProfit || null },
         },
       });
     }

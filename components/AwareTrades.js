@@ -118,7 +118,7 @@ export const Open = async ({ trade, user }) => {
 
     // Παίρνουμε όλα τα pairs από το daySettings (κρατάμε ολόκληρο το object για να έχουμε το priority)
     const allDayPairs = daySettings.pairs;
-    console.log(allDayPairs.length);
+
     // Παίρνουμε τις εταιρείες του firstParticipant και secondParticipant
     const firstCompanyId = baseTrade.firstParticipant?.account?.company?._id?.toString();
     const secondCompanyId = baseTrade.secondParticipant?.account?.company?._id?.toString();
@@ -129,7 +129,7 @@ export const Open = async ({ trade, user }) => {
 
     // Συνδυάζουμε τα pairs που έχουν ήδη ανοιχτεί από τις δύο εταιρείες
     const openedPairs = [...new Set([...firstCompanyPairs, ...secondCompanyPairs])];
-    console.log(openedPairs.length);
+
     // Φιλτράρουμε τα διαθέσιμα pairs αφαιρώντας αυτά που έχουν ήδη ανοιχτεί
     const availablePairs = allDayPairs
       .filter((pair) => !openedPairs.includes(pair.name)) // Φιλτράρουμε βάση του name
@@ -194,12 +194,9 @@ export const Open = async ({ trade, user }) => {
     const maxLotsCompany2 = baseTrade.secondParticipant.account.company.maxlots || 100;
     const maxLots = Math.max(maxLotsCompany1, maxLotsCompany2);
     if (maxLots < baseTradeLots) baseTradeLots = maxLots;
-    console.log(baseTradeLots);
 
     baseTrade.firstParticipant.trade.lots = (Math.random() * 2 + (baseTradeLots - 2)).toFixed(2);
     baseTrade.secondParticipant.trade.lots = baseTrade.firstParticipant.trade.lots - (Math.random() * (0.03 - 0.01) + 0.01).toFixed(2);
-    console.log(baseTrade.firstParticipant.trade);
-    console.log(baseTrade.secondParticipant.trade);
 
     return trades;
   } catch (error) {
