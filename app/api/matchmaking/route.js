@@ -16,6 +16,7 @@ export async function GET() {
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const todayNumber = new Date().getDay();
   const today = days[todayNumber];
+  const tomorrow = days[todayNumber + 1];
 
   // --> Τραβάω τα settings
   const settings = await Settings.findOne();
@@ -34,7 +35,7 @@ export async function GET() {
   const minutesSpaceBetweenTrades = settings.minutesSpaceBetweenTrades;
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
-  if (!settings[today] || !settings[today].active) {
+  if (!settings[tomorrow] || !settings[tomorrow].active) {
     console.log("Η ημέρα δεν είναι active");
     return NextResponse.json({ stopped: true }, { status: 200 });
   }

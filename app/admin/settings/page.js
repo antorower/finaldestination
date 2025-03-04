@@ -147,16 +147,16 @@ const SettingsPage = async () => {
       <div className="flex flex-col gap-4">
         <div className="text-center bg-blue-500 rounded p-4 text-white font-bold border border-gray-500">Τακτικό Πρόγραμμα</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <TradingHoursForm UpdateTradingHours={UpdateTradingHours} currentStartingHour={settingsObj.tradingHours.startingHour} currentEndingHour={settingsObj.tradingHours.endingHour} />
-          <UpdateBalanceHoursForm UpdateBalanceHours={UpdateBalanceHours} currentStartingHour={settingsObj.updateBalanceHours.startingHour} currentEndingHour={settingsObj.updateBalanceHours.endingHour} />
-          <AcceptTradesHoursForm UpdateAcceptTradesHours={UpdateAcceptTradesHours} currentStartingHour={settingsObj.acceptTradesHours.startingHour} currentEndingHour={settingsObj.acceptTradesHours.endingHour} />
-          <SeeScheduleHoursForm UpdateSeeScheduleHours={UpdateSeeScheduleHours} currentStartingHour={settingsObj.seeScheduleHours.startingHour} currentEndingHour={settingsObj.seeScheduleHours.endingHour} />
+          <TradingHoursForm UpdateTradingHours={UpdateTradingHours} currentStartingHour={settingsObj?.tradingHours?.startingHour} currentEndingHour={settingsObj?.tradingHours?.endingHour} />
+          <UpdateBalanceHoursForm UpdateBalanceHours={UpdateBalanceHours} currentStartingHour={settingsObj?.updateBalanceHours?.startingHour} currentEndingHour={settingsObj?.updateBalanceHours?.endingHour} />
+          <AcceptTradesHoursForm UpdateAcceptTradesHours={UpdateAcceptTradesHours} currentStartingHour={settingsObj?.acceptTradesHours?.startingHour} currentEndingHour={settingsObj?.acceptTradesHours?.endingHour} />
+          <SeeScheduleHoursForm UpdateSeeScheduleHours={UpdateSeeScheduleHours} currentStartingHour={settingsObj?.seeScheduleHours?.startingHour} currentEndingHour={settingsObj?.seeScheduleHours?.endingHour} />
         </div>
         <div className="text-center bg-blue-500 rounded p-4 text-white font-bold border border-gray-500">Ρυθμίσεις Trades</div>
         <div className="flex flex-wrap gap-2 justify-center">
-          <SpaceBetweenTradesForm UpdateMinutesSpaceBetweenTrades={UpdateMinutesSpaceBetweenTrades} currentMinutes={settingsObj.minutesSpaceBetweenTrades} />
-          <SpaceForPresenceForm UpdateMinutesSpaceForPresenceBeforeTrades={UpdateMinutesSpaceForPresenceBeforeTrades} currentMinutes={settingsObj.minutesSpaceForPresenceBeforeTrade} />
-          <TargetsGapForm UpdateTargetsGap={UpdateTargetsGap} oldPhase1={settingsObj.targetsGap.phase1} oldPhase2={settingsObj.targetsGap.phase2} oldPhase3={settingsObj.targetsGap.phase3} />
+          <SpaceBetweenTradesForm UpdateMinutesSpaceBetweenTrades={UpdateMinutesSpaceBetweenTrades} currentMinutes={settingsObj?.minutesSpaceBetweenTrades} />
+          <SpaceForPresenceForm UpdateMinutesSpaceForPresenceBeforeTrades={UpdateMinutesSpaceForPresenceBeforeTrades} currentMinutes={settingsObj?.minutesSpaceForPresenceBeforeTrade} />
+          <TargetsGapForm UpdateTargetsGap={UpdateTargetsGap} oldPhase1={settingsObj.targetsGap.phase1} oldPhase2={settingsObj?.targetsGap?.phase2} oldPhase3={settingsObj?.targetsGap?.phase3} />
         </div>
       </div>
     </PageTransition>
