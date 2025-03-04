@@ -34,7 +34,7 @@ export async function GET() {
   }
 
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
-  if (!settings[today] || !settings[today].active) {
+  if (!settings[today + 1] || !settings[today + 1].active) {
     console.log("Η ημέρα δεν είναι active");
     return NextResponse.json({ stoped: true }, { status: 200 });
   }
