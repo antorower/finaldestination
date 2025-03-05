@@ -5,6 +5,7 @@ import dbConnect from "@/dbConnect";
 import PageTransition from "@/components/PageTransition";
 import AcceptUser from "./AcceptUser";
 import { revalidatePath } from "next/cache";
+import { clerkClient } from "@clerk/nextjs/server";
 
 const GetNewUsers = async () => {
   "use server";
@@ -22,6 +23,14 @@ const Accept = async ({ userId }) => {
   try {
     await dbConnect();
     await User.updateOne({ _id: userId }, { $set: { accepted: true } });
+
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(sessionClaims.userId, {
+      publicMetadata: {
+        accepted: true,
+      },
+    });
+
     return { error: false, message: "Ο user έγινε αποδεκτός" };
   } catch (error) {
     console.log("Υπήρξε error στην Acccept στο /admin/new-users", error);
