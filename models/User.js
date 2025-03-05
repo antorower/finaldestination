@@ -94,21 +94,18 @@ const UserSchema = new mongoose.Schema({
       default: [],
     },
   ],
-  beneficiaries: {
-    type: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        percentage: {
-          type: Number,
-          default: 0,
-        },
+  beneficiaries: [
+    {
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
-    ],
-    default: [],
-  },
+      percentage: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
 
   // 🟢 Accounts
   accounts: {
@@ -326,16 +323,25 @@ UserSchema.methods.removeFromTeam = async function (userId) {
 };
 
 UserSchema.methods.addBeneficiary = async function (userId, percentage) {
-  if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Μη έγκυρο ID χρήστη");
   if (isNaN(percentage) || percentage < 0) throw new Error("Το ποσοστό πρέπει να είναι θετικός αριθμός");
+
+  if (!this.beneficiaries) {
+    this.beneficiaries = [];
+  }
+
   await this.updateOne({
     $push: { beneficiaries: { user: userId, percentage } },
   });
+
+  return this;
 };
 
 UserSchema.methods.removeBeneficiary = async function (userId) {
-  if (!mongoose.Types.ObjectId.isValid(userId)) throw new Error("Μη έγκυρο ID χρήστη");
+  // Αν δεν υπάρχει beneficiaries, δεν χρειάζεται να κάνουμε κάτι
+  if (!this.beneficiaries) return this;
   await this.updateOne({ $pull: { beneficiaries: { user: userId } } });
+
+  return this;
 };
 
 UserSchema.methods.addMistakeStats = async function (amount) {

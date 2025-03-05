@@ -1,6 +1,6 @@
 --> Στις εργασίες να δείχνει τις δουλειές που πρέπει να κάνουν (upgrade, payout request, νέες αγορές)
 --> transition οπου δεν πρεπει να πατηθει δυο φορες το κουμπι
 
---> Προσθέτουμε users σαν leader, family, team, beneficiaries
+--> Προσθέτουμε users σαν family, team, beneficiaries
 --> Paymet system με salary και ποσοστά και υποστηριξη χρεους
 --> Χρεωση ατομων manual, ειτε εγω ολους στα profits ειτε οι leaders τα παιδια τους

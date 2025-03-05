@@ -28,6 +28,12 @@ export default clerkMiddleware(async (auth, request) => {
     if (sessionClaims.metadata.registered && sessionClaims.metadata.accepted && (path === "/user-pending" || path === "/register")) {
       return NextResponse.redirect(new URL("/", request.url));
     }
+
+    if (path.startsWith("/admin")) {
+      if (!sessionClaims.metadata.isOwner) {
+        return NextResponse.redirect(new URL("/not-found", request.url));
+      }
+    }
   }
 });
 
