@@ -61,6 +61,7 @@ export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail,
     revalidatePath("/", "layout");
   }
 };
+
 export const GetUser = async () => {
   "use server";
   try {

@@ -601,6 +601,40 @@ const UpdateBalance = async ({ tradeId, userId, newBalance }) => {
   }
 };
 
+const ChangeTimePreference = async ({ id, preference }) => {
+  "use server";
+  try {
+    await dbConnect();
+    const user = await User.findById(id);
+    if (!user) return { error: true, message: "Ο χρήστης δεν βρέθηκε" };
+    user.timePreference = preference;
+    await user.save();
+    return { error: false };
+  } catch (error) {
+    console.log("Υπήρξε error στην ChangeTimePreferences στο root", error);
+    return { erorr: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
+const ChangeModePreference = async ({ id, preference }) => {
+  "use server";
+  try {
+    await dbConnect();
+    const user = await User.findById(id);
+    if (!user) return { error: true, message: "Ο χρήστης δεν βρέθηκε" };
+    user.modePreference = preference;
+    await user.save();
+    return { error: false };
+  } catch (error) {
+    console.log("Υπήρξε error στην ChangeTimePreferences στο root", error);
+    return { erorr: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
 export default async function Home({ searchParams }) {
   const { sessionClaims } = await auth();
   const { mode, userid, accountcheck, tradecheck } = await searchParams;
@@ -700,7 +734,6 @@ export default async function Home({ searchParams }) {
               <MenuItem link={`/${userid ? `?userid=${userid}` : ""}`} name="Εργασίες" icon="task.svg" size={18} />
               <MenuItem link={`/?mode=accounts${userid ? `&userid=${userid}` : ""}`} name="Accounts" icon="account.svg" size={18} />
               <MenuItem link={`/?mode=tradingsettings${userid ? `&userid=${userid}` : ""}`} name="Ρυθμίσεις" icon="/settings-icon.svg" size={18} />
-              <MenuItem link={`/?mode=tickets${userid ? `&userid=${userid}` : ""}`} name="Tickets" icon="/tickets.svg" size={18} />
               <MenuItem link={`/?mode=companies${userid ? `&userid=${userid}` : ""}`} name="Εταιρίες" icon="/company-icon.svg" size={18} info="Πάτησε πάνω και ενεργοποίησε όποιες εταιρείες θέλεις να παίζεις. Αν κάποια εταιρεία δεν θέλεις να την παίζεις απλά απενεργοποίησε την." />{" "}
             </div>
           </div>
@@ -897,7 +930,20 @@ export default async function Home({ searchParams }) {
             {mode === "accounts" && <AccountsList accounts={user.accounts.sort((a, b) => a.phase - b.phase)} />}
             {mode === "tradingsettings" && (
               <div className="flex justify-center">
-                <ScheduleForm SaveSchedule={SaveSchedule} ToggleFlexibleSuggestions={ToggleFlexibleSuggestions} ChangeHourOffsetFromGreece={ChangeHourOffsetFromGreece} id={id} oldStartingHour={user.tradingHours.startingTradingHour} oldEndingHour={user.tradingHours.endingTradingHour} oldSuggestionsStatus={user.flexibleTradesSuggestions} oldOffset={user.hourOffsetFromGreece} />
+                <ScheduleForm
+                  SaveSchedule={SaveSchedule}
+                  ChangeTimePreference={ChangeTimePreference}
+                  ChangeModePreference={ChangeModePreference}
+                  ToggleFlexibleSuggestions={ToggleFlexibleSuggestions}
+                  ChangeHourOffsetFromGreece={ChangeHourOffsetFromGreece}
+                  id={id}
+                  oldStartingHour={user.tradingHours.startingTradingHour}
+                  oldEndingHour={user.tradingHours.endingTradingHour}
+                  oldSuggestionsStatus={user.flexibleTradesSuggestions}
+                  oldOffset={user.hourOffsetFromGreece}
+                  timePref={user.timePreference}
+                  modePref={user.modePreference}
+                />
               </div>
             )}
             {mode === "tickets" && <div className="text-gray-400 animate-pulse">Under Construction</div>}
@@ -924,3 +970,5 @@ const MenuItem = ({ name, link, info, icon, size }) => {
     </Link>
   );
 };
+
+//<MenuItem link={`/?mode=tickets${userid ? `&userid=${userid}` : ""}`} name="Tickets" icon="/tickets.svg" size={18} />

@@ -23,7 +23,7 @@ const GetAccount = async (id) => {
   }
 };
 
-const SaveNewAccountNumber = async ({ accountId, newNumber }) => {
+const SaveNewAccountNumber = async ({ accountId, newNumber, login, password, server }) => {
   "use server";
   if (!accountId || !newNumber) return { error: true, message: "Συμπλήρωσε το account number" };
   try {
@@ -33,6 +33,9 @@ const SaveNewAccountNumber = async ({ accountId, newNumber }) => {
     account.status = "Live";
     account.isOnBoarding = true;
     account.note = "Χρειάζεται Ενεργοποίηση";
+    account.login = login;
+    account.password = password;
+    account.server = server;
 
     await account.save();
     await AddActivity({ title: "Έγινε Αγορά Νέου Account", description: "Έγινε αγορά account από τον χρήστη", user: account.user, account: account._id });
