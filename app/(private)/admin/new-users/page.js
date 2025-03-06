@@ -5,6 +5,7 @@ import dbConnect from "@/dbConnect";
 import PageTransition from "@/components/PageTransition";
 import AcceptUser from "./AcceptUser";
 import { revalidatePath } from "next/cache";
+import { auth } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
 
 const GetNewUsers = async () => {
@@ -21,6 +22,7 @@ const GetNewUsers = async () => {
 const Accept = async ({ userId }) => {
   "use server";
   try {
+    const { sessionClaims } = await auth();
     await dbConnect();
     await User.updateOne({ _id: userId }, { $set: { accepted: true } });
 
