@@ -10,7 +10,6 @@ const AddBeneficiaryForm = ({ allUsers, AddBeneficiary, userId }) => {
   };
   return (
     <div className="flex flex-col items-center">
-      <input value={percentage} onChange={(e) => setPercentage(e.target.value)} max={50} min={1} type="number" placeholder="%" className="input mt-4 max-w-[80px]" />
       <div className="flex flex-wrap p-4 items-center gap-4">
         {allUsers &&
           allUsers.length > 0 &&
@@ -22,6 +21,7 @@ const AddBeneficiaryForm = ({ allUsers, AddBeneficiary, userId }) => {
             );
           })}
       </div>
+      <input value={percentage} onChange={(e) => setPercentage(e.target.value)} max={50} min={1} type="number" placeholder="%" className="input mt-4 max-w-[80px]" />
     </div>
   );
 };

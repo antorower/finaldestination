@@ -220,8 +220,13 @@ const Trader = async ({ params, searchParams }) => {
 
       {mode === "beneficiaries" && (
         <div className="flex flex-col justify-center m-auto">
-          <div className="text-center p-4 text-white bg-blue-500 rounded font-bold text-2xl">
+          <div className="text-center p-4 text-white bg-blue-500 rounded font-bold flex flex-wrap gap-4 items-center justify-center">
             <div className="">Beneficiaries</div>
+            {user.beneficiaries &&
+              user.beneficiaries.length > 0 &&
+              user.beneficiaries.map((beneficiary) => {
+                return <RemoveBeneficiaryForm percentage={beneficiary.percentage} userId={user._id.toString()} beneficiaryId={beneficiary.user._id.toString()} RemoveBeneficiary={RemoveBeneficiary} firstName={beneficiary.user.firstName} lastName={beneficiary.user.lastName} key={`beneficiary-is-${beneficiary.user._id.toString()}`} className="" />;
+              })}
           </div>
           <AddBeneficiaryForm userId={user._id.toString()} AddBeneficiary={AddBeneficiary} allUsers={allUsers} />
         </div>
