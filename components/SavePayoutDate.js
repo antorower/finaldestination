@@ -41,9 +41,9 @@ const SavePayoutDate = ({ number, SaveDate }) => {
   return (
     <div className="border border-gray-700 p-4 flex flex-col gap-4 rounded">
       <div className="flex gap-4 items-center">
-        <input type="text" required value={day} onChange={(e) => setDay(e.target.value)} placeholder="Day" className="input" />
-        <input type="text" required value={month} onChange={(e) => setMonth(e.target.value)} placeholder="Month" className="input" />
-        <input type="text" required value={year} onChange={(e) => setYear(e.target.value)} placeholder="Year" className="input" />
+        <input type="number" required value={day} onChange={(e) => setDay(e.target.value)} placeholder="Day" className="input" />
+        <input type="number" required value={month} onChange={(e) => setMonth(e.target.value)} placeholder="Month" className="input" />
+        <input type="number" required value={year} onChange={(e) => setYear(e.target.value)} placeholder="Year" className="input" />
       </div>
       <button className="bg-blue-500 p-4 rounded font-black w-full" onClick={Save}>
         &#128190;

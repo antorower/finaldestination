@@ -1,6 +1,7 @@
 import AccountCard from "./AccountCard";
 
-const AccountsList = ({ accounts }) => {
+const AccountsList = ({ accounts, mode }) => {
+  if (mode !== "accounts") return null;
   return (
     <>
       <div className="mb-8 justify-center gap-8 hidden md:flex">

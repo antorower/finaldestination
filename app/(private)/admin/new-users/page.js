@@ -12,22 +12,21 @@ const GetNewUsers = async () => {
   "use server";
   try {
     await dbConnect();
-    return await User.find({ accepted: false }).select("firstName lastName telephone");
+    return await User.find({ accepted: false }).select("firstName lastName telephone clerkId");
   } catch (error) {
     console.log("Υπήρξε error στην GetNewUsers στο /admin/new-users", error);
     return false;
   }
 };
 
-const Accept = async ({ userId }) => {
+const Accept = async ({ userId, clerkId }) => {
   "use server";
   try {
-    const { sessionClaims } = await auth();
     await dbConnect();
     await User.updateOne({ _id: userId }, { $set: { accepted: true } });
 
     const client = await clerkClient();
-    await client.users.updateUserMetadata(sessionClaims.userId, {
+    await client.users.updateUserMetadata(clerkId, {
       publicMetadata: {
         accepted: true,
       },
@@ -81,7 +80,7 @@ const NewUsersList = async () => {
                 {user.firstName} {user.lastName}
               </div>
               <div className="text-sm text-center font-normal">{user.telephone}</div>
-              <AcceptUser userId={user._id.toString()} Accept={Accept} Reject={Reject} />
+              <AcceptUser clerkId={user.clerkId} userId={user._id.toString()} Accept={Accept} Reject={Reject} />
             </div>
           );
         })}

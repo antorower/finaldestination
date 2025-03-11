@@ -5,6 +5,7 @@ import Account from "@/models/Account";
 import Trade from "@/models/Trade";
 import Invoice from "@/models/Invoice";
 import User from "@/models/User";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   await dbConnect();
@@ -36,7 +37,7 @@ export async function GET() {
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
   if (!settings[today] || !settings[today].active) {
     console.log("Η ημέρα δεν είναι active");
-    return NextResponse.json({ stoped: true }, { status: 200 });
+    //return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --------------------------------------------------------------------------------------------------------
@@ -181,7 +182,7 @@ export async function GET() {
     const forgetedTradesToOpen = forgetedTrades[userId]?.toOpen || 0;
 
     if (forgetedTradesToOpen > 0) {
-      updateFields.$inc["trades.forgeted.toOpen"] = forgetedTradesToAccept;
+      updateFields.$inc["trades.forgeted.toOpen"] = forgetedTradesToOpen;
     }
 
     if (penaltyCount > 0) {
@@ -210,6 +211,6 @@ export async function GET() {
 
   // Μαζική ενημέρωση των trades σε status "review"
   if (tradeUpdates.length > 0) await Trade.bulkWrite(tradeUpdates);
-
+  revalidatePath("/", "layout");
   return NextResponse.json({ success: true });
 }

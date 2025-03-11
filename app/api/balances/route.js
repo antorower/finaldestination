@@ -3,6 +3,7 @@ import dbConnect from "@/dbConnect";
 import Settings from "@/models/Settings";
 import Account from "@/models/Account";
 import Trade from "@/models/Trade";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   await dbConnect();
@@ -216,6 +217,8 @@ export async function GET() {
 
   // Μαζική ενημέρωση των trades σε status "review"
   if (tradeUpdates.length > 0) await Trade.bulkWrite(tradeUpdates);
+
+  revalidatePath("/", "layout");
 
   return NextResponse.json({ success: true });
 }

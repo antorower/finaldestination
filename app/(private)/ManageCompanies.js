@@ -52,7 +52,8 @@ const DeactivateCompany = async ({ userId, companyId }) => {
   }
 };
 
-const ManageCompanies = ({ userId, allCompanies = [], userCompanies = [] }) => {
+const ManageCompanies = ({ mode, userId, allCompanies = [], userCompanies = [] }) => {
+  if (mode !== "companies") return null;
   // Μετατροπή userCompanies σε array από strings για σωστή σύγκριση
   const safeUserCompanies = Array.isArray(userCompanies) ? userCompanies.map((company) => company._id.toString()) : [];
 
@@ -60,15 +61,12 @@ const ManageCompanies = ({ userId, allCompanies = [], userCompanies = [] }) => {
   const inactiveCompanies = allCompanies.filter((company) => !safeUserCompanies.includes(company._id.toString()));
 
   return (
-    <>
-      <div className="mb-4 text-gray-400 text-sm">Ενεργοποίησε τις εταιρίες στις οποίες θέλεις να σου αγοράζονται accounts</div>
-      <div className="flex flex-wrap items-center justify-center gap-6">
-        {/* Εμφανίζει τις εταιρείες του χρήστη που μπορούν να αφαιρεθούν */}
-        {userCompanies.length > 0 && userCompanies.map((company) => <RemoveCompanyButton DeactivateCompany={DeactivateCompany} userId={userId} companyId={company._id.toString()} key={`active-company-${company._id.toString()}`} name={company.name} />)}
-        {/* Εμφανίζει ΜΟΝΟ τις εταιρείες που δεν είναι ήδη στο userCompanies */}
-        {inactiveCompanies.length > 0 && inactiveCompanies.map((company) => <AddCompanyButton ActivateCompany={ActivateCompany} userId={userId} companyId={company._id.toString()} key={`inactive-company-${company._id.toString()}`} name={company.name} />)}
-      </div>
-    </>
+    <div className="flex flex-wrap items-center justify-center gap-6">
+      {/* Εμφανίζει τις εταιρείες του χρήστη που μπορούν να αφαιρεθούν */}
+      {userCompanies.length > 0 && userCompanies.map((company) => <RemoveCompanyButton DeactivateCompany={DeactivateCompany} userId={userId} companyId={company._id.toString()} key={`active-company-${company._id.toString()}`} name={company.name} />)}
+      {/* Εμφανίζει ΜΟΝΟ τις εταιρείες που δεν είναι ήδη στο userCompanies */}
+      {inactiveCompanies.length > 0 && inactiveCompanies.map((company) => <AddCompanyButton ActivateCompany={ActivateCompany} userId={userId} companyId={company._id.toString()} key={`inactive-company-${company._id.toString()}`} name={company.name} />)}
+    </div>
   );
 };
 

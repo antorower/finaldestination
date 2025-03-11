@@ -11,12 +11,14 @@ const isPublicRoute = createRouteMatcher([
 export default clerkMiddleware(async (auth, request) => {
   const url = new URL(request.url);
   const path = url.pathname;
-  console.log(path);
+
+  if (path === "/not-found") return NextResponse.next();
 
   if (!isPublicRoute(request)) {
     await auth.protect();
-
     const { sessionClaims } = await auth();
+
+    //#region Authentication
     if (!sessionClaims.metadata.registered && path !== "/register") {
       return NextResponse.redirect(new URL("/register", request.url));
     }
@@ -28,12 +30,32 @@ export default clerkMiddleware(async (auth, request) => {
     if (sessionClaims.metadata.registered && sessionClaims.metadata.accepted && (path === "/user-pending" || path === "/register")) {
       return NextResponse.redirect(new URL("/", request.url));
     }
+    //#endregion
 
+    //#region Admin Permissions
     if (path.startsWith("/admin")) {
-      if (!sessionClaims.metadata.isOwner) {
+      if (!sessionClaims.metadata.isOwner && !sessionClaims.metadata.isLeader) {
         return NextResponse.redirect(new URL("/not-found", request.url));
       }
     }
+
+    if (path.startsWith("/admin/new-users") && !sessionClaims.metadata.isOwner) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/payouts") && !sessionClaims.metadata.isOwner) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/companies") && !sessionClaims.metadata.isOwner) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/pairs") && !sessionClaims.metadata.isOwner) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/schedule") && !sessionClaims.metadata.isOwner) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/settings") && !sessionClaims.metadata.isOwner) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/stats") && !sessionClaims.metadata.isOwner) return NextResponse.redirect(new URL("/not-found", request.url));
+
+    if (path.startsWith("/admin/tasks") && !sessionClaims.metadata.isOwner && !sessionClaims.metadata.isLeader) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/traders") && !sessionClaims.metadata.isOwner && !sessionClaims.metadata.isLeader) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/accounts") && !sessionClaims.metadata.isOwner && !sessionClaims.metadata.isLeader) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/trades") && !sessionClaims.metadata.isOwner && !sessionClaims.metadata.isLeader) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/payments") && !sessionClaims.metadata.isOwner && !sessionClaims.metadata.isLeader) return NextResponse.redirect(new URL("/not-found", request.url));
+    if (path.startsWith("/admin/charges") && !sessionClaims.metadata.isOwner && !sessionClaims.metadata.isLeader) return NextResponse.redirect(new URL("/not-found", request.url));
+    //#endregion
+
+    //asdfsd
   }
 });
 

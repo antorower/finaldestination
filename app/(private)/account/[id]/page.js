@@ -11,12 +11,25 @@ import OpenTicketForm from "@/components/Ticket/OpenTicketForm";
 import AccountTickets from "./AccountTickets";
 import { AddActivity } from "@/library/AddActivity";
 import UpgradeAccountForm from "./UpgradeAccountForm";
+import PendingPayoutForm from "./PendingPayoutForm";
+import PayoutRequestDoneButton from "./PayoutRequestDoneButton";
+import PayoutForm from "./PayoutForm";
+import Payout from "@/models/Payout";
 
 const GetAccount = async (id) => {
   "use server";
   await dbConnect();
   try {
-    return Account.findById(id).populate("user").populate("company").populate("lastTrade");
+    return Account.findById(id)
+      .populate("company")
+      .populate("lastTrade")
+      .populate({
+        path: "user",
+        populate: {
+          path: "leader", // Κάνουμε populate και τον leader του χρήστη
+          model: "User",
+        },
+      });
   } catch (error) {
     console.log("Υπήρξε error στην GetAccount στο /account/[id]", error);
     return false;
@@ -117,6 +130,109 @@ const UpgradeAccount = async ({ accountId, newNumber, login, password, server })
   }
 };
 
+const SavePayoutDate = async ({ accountId, date }) => {
+  "use server";
+  try {
+    await dbConnect();
+
+    const account = await Account.findById(accountId);
+    if (!account) {
+      return { error: true, message: "Ο λογαριασμός δεν βρέθηκε." };
+    }
+
+    // Αποθήκευση της ημερομηνίας
+    account.payoutRequestDate = date;
+
+    // Μετατροπή της ημερομηνίας σε "DD/MM/YYYY"
+    const formattedDate = new Intl.DateTimeFormat("el-GR", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    }).format(new Date(date));
+
+    // Αποθήκευση του note με την ημερομηνία
+    account.note = `Payout: ${formattedDate}`;
+
+    await account.save();
+
+    return { error: false };
+  } catch (error) {
+    console.log("Υπήρξε error στην SavePayoutDate στο /admin/account/[id]", error);
+    return { error: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
+const PayoutRequestDone = async (accountId) => {
+  "use server";
+  try {
+    await dbConnect();
+
+    const account = await Account.findById(accountId);
+    if (!account) {
+      return { error: true, message: "Ο λογαριασμός δεν βρέθηκε." };
+    }
+
+    account.note = "Είσπραξη Payout";
+    account.status = "Payout Request Done";
+
+    await account.save();
+
+    return { error: false };
+  } catch (error) {
+    console.log("Υπήρξε error στην PayoutRequestDone στο /admin/account/[id]", error);
+    return { error: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
+const SendPayout = async ({ accountId, payoutAmount, userShare, leaderDept, teamDept, userReport }) => {
+  "use server";
+  try {
+    await dbConnect();
+    const account = await Account.findById(accountId).populate({
+      path: "user",
+      populate: {
+        path: "leader", // Εδώ κάνουμε populate το leader που είναι μέσα στο user
+        model: "User",
+      },
+    });
+
+    const newPayout = new Payout({
+      user: account.user._id,
+      leader: account.user.leader._id,
+      account: account._id,
+      payoutAmount: payoutAmount,
+      userShare: userShare,
+      leaderDept: leaderDept,
+      teamDept: teamDept,
+      report: userReport,
+      status: "Open",
+    });
+    await newPayout.save();
+
+    account.user.profits += teamDept;
+    account.user.dept -= leaderDept;
+    await account.user.save();
+
+    account.user.leader.profits += leaderDept;
+    account.user.leader.save();
+
+    account.status = "Money Sended";
+    account.note = null;
+    await account.save();
+
+    return { error: false };
+  } catch (error) {
+    console.log("Υπήρξε error στην SendPayout στο /admin/account/[id]", error);
+    return { error: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
 const AccountPage = async ({ params }) => {
   const { id } = await params;
 
@@ -188,6 +304,25 @@ const AccountPage = async ({ params }) => {
           )}
           {account.status === "Upgrade Done" && <div className="text-center">Το account έχει γίνει upgrade</div>}
           {(account.status === "Lost" || account.status === "Review") && <div className="text-center">Το account έχει χάσει</div>}
+          {account.status === "Pending Payout" && (
+            <div>
+              <PendingPayoutForm SavePayoutDate={SavePayoutDate} accountId={account._id.toString()} date={account.payoutRequestDate} />
+              <div className="flex flex-col gap-2 justify-center m-auto max-w-[500px] bg-gray-50 p-4 border border-gray-300 rounded-lg mt-4">
+                <div className="mt-4 text-justify">Μόλις κάνεις το Payout Request πάτησε το κουμπί παρακάτω για να ενημερωθεί η σελίδα και οι διαχειριστές ότι το payout request έχει γίνει.</div>
+                <div className="text-center">
+                  <PayoutRequestDoneButton PayoutRequestDone={PayoutRequestDone} accountId={account._id.toString()} />
+                </div>
+              </div>
+            </div>
+          )}
+          {account.status === "Payout Request Done" && (
+            <div>
+              <div className="font-bold text-center border-b border-gray-700 p-2">ΑΦΟΥ ΜΠΕΙ ΤΟ PAYOUT ΣΤΟΝ ΛΟΓΑΡΙΑΣΜΟ ΣΟΥ ΚΑΝΕ ΤΑ ΠΑΡΑΚΑΤΩ</div>
+              <div className="m-auto p-4 w-full max-w-[500px] text-justify text-gray-500">Αφού μπει το payout στον λογαριασμό σου ΔΕΣ ΑΠΟ ΤΟ WALLET ΣΟΥ πόσα χρήματα μπήκαν. Δηλαδή μην μαντέψεις ούτε να βάλεις το ποσό που είπε η εταιρεία ότι θα σου βάλει πριν το payout. ΔΕΣ πόσα πραγματικά μπήκαν στο wallet σου και συμπλήρωσε την παρακάτω φόρμα. Πάτησε Υπολογισμός. Θα βγει ένα report για εσένα. Κράτησε τα χρήματα που σου λέει το report και στείλε τα υπόλοιπα.</div>
+              <PayoutForm accountId={account._id.toString()} accountProfits={account.balance - account.capital} SendPayout={SendPayout} userProfits={account.user.profits} userDept={account.user.dept} userSharePercent={account.user.share} />
+            </div>
+          )}
+          {account.status === "Money Sended" && <div>Money Sended</div>}
         </div>
         {false && (
           <div className="grid grid-cols-12 p-4 max-w-[800px] m-auto w-full gap-4 h-[340px]">

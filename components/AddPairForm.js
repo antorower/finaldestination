@@ -23,9 +23,9 @@ const AddPairForm = ({ SaveNewPair }) => {
   return (
     <div className="w-[200px] flex flex-col gap-2">
       <input type="text" required minLength={3} maxLength={20} value={name} onChange={(e) => setName(e.target.value)} placeholder="Pair" className="input" />
-      <input type="text" required minLength={3} maxLength={20} value={lots} onChange={(e) => setLots(e.target.value)} placeholder="Lots/1.000$" className="input" />
-      <input type="text" required minLength={1} maxLength={4} value={priority} onChange={(e) => setPriority(e.target.value)} placeholder="Priority" className="input" />
-      <input type="text" required minLength={1} maxLength={4} value={expensesFactor} onChange={(e) => setExpensesFactor(e.target.value)} placeholder="Expenses Factor" className="input" />
+      <input type="number" required minLength={3} maxLength={20} value={lots} onChange={(e) => setLots(e.target.value)} placeholder="Lots/1.000$" className="input" />
+      <input type="number" required minLength={1} maxLength={4} value={priority} onChange={(e) => setPriority(e.target.value)} placeholder="Priority" className="input" />
+      <input type="number" required minLength={1} maxLength={4} value={expensesFactor} onChange={(e) => setExpensesFactor(e.target.value)} placeholder="Expenses Factor" className="input" />
       <button onClick={SavePair} className="bg-orange-700 p-3 rounded-b hover:bg-orange-600 text-white font-semibold outline-none">
         Add Pair
       </button>

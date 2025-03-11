@@ -13,7 +13,7 @@ const UpdateMaxLotsForm = ({ UpdateMaxLots, companyId }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <input value={maxLots} onChange={(e) => setMaxLots(e.target.value)} type="text" placeholder="Max Lots" className="input" />
+      <input value={maxLots} onChange={(e) => setMaxLots(e.target.value)} type="number" placeholder="Max Lots" className="input" />
       <button onClick={Update} className="w-full bg-blue-500 p-2 text-white">
         ✔
       </button>

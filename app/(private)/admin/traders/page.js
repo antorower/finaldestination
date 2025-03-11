@@ -2,9 +2,9 @@ export const dynamic = "force-dynamic";
 
 import dbConnect from "@/dbConnect";
 import User from "@/models/User";
-import { revalidatePath } from "next/cache";
 import TraderCard from "./TraderCard";
 import PageTransition from "@/components/PageTransition";
+import { auth } from "@clerk/nextjs/server";
 
 const GetAllUsers = async () => {
   "use server";
@@ -17,8 +17,33 @@ const GetAllUsers = async () => {
   }
 };
 
+const GetUserTeamUsers = async (userId) => {
+  "use server";
+  try {
+    await dbConnect();
+
+    // Βρίσκουμε τον χρήστη που κάνει το request
+    const user = await User.findById(userId).select("team");
+    if (!user || !user.team || user.team.length === 0) {
+      return [];
+    }
+
+    // Βρίσκουμε τους χρήστες που είναι μέσα στο team του
+    return await User.find({ _id: { $in: user.team } }).select("firstName lastName telephone bybitEmail bybitUid status accounts tradingHours adminNote userNote profits dept");
+  } catch (error) {
+    console.log("Υπήρξε error στην GetUserTeamUsers στο /admin/traders", error);
+    return false;
+  }
+};
+
 const Traders = async () => {
-  const traders = await GetAllUsers();
+  const { sessionClaims } = await auth();
+  const { isOwner, mongoId } = sessionClaims.metadata;
+
+  const traders = isOwner ? await GetAllUsers() : await GetUserTeamUsers(mongoId);
+
+  if (!traders || traders.length === 0) return <div className="text-center text-gray-500 animate-pulse">Δεν υπάρχουν users</div>;
+
   return (
     <PageTransition>
       {traders && traders.length > 0 && (

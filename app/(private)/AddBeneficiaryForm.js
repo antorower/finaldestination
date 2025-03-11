@@ -10,7 +10,7 @@ const AddBeneficiaryForm = ({ allUsers, AddBeneficiary, userId }) => {
   };
   return (
     <div className="flex flex-col items-center">
-      <div className="flex flex-wrap p-4 items-center gap-4">
+      <div className="flex flex-wrap p-4 justify-center gap-4">
         {allUsers &&
           allUsers.length > 0 &&
           allUsers.map((user) => {

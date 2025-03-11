@@ -1,9 +1,9 @@
 "use client";
 import { toast } from "react-toastify";
 
-const AcceptUser = ({ userId, Accept, Reject }) => {
+const AcceptUser = ({ clerkId, userId, Accept, Reject }) => {
   const AcceptUser = async () => {
-    const response = await Accept({ userId });
+    const response = await Accept({ userId, clerkId });
     if (response.error) {
       toast.error(response.message);
     } else {

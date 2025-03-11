@@ -15,6 +15,7 @@ import PageTransition from "@/components/PageTransition";
 const GetSettings = async () => {
   "use server";
   try {
+    await dbConnect();
     return await Settings.findOne();
   } catch (error) {
     console.log("Υπήρξε error στην GetSettings στο /admin/settings", error);

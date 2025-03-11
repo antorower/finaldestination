@@ -3,6 +3,7 @@ import dbConnect from "@/dbConnect";
 import Settings from "@/models/Settings";
 import Account from "@/models/Account";
 import Trade from "@/models/Trade";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   await dbConnect();
@@ -37,7 +38,7 @@ export async function GET() {
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
   if (!settings[tomorrow] || !settings[tomorrow].active) {
     console.log("Η ημέρα δεν είναι active");
-    return NextResponse.json({ stopped: true }, { status: 200 });
+    //return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // --> Τραβάει όλα τα accounts που δεν θέλει update το balance τους, δεν είναι isOnBoarding και το status τους είναι Live
@@ -259,9 +260,6 @@ export async function GET() {
       // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
       openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
 
-      console.log(openTime.toISOString()); // Η ώρα UTC που αντιστοιχεί στην αυριανή 04:00 Ελλάδας
-      //console.log(openTime.toISOString());
-
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
       if (newTrade.firstParticipant.priority === "low" && newTrade.secondParticipant.priority === "low") newTrade.priority = "low";
       if (newTrade.firstParticipant.priority !== newTrade.secondParticipant.priority) newTrade.priority = "medium";
@@ -359,7 +357,6 @@ export async function GET() {
       // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
       openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
 
-      console.log(openTime.toISOString()); // Η ώρα UTC που αντιστοιχεί στην αυριανή 04:00 Ελλάδας
       //console.log(openTime.toISOString());
 
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
@@ -459,7 +456,6 @@ export async function GET() {
       // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
       openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
 
-      console.log(openTime.toISOString()); // Η ώρα UTC που αντιστοιχεί στην αυριανή 04:00 Ελλάδας
       //console.log(openTime.toISOString());
 
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
@@ -560,7 +556,6 @@ export async function GET() {
       // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
       openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
 
-      console.log(openTime.toISOString()); // Η ώρα UTC που αντιστοιχεί στην αυριανή 04:00 Ελλάδας
       //console.log(openTime.toISOString());
 
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
@@ -574,9 +569,32 @@ export async function GET() {
     }
   }
   console.log("Trades μετά τον τέταρτο κύκλο: ", trades.length);
-
   console.log("Συνολικά trades που δημιουργήθηκαν: ", trades.length);
   console.log("Επιτυχές MatchTrading");
+
+  console.log("Scanning trades for mismatched phases...");
+
+  for (const trade of trades) {
+    const firstAccount = updatedAccounts.find((acc) => acc._id === trade.firstParticipant.account);
+    const secondAccount = updatedAccounts.find((acc) => acc._id === trade.secondParticipant.account);
+
+    if (!firstAccount || !secondAccount) {
+      console.log(`Trade ${trade._id} has an invalid account reference.`);
+      continue;
+    }
+
+    if (firstAccount.phase !== secondAccount.phase) {
+      console.log("------------------------------------------------------");
+      console.log(`❌ Mismatched Phase in Trade ${trade._id}:`);
+      console.log(`   - First Account: ${firstAccount._id} (Phase: ${firstAccount.phase})`);
+      console.log(`   - Second Account: ${secondAccount._id} (Phase: ${secondAccount.phase})`);
+      console.log("------------------------------------------------------");
+    }
+  }
+
+  console.log("Trade phase check complete.");
+
+  revalidatePath("/", "layout");
   await Trade.insertMany(trades);
   return NextResponse.json({ success: true });
 }

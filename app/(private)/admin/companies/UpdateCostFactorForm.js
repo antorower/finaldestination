@@ -13,7 +13,7 @@ const UpdateCostFactorForm = ({ UpdateCostFactor, companyId }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <input value={costFactor} onChange={(e) => setCostFactor(e.target.value)} type="text" placeholder="Cost Factor" className="input" />
+      <input value={costFactor} onChange={(e) => setCostFactor(e.target.value)} type="number" placeholder="Cost Factor" className="input" />
       <button onClick={Update} className="w-full bg-blue-500 p-2 text-white">
         ✔
       </button>

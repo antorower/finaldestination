@@ -8,7 +8,7 @@ const AddFamilyForm = ({ allUsers, SetFamily, userId }) => {
   };
   return (
     <div>
-      <div className="flex flex-wrap p-4 items-center gap-4">
+      <div className="flex flex-wrap p-4 items-center justify-center gap-4">
         {allUsers &&
           allUsers.length > 0 &&
           allUsers.map((user) => {

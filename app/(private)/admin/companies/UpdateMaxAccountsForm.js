@@ -13,7 +13,7 @@ const UpdateMaxAccountsForm = ({ UpdateMaxAccount, companyId }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      <input value={maxAccounts} onChange={(e) => setMaxAccounts(e.target.value)} type="text" placeholder="Max Accounts" className="input" />
+      <input value={maxAccounts} onChange={(e) => setMaxAccounts(e.target.value)} type="number" placeholder="Max Accounts" className="input" />
       <button onClick={Update} className="w-full bg-blue-500 p-2 text-white">
         ✔
       </button>

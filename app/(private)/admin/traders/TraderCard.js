@@ -4,7 +4,7 @@ const TraderCard = ({ trader }) => {
   const workingHours = trader.tradingHours.endingTradingHour - trader.tradingHours.startingTradingHour;
 
   return (
-    <div className={`rounded-xl bg-gray-50 text-gray-700 border border-gray-300 px-4 py-2`}>
+    <div className={`rounded-xl text-gray-700 border-2 ${trader.status === "active" ? "border-gray-300 bg-gray-50" : "border-red-300 bg-red-50"} px-4 py-2`}>
       <div className={`p-4 border-b border-gray-300 rounded-t-lg `}>
         <div className="flex gap-4 items-center justify-between">
           <Link href={`/?userid=${trader._id.toString()}`} className="flex items-center justify-center gap-2 text-xl font-semibold">

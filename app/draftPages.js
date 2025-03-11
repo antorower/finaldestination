@@ -53,8 +53,6 @@ export const RegisterUser = async ({ firstName, lastName, telephone, bybitEmail,
 export const SaveQuestions = async ({ answers }) => {
   "use server";
   const { sessionClaims } = await auth();
-  console.log(answers);
-  console.log(sessionClaims.userId);
   try {
     await dbConnect();
     const user = await User.findOne({ clerkId: sessionClaims.userId });
@@ -306,7 +304,6 @@ export default async function Home({ searchParams }) {
   const needUpgradeAccounts = user.accounts.filter((account) => account.status === "NeedUpgrade");
   const waitingPayoutAccounts = user.accounts.filter((account) => account.status === "WaitingPayout");
   const payoutRequestDoneAccounts = user.accounts.filter((account) => account.status === "PayoutRequestDone");
-  console.log(payoutRequestDoneAccounts);
   //#endregion
 
   return (

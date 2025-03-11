@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import InfoButton from "@/components/InfoButton";
 import { toast } from "react-toastify";
 
-const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeTimePreference, ChangeModePreference, timePref, modePref, ChangeHourOffsetFromGreece, id, oldStartingHour, oldEndingHour, oldSuggestionsStatus, oldOffset }) => {
+const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeTimePreference, ChangeModePreference, timePref, modePref, ChangeHourOffsetFromGreece, id, oldStartingHour, oldEndingHour, oldSuggestionsStatus, oldOffset, mode }) => {
   const [startingHour, setStartingHour] = useState("");
   const [endingHour, setEndingHour] = useState("");
   const [flexibleSuggestions, setFlexibleSuggestions] = useState(oldSuggestionsStatus || false);
@@ -16,6 +16,7 @@ const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeTimePrefe
     if (oldOffset || oldOffset === 0) setOffset(oldOffset);
   }, [oldStartingHour, oldEndingHour, oldSuggestionsStatus, oldOffset]);
 
+  if (mode !== "tradingsettings") return null;
   const SaveHours = async () => {
     const response = await SaveSchedule({ id, startingHour, endingHour });
     if (response.error) toast.error(response.message);
@@ -42,7 +43,7 @@ const ScheduleForm = ({ SaveSchedule, ToggleFlexibleSuggestions, ChangeTimePrefe
   };
 
   return (
-    <div className="w-full max-w-[400px] border border-gray-300 p-4 rounded flex flex-col gap-4">
+    <div className="w-full max-w-[400px] border border-gray-300 p-4 rounded flex flex-col gap-4 m-auto">
       <div className="flex flex-col gap-2">
         <div className="text-gray-500 text-sm">Συμπλήρωσε Ώρα Ελλάδος:</div>
         <div className="flex gap-2 items-center">

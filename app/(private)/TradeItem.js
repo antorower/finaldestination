@@ -2,7 +2,6 @@ import AcceptTradeButton from "./AcceptTradeButton";
 import RejectTradeButton from "./RejectTradeButton";
 
 const TradeItem = ({ ChangeTradeStatus, tradeId, userId, account, priority, openDate, openTime, status }) => {
-  console.log("The Priority", priority);
   return (
     <div className={`grid grid-cols-12 border ${priority === "high" ? "bg-orange-100" : "bg-gray-100"} w-full`}>
       <RejectTradeButton ChangeTradeStatus={ChangeTradeStatus} tradeId={tradeId} priority={priority} userId={userId} status={status} />

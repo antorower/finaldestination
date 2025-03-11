@@ -18,7 +18,7 @@ const AddAccountForm = ({ CreateNewAccount, companies, id }) => {
     }
     if (response.error === false) {
       toast.success(response.message);
-      router.push(`/admin/trader/${id}`);
+      router.push(`/?mode=accounts&userid=${id}`);
     }
   };
 

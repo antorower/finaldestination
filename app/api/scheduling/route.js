@@ -4,6 +4,7 @@ import Settings from "@/models/Settings";
 import Trade from "@/models/Trade";
 import Invoice from "@/models/Invoice";
 import User from "@/models/User";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   await dbConnect();
@@ -37,7 +38,7 @@ export async function GET() {
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
   if (!settings[tomorrow] || !settings[tomorrow].active) {
     console.log("Η ημέρα δεν είναι active");
-    return NextResponse.json({ stoped: true }, { status: 200 });
+    //return NextResponse.json({ stoped: true }, { status: 200 });
   }
 
   // --------------------------------------------------------------------------------------------------------
@@ -241,6 +242,7 @@ export async function GET() {
   if (userUpdates.length > 0) await User.bulkWrite(userUpdates);
   if (tradeUpdates.length > 0) await Trade.bulkWrite(tradeUpdates);
 
+  revalidatePath("/", "layout");
   console.log("Ως εδώ φτάσαμε");
   return NextResponse.json({ success: true });
 }

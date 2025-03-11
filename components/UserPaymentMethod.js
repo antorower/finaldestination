@@ -32,7 +32,7 @@ const UserPaymentMethod = ({ userId, SetPaymentMode }) => {
               Μισθός
             </button>
           </div>
-          <input onChange={(e) => setAmount(e.target.value)} type="text" placeholder="Ποσό ή Ποσοστό" className="input" />
+          <input onChange={(e) => setAmount(e.target.value)} type="number" placeholder="Ποσό ή Ποσοστό" className="input" />
           <button onClick={() => setIsExpanded(false)} className="bg-purple-700 p-4 rounded">
             ❌
           </button>
