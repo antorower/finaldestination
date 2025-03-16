@@ -38,7 +38,7 @@ export async function GET() {
   // --> Αν η μέρα δεν είναι active σταματάει η διαδικασία
   if (!settings[tomorrow] || !settings[tomorrow].active) {
     console.log("Η ημέρα δεν είναι active");
-    //return NextResponse.json({ stopped: true }, { status: 200 });
+    return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // --> Τραβάει όλα τα accounts που δεν θέλει update το balance τους, δεν είναι isOnBoarding και το status τους είναι Live
