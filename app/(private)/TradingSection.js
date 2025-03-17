@@ -470,7 +470,7 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
           {forOpening &&
             forOpening.length > 0 &&
             forOpening.map((trade) => {
-              const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece);
+              const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece * 60);
 
               let tradeUser;
               if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
@@ -507,24 +507,3 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
 };
 
 export default TradingSection;
-
-const convertToUserTime = (utcDateString, minutesToAdd) => {
-  const utcDate = new Date(utcDateString);
-
-  // Προσθήκη των λεπτών
-  utcDate.setMinutes(utcDate.getMinutes() + minutesToAdd);
-
-  // Μετατροπή στη ζώνη ώρας Ελλάδας (Europe/Athens, UTC+2 ή UTC+3)
-  const options = {
-    timeZone: "Europe/Athens",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  };
-
-  return new Intl.DateTimeFormat("el-GR", options).format(utcDate);
-};

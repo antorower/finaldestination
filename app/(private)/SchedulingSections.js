@@ -101,7 +101,7 @@ const SchedulingSection = ({ GreeceTime, settings, user, tradeSuggestions, mode 
           {tradeSuggestions &&
             tradeSuggestions.length > 0 &&
             tradeSuggestions.map((trade) => {
-              const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece);
+              const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece * 60);
 
               let tradeUser;
               if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
