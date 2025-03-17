@@ -18,6 +18,9 @@ const TradeCard = ({ trade }) => {
           <div className="text-center">
             {trade.firstParticipant.status} - {trade.firstParticipant.priority}
           </div>
+          <div className="text-center">
+            {trade.firstParticipant.user.tradingHours.startingTradingHour} - {trade.firstParticipant.user.tradingHours.endingTradingHour}
+          </div>
         </div>
         <div className={`p-4 flex flex-col gap-2`}>
           <div className="text-center">
@@ -31,6 +34,9 @@ const TradeCard = ({ trade }) => {
           </div>
           <div className="text-center">
             {trade.secondParticipant.status} - {trade.secondParticipant.priority}
+          </div>
+          <div className="text-center">
+            {trade.secondParticipant.user.tradingHours.startingTradingHour} - {trade.secondParticipant.user.tradingHours.endingTradingHour}
           </div>
         </div>
       </div>
