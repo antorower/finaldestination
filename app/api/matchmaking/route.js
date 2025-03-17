@@ -199,13 +199,11 @@ export async function GET() {
       if (firstAccount.timePreference === "Early Hours" && secondAccount.timePreference === "Early Hours") {
         // Επιλέγει τυχαία από τις πρώτες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
         selectedTime = availableMinutes[Math.floor(Math.random() * Math.min(5, availableMinutes.length))];
-      }
-      if (firstAccount.timePreference === "Late Hours" && secondAccount.timePreference === "Late Hours") {
+      } else if (firstAccount.timePreference === "Late Hours" && secondAccount.timePreference === "Late Hours") {
         // Επιλέγει τυχαία από τις τελευταίες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
         let startIndex = Math.max(0, availableMinutes.length - 5);
         selectedTime = availableMinutes[startIndex + Math.floor(Math.random() * (availableMinutes.length - startIndex))];
-      }
-      if (firstAccount.timePreference !== secondAccount.timePreference) {
+      } else if (firstAccount.timePreference !== secondAccount.timePreference) {
         if (firstAccount.modePreference === "Condescending" || secondAccount.modePreference === "Condescending") {
           // Επιλέγει τυχαία από τις μεσαίες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
           let midStart = Math.max(0, Math.floor((availableMinutes.length - 5) / 2));
