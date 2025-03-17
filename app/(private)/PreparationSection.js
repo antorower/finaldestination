@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import TomorrowTradeItem from "./TomorrowTradeItem";
 import Explanation from "@/components/Explanation";
+import { ConvertToUserTime } from "@/library/Hours";
 
 const PreparationSection = ({ GreeceTime, user, forOpening, settings, mode }) => {
   if (mode) return null;
@@ -22,26 +23,12 @@ const PreparationSection = ({ GreeceTime, user, forOpening, settings, mode }) =>
           {forOpening &&
             forOpening.length > 0 &&
             forOpening.map((trade) => {
-              // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
-              const greeceDateObject = new Date(trade.openTime);
-              // Δημιουργούμε το τελικό Date object με το σωστό offset
-              greeceDateObject.setHours(greeceDateObject.getHours() + user.hourOffsetFromGreece);
-              const formattedDate = greeceDateObject.toLocaleDateString("el-GR", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              });
-              const formattedTime = greeceDateObject.toLocaleTimeString("el-GR", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              });
+              const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece * 60);
 
               let tradeUser;
               if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
               if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
-              return <TomorrowTradeItem key={`tomorrow-${trade._id.toString()}`} account={tradeUser.account.number} openDate={formattedDate} openTime={formattedTime} />;
+              return <TomorrowTradeItem key={`tomorrow-${trade._id.toString()}`} account={tradeUser.account.number} openDate={timeObject.date} openTime={timeObject.time} />;
             })}
 
           {(!forOpening || forOpening.length === 0) && <div className="animate-pulse text-gray-500">Δεν υπάρχουν trades για εσένα για αύριο</div>}
