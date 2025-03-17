@@ -26,7 +26,7 @@ const BeAwareOfTrade = async ({ tradeId, userId, accountId }) => {
     const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000); // 10 λεπτά πριν
     console.log("Ten Minutes Before", tenMinutesBefore);
     const oneHourBefore = new Date(openTimeUTC.getTime() - 60 * 60 * 1000); // 1 ώρα πριν
-    console.log("One Hour Before", tenMinutesBefore);
+    console.log("One Hour Before", oneHourBefore);
     if (nowUTC < oneHourBefore || nowUTC > tenMinutesBefore) return { error: true, message: "Δεν μπορείς να δηλώσεις παρών για αυτό το trade αυτήν την ώρα." };
     console.log(nowUTC < oneHourBefore ? "is more than one hour before" : "is NOT more than one hour before");
     console.log(nowUTC > tenMinutesBefore ? "is less than ten minutes before" : "is NOT kess than ten minutes before");
