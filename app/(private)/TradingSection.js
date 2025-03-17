@@ -19,13 +19,17 @@ const BeAwareOfTrade = async ({ tradeId, userId, accountId }) => {
     if (!trade) return { error: true, message: "Δεν βρέθηκε το trade. Προσπάθησε ξανά." };
 
     const nowUTC = new Date(); // Τρέχουσα UTC ώρα
+    console.log("Now UTC", nowUTC);
     const openTimeUTC = new Date(trade.openTime); // Ώρα ανοίγματος trade (υποθέτουμε ότι είναι ήδη σε UTC)
+    console.log("Open Time UTC", openTimeUTC);
 
     const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000); // 10 λεπτά πριν
+    console.log("Ten Minutes Before", tenMinutesBefore);
     const oneHourBefore = new Date(openTimeUTC.getTime() - 60 * 60 * 1000); // 1 ώρα πριν
-
+    console.log("One Hour Before", tenMinutesBefore);
     if (nowUTC < oneHourBefore || nowUTC > tenMinutesBefore) return { error: true, message: "Δεν μπορείς να δηλώσεις παρών για αυτό το trade αυτήν την ώρα." };
-
+    console.log(nowUTC < oneHourBefore ? "is more than one hour before" : "is NOT more than one hour before");
+    console.log(nowUTC > tenMinutesBefore ? "is less than ten minutes before" : "is NOT kess than ten minutes before");
     if (trade.firstParticipant.user._id.toString() === userId) {
       trade.firstParticipant.status = "aware";
     }
