@@ -27,6 +27,8 @@ const updateAccountsRandomly = async () => {
     // 🔹 Φέρνουμε όλα τα accounts μαζί με τα δεδομένα της εταιρείας τους
     const accounts = await Account.find().populate("company").exec();
 
+    const bulkOperations = [];
+
     for (const account of accounts) {
       // Αν δεν υπάρχει η εταιρεία, παράλειψε το account
       if (!account.company) {
@@ -70,8 +72,27 @@ const updateAccountsRandomly = async () => {
       // 🔹 Υπολογισμός progress
       account.progress = totalAmount > 0 ? Math.floor(((account.balance - finalDrawdownBalance) / totalAmount) * 100) : 0;
 
-      // 🔹 Αποθήκευση αλλαγών
-      await account.save();
+      // 🔹 Δημιουργία του bulk operation για την αποθήκευση του account
+      bulkOperations.push({
+        updateOne: {
+          filter: { _id: account._id },
+          update: {
+            $set: {
+              phase: account.phase,
+              balance: account.balance,
+              status: account.status,
+              isOnBoarding: account.isOnBoarding,
+              needBalanceUpdate: account.needBalanceUpdate,
+              progress: account.progress,
+            },
+          },
+        },
+      });
+    }
+
+    // 🔹 Εκτέλεση όλων των bulk operations
+    if (bulkOperations.length > 0) {
+      await Account.bulkWrite(bulkOperations);
     }
 
     console.log("✅ Όλα τα accounts ενημερώθηκαν επιτυχώς!");
