@@ -99,6 +99,7 @@ const updateAccountsRandomly = async () => {
     return true;
   } catch (error) {
     console.error("❌ Σφάλμα κατά την ενημέρωση των accounts:", error);
+    return false;
   } finally {
     revalidatePath("/", "layout");
   }
