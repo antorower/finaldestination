@@ -422,6 +422,19 @@ const TradeChecked = async ({ tradeId, userId, accountId }) => {
 const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, accountcheck, tradecheck }) => {
   if (mode) return null;
 
+  const now = new Date();
+
+  // Παίρνουμε το UTC timestamp
+  const utcTimestamp = now.getTime();
+
+  // Παίρνουμε το timestamp για την Ελλάδα
+  const greeceTimestamp = new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" });
+  const greeceDate = new Date(greeceTimestamp);
+
+  // Υπολογίζουμε τη διαφορά σε λεπτά
+  const diff = (greeceDate.getTime() - utcTimestamp) / 60000; // Μετατροπή από ms σε λεπτά
+  console.log("Διαφορά Ωρας από Ελλάδα: ", diff);
+
   const text = `Κάθε μέρα από τις ${4 + user.hourOffsetFromGreece}:00 
   έως τις ${10 + user.hourOffsetFromGreece}:00 
   πρέπει να βάλεις τα trades σου ακριβώς την ώρα που γράφει στο κάθε ένα. Μια ώρα με 10 λεπτά πριν την ώρα που πρέπει να ανοίξει το trade πρέπει να πατήσεις Aware και 7 με 10 λεπτά πριν την ώρα που πρέπει να ανοίξει το trade πρέπει να πατήσεις Open Trade και να προετοιμάσεις το trade σου ώστε να ανοίξει ακριβώς την ώρα που γράφει. Μπορείς να αλλάξεις τα trading ωράρια σου από τις ρυθμίσεις. Επίσης στις ρυθμίσεις μπορείς να βάλεις την διαφορά ώρας που έχεις με την Ελλάδα ώστε οι ώρες που θα βλέπεις στην σελίδα να ταιριάζουν με την τοπική σου. Θυμήσου ότι για να πατήσεις Aware θα πρέπει να είσαι σίγουρος ότι μπορείς να κάνεις login στο account σου και το account μπορεί να δεχτεί trades. Αν δεν είσαι σίγουρος για αυτά τα δύο αργά ή γρήγορα θα έρθει η ώρα που θα έχεις 5-6 λεπτά να βάλεις το trade και δεν θα μπορείς να μπεις στο account ή το account δεν θα είναι έτοιμο να δεχτεί trade ενώ εσύ το έχεις τραβήξει. Αυτό σημαίνει ότι θα χρεωθείς το λάθος αυτόματα, από 100$ μέχρι και 1600$ ανάλογα την περίπτωση.`;
