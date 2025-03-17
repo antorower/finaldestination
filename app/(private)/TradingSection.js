@@ -423,17 +423,20 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
   if (mode) return null;
 
   const now = new Date();
+  const openTime = new Date(now);
+  openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
+  openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
   // Παίρνουμε το UTC timestamp
   const utcTimestamp = now.getTime();
-
   // Παίρνουμε το timestamp για την Ελλάδα
-  const greeceTimestamp = new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" });
-  const greeceDate = new Date(greeceTimestamp);
+  const greeceTime = new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" });
+  const greeceDate = new Date(greeceTime);
+  const greeceTimestamp = greeceDate.getTime();
 
-  // Υπολογίζουμε τη διαφορά σε λεπτά
-  const diff = (greeceDate.getTime() - utcTimestamp) / 60000; // Μετατροπή από ms σε λεπτά
-  console.log("Διαφορά Ωρας από Ελλάδα: ", diff);
+  // Υπολογίζουμε το offset της Ελλάδας
+  const greeceOffset = greeceTimestamp - utcTimestamp;
+  console.log("Διαφορά με ώρα Ελλάδας: ", greeceOffset);
 
   const text = `Κάθε μέρα από τις ${4 + user.hourOffsetFromGreece}:00 
   έως τις ${10 + user.hourOffsetFromGreece}:00 
