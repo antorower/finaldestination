@@ -2,7 +2,8 @@ const TradeCard = ({ trade }) => {
   return (
     <div className={`border border-gray-400 p-4 rounded ${trade.priority === "high" && "bg-yellow-50"} ${trade.priority === "medium" && "bg-indigo-50"} ${trade.priority === "low" && "bg-gray-100"}`}>
       <div className="text-center">{convertToGreekTime(trade.openTime)}</div>
-      <div>{trade._id.toString()}</div>
+      <div className="text-center">{trade._id.toString()}</div>
+      <div className="text-center">{trade.status}</div>
       <div className={`grid grid-cols-2`}>
         <div className={`p-4 flex flex-col gap-2`}>
           <div className="text-center">

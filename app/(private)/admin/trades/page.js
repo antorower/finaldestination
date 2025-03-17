@@ -13,7 +13,7 @@ const GetTrades = async () => {
   try {
     await dbConnect();
 
-    return await Trade.find({ status: { $in: ["pending", "accepted", "open", "review"] } }).populate([{ path: "firstParticipant.user" }, { path: "firstParticipant.account", populate: { path: "company" } }, { path: "secondParticipant.user" }, { path: "secondParticipant.account", populate: { path: "company" } }]);
+    return await Trade.find().populate([{ path: "firstParticipant.user" }, { path: "firstParticipant.account", populate: { path: "company" } }, { path: "secondParticipant.user" }, { path: "secondParticipant.account", populate: { path: "company" } }]);
   } catch (error) {
     console.log("Υπήρξε error στην GetTrades στο /trades", error);
     return null; // Επιστρέφουμε `null` αντί για `false`

@@ -419,8 +419,8 @@ const TradeChecked = async ({ tradeId, userId, accountId }) => {
 const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, accountcheck, tradecheck }) => {
   if (mode) return null;
 
-  const text = `Κάθε μέρα από τις ${user.tradingHours.startingTradingHour + user.hourOffsetFromGreece}:00 
-  έως τις ${user.tradingHours.endingTradingHour + user.hourOffsetFromGreece}:00 
+  const text = `Κάθε μέρα από τις ${4 + user.hourOffsetFromGreece}:00 
+  έως τις ${10 + user.hourOffsetFromGreece}:00 
   πρέπει να βάλεις τα trades σου ακριβώς την ώρα που γράφει στο κάθε ένα. Μια ώρα με 10 λεπτά πριν την ώρα που πρέπει να ανοίξει το trade πρέπει να πατήσεις Aware και 7 με 10 λεπτά πριν την ώρα που πρέπει να ανοίξει το trade πρέπει να πατήσεις Open Trade και να προετοιμάσεις το trade σου ώστε να ανοίξει ακριβώς την ώρα που γράφει. Μπορείς να αλλάξεις τα trading ωράρια σου από τις ρυθμίσεις. Επίσης στις ρυθμίσεις μπορείς να βάλεις την διαφορά ώρας που έχεις με την Ελλάδα ώστε οι ώρες που θα βλέπεις στην σελίδα να ταιριάζουν με την τοπική σου. Θυμήσου ότι για να πατήσεις Aware θα πρέπει να είσαι σίγουρος ότι μπορείς να κάνεις login στο account σου και το account μπορεί να δεχτεί trades. Αν δεν είσαι σίγουρος για αυτά τα δύο αργά ή γρήγορα θα έρθει η ώρα που θα έχεις 5-6 λεπτά να βάλεις το trade και δεν θα μπορείς να μπεις στο account ή το account δεν θα είναι έτοιμο να δεχτεί trade ενώ εσύ το έχεις τραβήξει. Αυτό σημαίνει ότι θα χρεωθείς το λάθος αυτόματα, από 100$ μέχρι και 1600$ ανάλογα την περίπτωση.`;
 
   if (GreeceTime >= settings.tradingHours.startingHour - 1 && GreeceTime < settings.tradingHours.endingHour) {
@@ -442,21 +442,30 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
             forOpening.length > 0 &&
             forOpening.map((trade) => {
               // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
+              console.log("---------------------------------------------------");
               const greeceDateObject = new Date(trade.openTime);
+              console.log("Βάση δεδομένων: ", greeceDateObject);
               // Δημιουργούμε το τελικό Date object με το σωστό offset
               greeceDateObject.setHours(greeceDateObject.getHours() + user.hourOffsetFromGreece);
-              const formattedDate = greeceDateObject.toLocaleDateString("el-GR", {
+              const formattedDate = new Intl.DateTimeFormat("el-GR", {
                 weekday: "long",
                 day: "2-digit",
                 month: "long",
                 year: "numeric",
-              });
-              const formattedTime = greeceDateObject.toLocaleTimeString("el-GR", {
+                timeZone: "Europe/Athens", // Ορίζει ρητά τη σωστή ζώνη ώρας
+              }).format(greeceDateObject);
+
+              const formattedTime = new Intl.DateTimeFormat("el-GR", {
                 hour: "2-digit",
                 minute: "2-digit",
                 hour12: false,
-              });
+                timeZone: "Europe/Athens", // Ορίζει ρητά τη σωστή ζώνη ώρας
+              }).format(greeceDateObject);
 
+              console.log("Formated Greece Date: ", formattedDate);
+              console.log("Formated Greece Time: ", formattedTime);
+
+              console.log("---------------------------------------------------");
               let tradeUser;
               if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
               if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
