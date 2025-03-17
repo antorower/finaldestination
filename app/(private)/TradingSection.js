@@ -435,8 +435,17 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
   const greeceTimestamp = greeceDate.getTime();
 
   // Υπολογίζουμε το offset της Ελλάδας
-  const greeceOffset = greeceTimestamp - utcTimestamp;
-  console.log("Διαφορά με ώρα Ελλάδας: ", greeceOffset);
+  const greeceOffset = Math.ceil((greeceTimestamp - utcTimestamp) / 60000);
+  console.log("Διαφορά με ώρα Ελλάδας:", greeceOffset);
+
+  console.log("Open Time", openTime);
+  // Μετατροπή του `openTime` στην ώρα Ελλάδας
+  openTime.setUTCMinutes(openTime.getUTCMinutes() - greeceOffset);
+  console.log("Open Time Ωρα Ελλάδας", openTime);
+
+  // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
+  openTime.setUTCMinutes(openTime.getUTCMinutes() + 65);
+  console.log("Open Time +65", openTime);
 
   const text = `Κάθε μέρα από τις ${4 + user.hourOffsetFromGreece}:00 
   έως τις ${10 + user.hourOffsetFromGreece}:00 

@@ -259,7 +259,7 @@ export async function GET() {
       const greeceTimestamp = greeceDate.getTime();
 
       // Υπολογίζουμε το offset της Ελλάδας
-      const greeceOffset = greeceTimestamp - utcTimestamp;
+      const greeceOffset = Math.ceil((greeceTimestamp - utcTimestamp) / 60000);
 
       // Μετατροπή του `openTime` στην ώρα Ελλάδας
       openTime.setUTCMinutes(openTime.getUTCMinutes() - greeceOffset);
