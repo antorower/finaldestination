@@ -9,6 +9,7 @@ import dbConnect from "@/dbConnect";
 import { revalidatePath } from "next/cache";
 import Settings from "@/models/Settings";
 import { AddActivity } from "@/library/AddActivity";
+import { ConvertToUserTime } from "@/library/Hours";
 
 const BeAwareOfTrade = async ({ tradeId, userId, accountId }) => {
   "use server";
@@ -469,31 +470,8 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
           {forOpening &&
             forOpening.length > 0 &&
             forOpening.map((trade) => {
-              // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
-              console.log("---------------------------------------------------");
-              const greeceDateObject = new Date(trade.openTime);
-              console.log("Βάση δεδομένων: ", greeceDateObject);
-              // Δημιουργούμε το τελικό Date object με το σωστό offset
-              greeceDateObject.setHours(greeceDateObject.getHours() + user.hourOffsetFromGreece);
-              const formattedDate = new Intl.DateTimeFormat("el-GR", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-                timeZone: "Europe/Athens", // Ορίζει ρητά τη σωστή ζώνη ώρας
-              }).format(greeceDateObject);
+              const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece);
 
-              const formattedTime = new Intl.DateTimeFormat("el-GR", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-                timeZone: "Europe/Athens", // Ορίζει ρητά τη σωστή ζώνη ώρας
-              }).format(greeceDateObject);
-
-              console.log("Formated Greece Date: ", formattedDate);
-              console.log("Formated Greece Time: ", formattedTime);
-
-              console.log("---------------------------------------------------");
               let tradeUser;
               if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
               if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
@@ -507,8 +485,8 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
                   account={tradeUser.account.number}
                   accountId={tradeUser.account._id.toString()}
                   priority={tradeUser.priority}
-                  openDate={formattedDate}
-                  openTime={formattedTime}
+                  openDate={timeObject.date}
+                  openTime={timeObject.time}
                   status={tradeUser.status}
                   checked={tradeUser.checked}
                   accountCheck={accountcheck === "true" ? true : false}
@@ -529,3 +507,24 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
 };
 
 export default TradingSection;
+
+const convertToUserTime = (utcDateString, minutesToAdd) => {
+  const utcDate = new Date(utcDateString);
+
+  // Προσθήκη των λεπτών
+  utcDate.setMinutes(utcDate.getMinutes() + minutesToAdd);
+
+  // Μετατροπή στη ζώνη ώρας Ελλάδας (Europe/Athens, UTC+2 ή UTC+3)
+  const options = {
+    timeZone: "Europe/Athens",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+
+  return new Intl.DateTimeFormat("el-GR", options).format(utcDate);
+};

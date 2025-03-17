@@ -7,6 +7,7 @@ import Settings from "@/models/Settings";
 import TradeItem from "./TradeItem";
 import Explanation from "@/components/Explanation";
 import Link from "next/link";
+import { ConvertToUserTime } from "@/library/Hours";
 
 const ChangeTradeStatus = async ({ tradeId, userId, status, accountId, priority }) => {
   "use server";
@@ -100,27 +101,12 @@ const SchedulingSection = ({ GreeceTime, settings, user, tradeSuggestions, mode 
           {tradeSuggestions &&
             tradeSuggestions.length > 0 &&
             tradeSuggestions.map((trade) => {
-              // Μετατροπή ξανά σε Date object για να προσθέσουμε το hourOffsetFromGreece
-              const greeceDateObject = new Date(trade.openTime);
-              // Δημιουργούμε το τελικό Date object με το σωστό offset
-              greeceDateObject.setHours(greeceDateObject.getHours() + user.hourOffsetFromGreece);
-              const formattedDate = greeceDateObject.toLocaleDateString("el-GR", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              });
-              const formattedTime = greeceDateObject.toLocaleTimeString("el-GR", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              });
+              const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece);
 
               let tradeUser;
-
               if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
               if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
-              return <TradeItem ChangeTradeStatus={ChangeTradeStatus} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} priority={tradeUser.priority} openDate={formattedDate} openTime={formattedTime} status={tradeUser.status} />;
+              return <TradeItem ChangeTradeStatus={ChangeTradeStatus} tradeId={trade._id.toString()} userId={tradeUser.user._id.toString()} key={`trade-${trade._id.toString()}`} account={tradeUser.account.number} priority={tradeUser.priority} openDate={timeObject.date} openTime={timeObject.time} status={tradeUser.status} />;
             })}
           {(!tradeSuggestions || tradeSuggestions.length === 0) && <div className="animate-pulse text-gray-500">Δεν υπάρχουν trades για εσένα για αύριο</div>}
         </div>
