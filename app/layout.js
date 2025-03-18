@@ -22,11 +22,15 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
+  const isTest = process.env.TEST === "is_test";
   return (
     <html lang="en">
       <ClerkProvider>
         <body className={`${roboto.variable} font-roboto antialiased bg-gray-950 text-black`}>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            {isTest && <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-9xl font-bold text-black opacity-10 pointer-events-none select-none z-50">Test Page</div>}
+            {children}
+          </ToastProvider>
           <ToastContainer position="bottom-right" autoClose={8000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable={false} pauseOnHover theme="dark" />
         </body>
       </ClerkProvider>
