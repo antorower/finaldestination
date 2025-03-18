@@ -4,6 +4,7 @@ import Settings from "@/models/Settings";
 import Account from "@/models/Account";
 import Trade from "@/models/Trade";
 import { revalidatePath } from "next/cache";
+import Invoice from "@/models/Invoice";
 
 export async function GET() {
   await dbConnect();
