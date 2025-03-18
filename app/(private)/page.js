@@ -222,6 +222,24 @@ export default async function Home({ searchParams }) {
   // Εταιρίες που έχει ενεργές ο χρήστης
   const simpleCompanies = user.companies.length > 0 ? user.companies.map((company) => ({ _id: company._id.toString(), name: company.name })) : [];
 
+  const getCurrentDayName = (offset = 0) => {
+    const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const today = new Date();
+    today.setHours(GreeceTime, 0, 0, 0); // Ρυθμίζουμε την ώρα Ελλάδας για ακρίβεια
+    return days[(today.getDay() + offset) % 7];
+  };
+
+  const currentPhase = () => {
+    if (GreeceTime >= settings.tradingHours.startingHour && GreeceTime < settings.tradingHours.endingHour) return "trading";
+    if (GreeceTime >= settings.updateBalanceHours.startingHour && GreeceTime < settings.updateBalanceHours.endingHour) return "updateBalance";
+    if (GreeceTime >= settings.acceptTradesHours.startingHour && GreeceTime < settings.acceptTradesHours.endingHour) return "acceptTrades";
+    if (GreeceTime >= settings.seeScheduleHours.startingHour && GreeceTime < settings.seeScheduleHours.endingHour) return "seeSchedule";
+    return "outside";
+  };
+
+  const activeDay = currentPhase() === "trading" || currentPhase() === "updateBalance" ? getCurrentDayName() : getCurrentDayName(1);
+  const note = settings[activeDay]?.note || "Δεν υπάρχει ώρα κλεισίματος";
+
   return (
     <PageTransition>
       <div className="flex flex-col gap-4 pb-4">
@@ -232,6 +250,12 @@ export default async function Home({ searchParams }) {
         <LeaderFamilyBar leader={user.leader ? `${user.leader?.firstName.slice(0, 1)}. ${user.leader?.lastName}` : null} family={user.family ? `${user.family?.firstName.slice(0, 1)}. ${user.family?.lastName}` : null} />
         <FinanceBar user={user} />
         <ScheduleBar GreeceTime={GreeceTime} user={user} settings={settings} />
+
+        <div className="text-center bg-indigo-700 text-white animate-pulse p-4 text-2xl font-bold rounded">{note}</div>
+        <div className="bg-gray-100 p-4 rounded text-center">Σημείωση: Η παραπάνω ώρα κλεισίματος αφορά πάντα το επόμενο κλείσιμο που έχουμε να κάνουμε. Αυτό σημαίνει ότι πριν τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την τρέχουσα ημέρα, μετά τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την επόμενη ημέρα.</div>
+        <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
+          ΔΕΝ κλείνουμε 10 λεπτά νωρίτερα, ΔΕΝ κλείνουμε 10 λεπτά αργότερα. ΔΕΝ κλείνουμε όταν μπορέσουμε. ΔΕΝ κλείνουμε αμέσως μόλις βγούμε διάλλειμα από την δουλειά. ΔΕΝ κάνουμε του κεφαλιού μας και μετά λέμε την δικαιολογία μας. ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ΕΝΔΙΑΦΕΡΕΙ είναι να μην πετάξουμε τα λεφτά μας!! Ξαναγράφω: ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ενδιαφέρει είναι να μην πετάξουμε τα λεφτά μας!!
+        </div>
 
         <div className="grid grid-cols-12 gap-4">
           <MiniMenu userid={userid} />
@@ -267,7 +291,6 @@ export default async function Home({ searchParams }) {
         </div>
 
         <StatsComponent user={user} />
-
         {isOwner && (
           <div className="fixed bottom-5 right-5">
             <AddAccountLink userid={userid} />
