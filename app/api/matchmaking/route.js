@@ -353,17 +353,21 @@ export async function GET() {
       openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
       openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
+      // Παίρνουμε το UTC timestamp
+      const utcTimestamp = now.getTime();
+      // Παίρνουμε το timestamp για την Ελλάδα
+      const greeceTime = new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" });
+      const greeceDate = new Date(greeceTime);
+      const greeceTimestamp = greeceDate.getTime();
+
       // Υπολογίζουμε το offset της Ελλάδας
-      const greeceOffset = now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
+      const greeceOffset = Math.ceil((greeceTimestamp - utcTimestamp) / 60000);
 
       // Μετατροπή του `openTime` στην ώρα Ελλάδας
-      openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
+      openTime.setUTCMinutes(openTime.getUTCMinutes() - greeceOffset);
 
       // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
       openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
-
-      //console.log(openTime.toISOString());
-
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
       if (newTrade.firstParticipant.priority === "low" && newTrade.secondParticipant.priority === "low") newTrade.priority = "low";
       if (newTrade.firstParticipant.priority !== newTrade.secondParticipant.priority) newTrade.priority = "medium";
@@ -452,16 +456,21 @@ export async function GET() {
       openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
       openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
+      // Παίρνουμε το UTC timestamp
+      const utcTimestamp = now.getTime();
+      // Παίρνουμε το timestamp για την Ελλάδα
+      const greeceTime = new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" });
+      const greeceDate = new Date(greeceTime);
+      const greeceTimestamp = greeceDate.getTime();
+
       // Υπολογίζουμε το offset της Ελλάδας
-      const greeceOffset = now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
+      const greeceOffset = Math.ceil((greeceTimestamp - utcTimestamp) / 60000);
 
       // Μετατροπή του `openTime` στην ώρα Ελλάδας
-      openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
+      openTime.setUTCMinutes(openTime.getUTCMinutes() - greeceOffset);
 
       // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
       openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
-
-      //console.log(openTime.toISOString());
 
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
       if (newTrade.firstParticipant.priority === "low" && newTrade.secondParticipant.priority === "low") newTrade.priority = "low";
@@ -552,16 +561,21 @@ export async function GET() {
       openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
       openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
 
+      // Παίρνουμε το UTC timestamp
+      const utcTimestamp = now.getTime();
+      // Παίρνουμε το timestamp για την Ελλάδα
+      const greeceTime = new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" });
+      const greeceDate = new Date(greeceTime);
+      const greeceTimestamp = greeceDate.getTime();
+
       // Υπολογίζουμε το offset της Ελλάδας
-      const greeceOffset = now.getTimezoneOffset(); // Σε λεπτά (120 για UTC+2, 180 για UTC+3)
+      const greeceOffset = Math.ceil((greeceTimestamp - utcTimestamp) / 60000);
 
       // Μετατροπή του `openTime` στην ώρα Ελλάδας
-      openTime.setUTCMinutes(openTime.getUTCMinutes() + greeceOffset);
+      openTime.setUTCMinutes(openTime.getUTCMinutes() - greeceOffset);
 
       // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
       openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
-
-      //console.log(openTime.toISOString());
 
       if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
       if (newTrade.firstParticipant.priority === "low" && newTrade.secondParticipant.priority === "low") newTrade.priority = "low";
