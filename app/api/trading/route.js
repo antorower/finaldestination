@@ -91,7 +91,7 @@ export async function GET() {
         forgetedTrades[participant.user._id].toOpen = (forgetedTrades[participant.user._id].toOpen || 0) + 1;
       }
 
-      if (!participant.checked) {
+      if (!participant.checked && participant.status === "open") {
         profitAmount = -15;
         title = "Δεν Έγινε Έλεγχος";
         description = `Ο χρήστης δεν έκανε έλεγχο αφού έβαλε το trade. Ποινή 15$.`;

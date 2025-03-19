@@ -280,6 +280,9 @@ const UserSchema = new mongoose.Schema({
       ref: "Company",
     },
   ],
+
+  kycCompanies: [String],
+  reviewCompanies: [String],
 });
 
 UserSchema.methods.updateSalary = async function (amount) {
