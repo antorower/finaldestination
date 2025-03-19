@@ -43,15 +43,12 @@ export async function GET() {
 
   // --------------------------------------------------------------------------------------------------------
 
-  const now = new Date();
+  /*const now = new Date();
   const todayStart = new Date(now.setUTCHours(0, 0, 0, 0));
   const todayEnd = new Date(todayStart);
-  todayEnd.setUTCDate(todayStart.getUTCDate() + 1);
+  todayEnd.setUTCDate(todayStart.getUTCDate() + 1);*/
 
-  const trades = await Trade.find({
-    status: "open",
-    openTime: { $gte: todayStart, $lt: todayEnd },
-  }).populate([
+  const trades = await Trade.find({ status: "open" }).populate([
     { path: "firstParticipant.user", select: "_id leader" },
     { path: "secondParticipant.user", select: "_id leader" },
   ]);

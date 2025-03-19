@@ -67,6 +67,37 @@ const GetUserTeamAccounts = async (userId) => {
   }
 };
 
+const summarizeAccountsByCompany = (accounts) => {
+  const summary = {};
+
+  accounts.forEach((account) => {
+    const companyName = account.company.name;
+
+    if (!summary[companyName]) {
+      summary[companyName] = {
+        companyName,
+        phase1Accounts: 0,
+        phase2Accounts: 0,
+        phase3Accounts: 0,
+        value: 0,
+      };
+    }
+
+    if (account.phase === 1) {
+      summary[companyName].phase1Accounts += 1;
+      summary[companyName].value += 1;
+    } else if (account.phase === 2) {
+      summary[companyName].phase2Accounts += 1;
+      summary[companyName].value += 1.81;
+    } else if (account.phase === 3) {
+      summary[companyName].phase3Accounts += 1;
+      summary[companyName].value += 2.75;
+    }
+  });
+
+  return Object.values(summary);
+};
+
 const Accounts = async () => {
   const { sessionClaims } = await auth();
   const { isOwner, mongoId } = sessionClaims.metadata;
@@ -74,6 +105,8 @@ const Accounts = async () => {
   // Αν είναι owner, επιστρέφει όλα τα accounts, αλλιώς μόνο τα accounts των users από το `team` του
   const accounts = isOwner ? await GetAllAccounts() : await GetUserTeamAccounts(mongoId);
   if (!accounts || accounts.length === 0) return <div className="text-center text-gray-500 animate-pulse">Δεν υπάρχουν accounts</div>;
+
+  const companySummaries = summarizeAccountsByCompany(accounts);
 
   return (
     <div className="flex flex-col justify-center gap-4">
@@ -96,6 +129,25 @@ const Accounts = async () => {
         </div>
         <InfoButton message="Τα μπλε accounts είναι φάση 1, τα violet φάση 2 και τα πορτοκαλί φάση 3. Αυτά που είναι με πράσινο πλαίσιο χρειάζονται ενημέρωση balance. Η κουκίδα αριστερά από το account number προσδιορίζει αν είναι active για trading ή όχι." />
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {companySummaries.map((summary) => (
+          <div key={summary.companyName} className="flex flex-col gap-4 border border-gray-300 rounded p-4">
+            <div className="text-xl font-bold">{summary.companyName}</div>
+            <div>
+              <span className="font-medium">Phase 1 Accounts:</span> {summary.phase1Accounts}
+            </div>
+            <div>
+              <span className="font-medium">Phase 2 Accounts:</span> {summary.phase2Accounts}
+            </div>
+            <div>
+              <span className="font-medium">Phase 3 Accounts:</span> {summary.phase3Accounts}
+            </div>
+            <div className="font-semibold">Total Value: {summary.value.toFixed(0)}</div>
+          </div>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {accounts.map((account) => {
           if (account.phase !== 1) return null;

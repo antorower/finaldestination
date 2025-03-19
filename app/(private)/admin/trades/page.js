@@ -2,7 +2,8 @@ export const dynamic = "force-dynamic";
 import PageTransition from "@/components/PageTransition";
 import dbConnect from "@/dbConnect";
 import Trade from "@/models/Trade";
-import TradeCard from "./TradeCard";
+import AcceptedCard from "./AcceptedCard";
+import ReviewCard from "./ReviewCard";
 
 import Account from "@/models/Account";
 import RandomizeAccounts from "./RandomizeAccountsButton";
@@ -13,10 +14,10 @@ const GetTrades = async () => {
   try {
     await dbConnect();
 
-    return await Trade.find().populate([{ path: "firstParticipant.user" }, { path: "firstParticipant.account", populate: { path: "company" } }, { path: "secondParticipant.user" }, { path: "secondParticipant.account", populate: { path: "company" } }]);
+    return await Trade.find({ status: { $ne: "completed" } }).populate([{ path: "firstParticipant.user" }, { path: "firstParticipant.account", populate: { path: "company" } }, { path: "secondParticipant.user" }, { path: "secondParticipant.account", populate: { path: "company" } }]);
   } catch (error) {
-    console.log("Υπήρξε error στην GetTrades στο /trades", error);
-    return null; // Επιστρέφουμε `null` αντί για `false`
+    console.log("Υπήρξε error στην GetTrades στο /trades: ", error);
+    return null;
   }
 };
 
@@ -107,19 +108,59 @@ const updateAccountsRandomly = async () => {
 
 const Trades = async () => {
   const trades = await GetTrades();
+
+  const pendingTrades = trades.filter((trade) => trade.status === "pending").sort((a, b) => new Date(a.openTrade) - new Date(b.openTrade));
+  const acceptedTrades = trades.filter((trade) => trade.status === "accepted").sort((a, b) => new Date(a.openTrade) - new Date(b.openTrade));
+  const openTrades = trades.filter((trade) => trade.status === "open").sort((a, b) => new Date(a.openTrade) - new Date(b.openTrade));
+  const reviewTrades = trades.filter((trade) => trade.status === "review").sort((a, b) => new Date(a.openTrade) - new Date(b.openTrade));
+
   return (
     <PageTransition>
       <div className="flex flex-col gap-4 pb-4">
-        <div className="flex justify-center items-center text-white font-bold bg-blue-500 p-2 rounded text-2xl">Trades</div>
-        <RandomizeAccounts Randomize={updateAccountsRandomly} />
-        <div className="flex flex-col gap-8">
-          {trades.map((trade) => {
-            return <TradeCard trade={trade} key={`trade-${trade._id.toString()}`} />;
-          })}
-        </div>
+        {pendingTrades && pendingTrades.length > 0 && (
+          <div className="flex flex-col gap-8">
+            <div className="sticky top-0 z-10 flex justify-center items-center text-white font-bold bg-blue-500 p-2 rounded text-2xl">Pending</div>
+            {pendingTrades.map((trade) => (
+              <AcceptedCard trade={trade} key={`trade-${trade._id.toString()}`} />
+            ))}
+          </div>
+        )}
+
+        {acceptedTrades && acceptedTrades.length > 0 && (
+          <div className="flex flex-col gap-4">
+            <div className="sticky top-0 z-10 flex justify-center items-center text-white font-bold bg-blue-500 p-2 rounded text-2xl">Accepted</div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {acceptedTrades.map((trade) => (
+                <AcceptedCard trade={trade} key={`trade-${trade._id.toString()}`} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {openTrades && openTrades.length > 0 && (
+          <div className="flex flex-col gap-8">
+            <div className="sticky top-0 z-10 flex justify-center items-center text-white font-bold bg-blue-500 p-2 rounded text-2xl">Open</div>
+            {openTrades.map((trade) => (
+              <AcceptedCard trade={trade} key={`trade-${trade._id.toString()}`} />
+            ))}
+          </div>
+        )}
+
+        {reviewTrades && reviewTrades.length > 0 && (
+          <div className="flex flex-col gap-4">
+            <div className="sticky top-0 z-10 flex justify-center items-center text-white font-bold bg-blue-500 p-2 rounded text-2xl">Review</div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {reviewTrades.map((trade) => (
+                <ReviewCard trade={trade} key={`trade-${trade._id.toString()}`} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </PageTransition>
   );
 };
 
 export default Trades;
+
+<RandomizeAccounts Randomize={updateAccountsRandomly} />;
