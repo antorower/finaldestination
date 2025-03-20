@@ -34,6 +34,7 @@ const AccountCard = ({ account }) => {
     <Link href={`/account/${account._id.toString()}`} className={`border ${borderColor} rounded p-4 w-full max-w-[250px] ${lightColor} flex flex-col gap-4`}>
       <div className="grid grid-cols-6">
         <div className="col-span-5">
+          <div className={`${textColor} font-semibold text-lg`}>{account.company.name}</div>
           <div className={`text-lg font-bold ${textColor}`}>{account.number || "Εκκρεμεί"}</div>
           <div className={`${textColor} font-semibold text-sm`}>
             {new Intl.NumberFormat("en-US", {

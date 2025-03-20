@@ -35,11 +35,20 @@ import StatsComponent from "./StatsComponent";
 const GetUser = async (id) => {
   await dbConnect();
   try {
-    return await User.findById(id).populate("companies").populate("accounts").populate("leader").populate("family").populate("team").populate({
-      path: "beneficiaries.user",
-      model: "User",
-      select: "firstName lastName bybitEmail", // Επιλέξτε τα πεδία που θέλετε να συμπεριλάβετε
-    });
+    return await User.findById(id)
+      .populate("companies")
+      .populate({
+        path: "accounts",
+        populate: { path: "company" },
+      })
+      .populate("leader")
+      .populate("family")
+      .populate("team")
+      .populate({
+        path: "beneficiaries.user",
+        model: "User",
+        select: "firstName lastName bybitEmail", // Επιλέξτε τα πεδία που θέλετε να συμπεριλάβετε
+      });
   } catch (error) {
     console.log("Υπήρξε error στην GetUser στο root:", error);
     return false;
