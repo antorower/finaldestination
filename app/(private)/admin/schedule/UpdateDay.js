@@ -122,7 +122,7 @@ const UpdateDay = ({ day, pairs, dayNote, closeHour, closeMinutes, stringDate })
           <UpdateDayHours day={day} dayNote={dayNote} UpdateHours={UpdateHours} />
         </div>
         <div className="flex justify-center">
-          <UpdateCloseHour day={day} hour={closeHour} minutes={closeMinutes} UpdateDayCloseHour={UpdateDayCloseHour} />
+          <UpdateCloseHour day={day} closeHour={closeHour} closeMinutes={closeMinutes} UpdateDayCloseHour={UpdateDayCloseHour} />
         </div>
       </div>
     </div>

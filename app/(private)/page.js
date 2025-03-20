@@ -260,7 +260,12 @@ export default async function Home({ searchParams }) {
         <FinanceBar user={user} />
         <ScheduleBar GreeceTime={GreeceTime} user={user} settings={settings} />
 
-        <div className="text-center bg-indigo-700 text-white animate-pulse p-4 text-2xl font-bold rounded">{note}</div>
+        {settings[activeDay]?.closeHour?.hour && settings[activeDay]?.closeHour?.minutes && (
+          <div className="text-center bg-indigo-700 text-white animate-pulse p-4 text-2xl font-bold rounded">
+            Κλείνουμε {settings[activeDay].closeHour.hour + user.hourOffsetFromGreece}:{settings[activeDay].closeHour.minutes}
+          </div>
+        )}
+
         <div className="bg-gray-100 p-4 rounded text-center">Σημείωση: Η παραπάνω ώρα κλεισίματος αφορά πάντα το επόμενο κλείσιμο που έχουμε να κάνουμε. Αυτό σημαίνει ότι πριν τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την τρέχουσα ημέρα, μετά τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την επόμενη ημέρα.</div>
         <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
           ΔΕΝ κλείνουμε 10 λεπτά νωρίτερα, ΔΕΝ κλείνουμε 10 λεπτά αργότερα. ΔΕΝ κλείνουμε όταν μπορέσουμε. ΔΕΝ κλείνουμε αμέσως μόλις βγούμε διάλλειμα από την δουλειά. ΔΕΝ κάνουμε του κεφαλιού μας και μετά λέμε την δικαιολογία μας. ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ΕΝΔΙΑΦΕΡΕΙ είναι να μην πετάξουμε τα λεφτά μας!! Ξαναγράφω: ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ενδιαφέρει είναι να μην πετάξουμε τα λεφτά μας!!

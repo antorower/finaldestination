@@ -140,15 +140,15 @@ const Schedule = async ({ searchParams }) => {
       <div className="flex flex-col gap-4 w-full">
         <ResetScheduleButton ResetSchedule={ResetSchedule} />
         <Day startingDate={settings.monday.hours.min} endingDate={settings.monday.hours.max} data={settings.monday} text="Δευτέρα" day="monday" />
-        {day === "monday" && <UpdateDay dayNote={settings[day].note} stringDate={settings[day].stringDate} string pairs={pairs} day={day} />}
+        {day === "monday" && <UpdateDay dayNote={settings[day].note} closeHour={settings[day]?.closeHour?.hour} closeMinutes={settings[day].closeHour.minutes} stringDate={settings[day].stringDate} string pairs={pairs} day={day} />}
         <Day startingDate={settings.tuesday.hours.min} endingDate={settings.tuesday.hours.max} data={settings.tuesday} text="Τρίτη" day="tuesday" />
-        {day === "tuesday" && <UpdateDay dayNote={settings[day].note} stringDate={settings[day].stringDate} pairs={pairs} day={day} />}
+        {day === "tuesday" && <UpdateDay dayNote={settings[day].note} closeHour={settings[day]?.closeHour?.hour} closeMinutes={settings[day].closeHour.minutes} stringDate={settings[day].stringDate} pairs={pairs} day={day} />}
         <Day startingDate={settings.wednesday.hours.min} endingDate={settings.wednesday.hours.max} data={settings.wednesday} text="Τετάρτη" day="wednesday" />
-        {day === "wednesday" && <UpdateDay dayNote={settings[day].note} stringDate={settings[day].stringDate} pairs={pairs} day={day} />}
+        {day === "wednesday" && <UpdateDay dayNote={settings[day].note} closeHour={settings[day]?.closeHour?.hour} closeMinutes={settings[day].closeHour.minutes} stringDate={settings[day].stringDate} pairs={pairs} day={day} />}
         <Day startingDate={settings.thursday.hours.min} endingDate={settings.thursday.hours.max} data={settings.thursday} text="Πέμπτη" day="thursday" />
-        {day === "thursday" && <UpdateDay dayNote={settings[day].note} stringDate={settings[day].stringDate} pairs={pairs} day={day} />}
+        {day === "thursday" && <UpdateDay dayNote={settings[day].note} closeHour={settings[day]?.closeHour?.hour} closeMinutes={settings[day].closeHour.minutes} stringDate={settings[day].stringDate} pairs={pairs} day={day} />}
         <Day startingDate={settings.friday.hours.min} endingDate={settings.friday.hours.max} data={settings.friday} text="Παρασκευή" day="friday" />
-        {day === "friday" && <UpdateDay dayNote={settings[day].note} stringDate={settings[day].stringDate} pairs={pairs} day={day} />}
+        {day === "friday" && <UpdateDay dayNote={settings[day].note} closeHour={settings[day]?.closeHour?.hour} closeMinutes={settings[day].closeHour.minutes} stringDate={settings[day].stringDate} pairs={pairs} day={day} />}
       </div>
     </PageTransition>
   );
