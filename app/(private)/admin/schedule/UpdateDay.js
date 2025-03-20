@@ -5,6 +5,7 @@ import Settings from "@/models/Settings";
 import UpdateDayStringDate from "./UpdateDayStringDate";
 import UpdateDayNote from "./UpdateDayNote";
 import UpdateDayHours from "./UpdateDayHours";
+import UpdateCloseHour from "./UpdateCloseHour";
 
 const AddPairToDay = async ({ day, pairId }) => {
   "use server";
@@ -80,7 +81,26 @@ const UpdateHours = async ({ day, startingHour, endingHour }) => {
   }
 };
 
-const UpdateDay = ({ day, pairs, dayNote, stringDate }) => {
+const UpdateDayCloseHour = async ({ day, closeHour, closeMinutes }) => {
+  "use server";
+  try {
+    console.log("aaaaaaaa");
+    await dbConnect();
+    const settings = await Settings.findOne();
+    if (!settings) {
+      return { error: true, message: "Δεν βρέθηκαν settings" };
+    }
+    await settings.setCloseHour(day, closeHour, closeMinutes);
+    return { error: false };
+  } catch (error) {
+    console.log("Error στο UpdateDayHours στο /admin/UpdateDay", error);
+    return { error: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
+const UpdateDay = ({ day, pairs, dayNote, closeHour, closeMinutes, stringDate }) => {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap gap-4 justify-center">
@@ -100,6 +120,9 @@ const UpdateDay = ({ day, pairs, dayNote, stringDate }) => {
         </div>
         <div className="flex justify-center">
           <UpdateDayHours day={day} dayNote={dayNote} UpdateHours={UpdateHours} />
+        </div>
+        <div className="flex justify-center">
+          <UpdateCloseHour day={day} hour={closeHour} minutes={closeMinutes} UpdateDayCloseHour={UpdateDayCloseHour} />
         </div>
       </div>
     </div>

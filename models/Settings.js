@@ -12,6 +12,10 @@ const SettingsSchema = new mongoose.Schema(
         max: Date,
       },
       note: { type: String, default: "" },
+      closeHour: {
+        hour: Number,
+        minutes: Number,
+      },
       active: {
         type: Boolean,
         default: false,
@@ -25,6 +29,10 @@ const SettingsSchema = new mongoose.Schema(
         max: { type: Date, default: null },
       },
       note: { type: String, default: "" },
+      closeHour: {
+        hour: Number,
+        minutes: Number,
+      },
       active: {
         type: Boolean,
         default: false,
@@ -38,6 +46,10 @@ const SettingsSchema = new mongoose.Schema(
         max: { type: Date, default: null },
       },
       note: { type: String, default: "" },
+      closeHour: {
+        hour: Number,
+        minutes: Number,
+      },
       active: {
         type: Boolean,
         default: false,
@@ -51,6 +63,10 @@ const SettingsSchema = new mongoose.Schema(
         max: { type: Date, default: null },
       },
       note: { type: String, default: "" },
+      closeHour: {
+        hour: Number,
+        minutes: Number,
+      },
       active: {
         type: Boolean,
         default: false,
@@ -64,6 +80,10 @@ const SettingsSchema = new mongoose.Schema(
         max: { type: Date, default: null },
       },
       note: { type: String, default: "" },
+      closeHour: {
+        hour: Number,
+        minutes: Number,
+      },
       active: {
         type: Boolean,
         default: false,
@@ -197,6 +217,23 @@ SettingsSchema.methods.setDayHours = async function (day, startingHour, endingHo
   this[day].hours.min = minDate;
   this[day].hours.max = maxDate;
   this[day].stringDate = `${["Κυριακή", "Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή", "Σάββατο"][targetDate.getDay()]}, ${targetDate.getDate()}/${targetDate.getMonth() + 1}/${targetDate.getFullYear()}`;
+  await this.save();
+};
+
+SettingsSchema.methods.setCloseHour = async function (day, closeHour, closeMinutes) {
+  console.log(day);
+  console.log(closeHour);
+  console.log(closeMinutes);
+  if (!this[day]) throw new Error("Invalid day provided");
+
+  // Αρχικοποίηση αν δεν υπάρχει ήδη
+  if (!this[day].closeHour) {
+    this[day].closeHour = { hour: 0, minutes: 0 };
+  }
+
+  this[day].closeHour.hour = closeHour;
+  this[day].closeHour.minutes = closeMinutes;
+  console.log(this[day]);
   await this.save();
 };
 
