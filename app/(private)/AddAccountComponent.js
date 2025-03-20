@@ -13,7 +13,6 @@ const CreateNewAccount = async ({ id, company, capital, phase, balance, number }
     await dbConnect();
     const newAccount = new Account({
       user: id,
-      number: number || undefined,
       company: company,
       capital: capital,
       phase: phase,
@@ -23,6 +22,7 @@ const CreateNewAccount = async ({ id, company, capital, phase, balance, number }
       needBalanceUpdate: false,
       note: number ? null : "Νέα Αγορά Account",
     });
+    if (number) newAccount.number = number;
     await newAccount.save();
 
     const user = await User.findById(id);
