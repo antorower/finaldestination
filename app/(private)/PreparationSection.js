@@ -12,7 +12,7 @@ const PreparationSection = ({ GreeceTime, user, forOpening, settings, mode }) =>
   τα trades που πρέπει να βάλεις την επόμενη ημέρα. Θα πρέπει να βάλεις τα ξυπνητήρια σου ώρες τέτοιες
   ώστε να μπορέσεις να διεκπεραιώσεις τα trades σίγουρα, χωρίς βιασύνη, με άνεση χρόνου.`;
 
-  if (GreeceTime >= settings.seeScheduleHours.startingHour && GreeceTime < settings.seeScheduleHours.endingHour) {
+  if ((GreeceTime >= settings.seeScheduleHours.startingHour && GreeceTime < settings.seeScheduleHours.endingHour) || GreeceTime < settings.tradingHours.startingHour) {
     return (
       <div className="flex flex-col gap-4">
         <div className="font-semibold">Προετοιμασία</div>
