@@ -31,6 +31,7 @@ import BeneficiariesBar from "./BeneficiariesBar";
 import TeamComponent from "./TeamComponent";
 import TeamBar from "./TeamBar";
 import StatsComponent from "./StatsComponent";
+import ActiveDaysBar from "./ActiveDaysBar";
 
 const GetUser = async (id) => {
   await dbConnect();
@@ -259,17 +260,20 @@ export default async function Home({ searchParams }) {
         <LeaderFamilyBar leader={user.leader ? `${user.leader?.firstName.slice(0, 1)}. ${user.leader?.lastName}` : null} family={user.family ? `${user.family?.firstName.slice(0, 1)}. ${user.family?.lastName}` : null} />
         <FinanceBar user={user} />
         <ScheduleBar GreeceTime={GreeceTime} user={user} settings={settings} />
+        <ActiveDaysBar mon={settings.monday.active} tue={settings.tuesday.active} wed={settings.wednesday.active} thu={settings.thursday.active} fri={settings.friday.active} />
 
         {settings[activeDay]?.closeHour?.hour && settings[activeDay]?.closeHour?.minutes && (
-          <div className="text-center bg-indigo-700 text-white animate-pulse p-4 text-2xl font-bold rounded">
-            Κλείνουμε {settings[activeDay].closeHour.hour + user.hourOffsetFromGreece}:{settings[activeDay].closeHour.minutes}
-          </div>
-        )}
+          <>
+            <div className="text-center bg-indigo-700 text-white animate-pulse p-4 text-2xl font-bold rounded">
+              Κλείνουμε {settings[activeDay].closeHour.hour + user.hourOffsetFromGreece}:{settings[activeDay].closeHour.minutes}
+            </div>
 
-        <div className="bg-gray-100 p-4 rounded text-center">Σημείωση: Η παραπάνω ώρα κλεισίματος αφορά πάντα το επόμενο κλείσιμο που έχουμε να κάνουμε. Αυτό σημαίνει ότι πριν τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την τρέχουσα ημέρα, μετά τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την επόμενη ημέρα.</div>
-        <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
-          ΔΕΝ κλείνουμε 10 λεπτά νωρίτερα, ΔΕΝ κλείνουμε 10 λεπτά αργότερα. ΔΕΝ κλείνουμε όταν μπορέσουμε. ΔΕΝ κλείνουμε αμέσως μόλις βγούμε διάλλειμα από την δουλειά. ΔΕΝ κάνουμε του κεφαλιού μας και μετά λέμε την δικαιολογία μας. ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ΕΝΔΙΑΦΕΡΕΙ είναι να μην πετάξουμε τα λεφτά μας!! Ξαναγράφω: ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ενδιαφέρει είναι να μην πετάξουμε τα λεφτά μας!!
-        </div>
+            <div className="bg-gray-100 p-4 rounded text-center">Σημείωση: Η παραπάνω ώρα κλεισίματος αφορά πάντα το επόμενο κλείσιμο που έχουμε να κάνουμε. Αυτό σημαίνει ότι πριν τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την τρέχουσα ημέρα, μετά τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την επόμενη ημέρα.</div>
+            <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
+              ΔΕΝ κλείνουμε 10 λεπτά νωρίτερα, ΔΕΝ κλείνουμε 10 λεπτά αργότερα. ΔΕΝ κλείνουμε όταν μπορέσουμε. ΔΕΝ κλείνουμε αμέσως μόλις βγούμε διάλλειμα από την δουλειά. ΔΕΝ κάνουμε του κεφαλιού μας και μετά λέμε την δικαιολογία μας. ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ΕΝΔΙΑΦΕΡΕΙ είναι να μην πετάξουμε τα λεφτά μας!! Ξαναγράφω: ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ενδιαφέρει είναι να μην πετάξουμε τα λεφτά μας!!
+            </div>
+          </>
+        )}
 
         <div className="grid grid-cols-12 gap-4">
           <MiniMenu userid={userid} />

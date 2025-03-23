@@ -26,6 +26,47 @@ export async function GET() {
     return NextResponse.json({ stopped: true }, { status: 500 });
   }
 
+  if (today === "friday") {
+    settings.monday.stringDate = "";
+    settings.monday.pairs = [];
+    settings.monday.hours = { min: 4, max: 10 };
+    settings.monday.note = "";
+    settings.monday.closeHour = { hour: null, minutes: null };
+    settings.monday.active = false;
+
+    settings.tuesday.stringDate = "";
+    settings.tuesday.pairs = [];
+    settings.tuesday.hours = { min: 4, max: 10 };
+    settings.tuesday.note = "";
+    settings.tuesday.closeHour = { hour: null, minutes: null };
+    settings.tuesday.active = false;
+
+    settings.wednesday.stringDate = "";
+    settings.wednesday.pairs = [];
+    settings.wednesday.hours = { min: 4, max: 10 };
+    settings.wednesday.note = "";
+    settings.wednesday.closeHour = { hour: null, minutes: null };
+    settings.wednesday.active = false;
+
+    settings.thursday.stringDate = "";
+    settings.thursday.pairs = [];
+    settings.thursday.hours = { min: 4, max: 10 };
+    settings.thursday.note = "";
+    settings.thursday.closeHour = { hour: null, minutes: null };
+    settings.thursday.active = false;
+
+    settings.friday.stringDate = "";
+    settings.friday.pairs = [];
+    settings.friday.hours = { min: 4, max: 10 };
+    settings.friday.note = "";
+    settings.friday.closeHour = { hour: null, minutes: null };
+    settings.friday.active = false;
+
+    await settings.save();
+
+    return NextResponse.json({ reset: true }, { status: 200 });
+  }
+
   if (Number(greeceHour) !== settings.updateBalanceHours.endingHour) {
     console.log("Η ώρα δεν είναι η σωστή: ", greeceHour, `:00. Θα έπρεπε να είναι ${settings.updateBalanceHours.endingHour}:00`);
     return NextResponse.json({ stopped: true }, { status: 200 });
