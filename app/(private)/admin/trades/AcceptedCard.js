@@ -15,7 +15,7 @@ export default AcceptedCard;
 const Participant = ({ participant }) => {
   return (
     <div className={`p-4 flex flex-col gap-2`}>
-      <div className="text-center font-bold">
+      <div className={`text-center font-bold ${participant.status === "pending" ? "text-red-500" : "text-green-500"}`}>
         {participant.user.firstName.slice(0, 8)} {participant.user.lastName.slice(0, 3)}.
       </div>
       <div className="text-xs flex gap-4 justify-center">
