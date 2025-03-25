@@ -28,7 +28,16 @@ const Participant = ({ participant }) => {
           <div>{participant.account.balance}</div>
         </div>
       </div>
-      <div className={`${participant.priority === "high" && participant.status === "rejected" && "animate-bounce text-red-500"}`}>{participant.priority}</div>
+      <div className={`${participant.priority === "high" && participant.status === "rejected" && "animate-bounce text-red-500 text-center text-xs"}`}>{participant.priority}</div>
+      {participant?.trade?.pair && (
+        <div className="flex flex-col items-center justify-center">
+          <div className="text-center">{participant.trade.pair}</div>
+          <div className="text-center">{participant.trade.lots}</div>
+          <div className="text-center">{participant.trade.position}</div>
+          <div className="text-center">{participant.trade.stopLoss}</div>
+          <div className="text-center">{participant.trade.takeProfit}</div>
+        </div>
+      )}
     </div>
   );
 };
