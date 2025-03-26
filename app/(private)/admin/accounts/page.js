@@ -182,7 +182,7 @@ const Phase1Card = ({ account }) => {
         </div>
         <div className="flex justify-between">
           <div className={`text-center text-sm flex gap-1 items-center`}>
-            <div className="text-xs">{account.isOnBoarding ? "🔵" : "🔴"}</div>
+            <div className="text-xs">{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </div>
           <div className={`text-center text-sm`}>{account.status}</div>
@@ -217,7 +217,7 @@ const Phase2Card = ({ account }) => {
         </div>
         <div className="flex justify-between">
           <div className={`text-center text-sm flex gap-1 items-center`}>
-            <div className="text-xs">{account.isOnBoarding ? "🔵" : "🔴"}</div>
+            <div className="text-xs">{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </div>
           <div className={`text-center text-sm`}>{account.status}</div>
@@ -252,7 +252,7 @@ const Phase3Card = ({ account }) => {
         </div>
         <div className="flex justify-between">
           <div className={`text-center text-sm flex gap-1 items-center`}>
-            <div className="text-xs">{account.isOnBoarding ? "🔵" : "🔴"}</div>
+            <div className="text-xs">{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </div>
           <div className={`text-center text-sm`}>{account.status}</div>
