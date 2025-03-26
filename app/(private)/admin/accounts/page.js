@@ -6,6 +6,7 @@ import Account from "@/models/Account";
 import { auth } from "@clerk/nextjs/server";
 import User from "@/models/User";
 import InfoButton from "@/components/InfoButton";
+import Nav from "./NavigatorComp";
 
 const GetAllAccounts = async () => {
   "use server";
@@ -117,6 +118,7 @@ const Accounts = async () => {
           <div className="font-bold">First Phase:</div>
           <div> {accounts.filter((a) => a.phase === 1).length}</div>
         </div>
+        <Nav />
         <div className="flex items-center gap-2">
           <div className="bg-violet-200 border-2 border-violet-300 h-[18px] w-[18px] rounded-full"></div>
           <div className="font-bold">Second Phase:</div>
