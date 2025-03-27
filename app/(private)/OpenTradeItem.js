@@ -29,7 +29,7 @@ const OpenTradeItem = ({ BeAwareOfTrade, TradeChecked, OpenTrade, tradeId, userI
                 <div className="font-bold text-2xl text-center">{account}</div>
               </div>
 
-              <Link href={`/?accountcheck=true`} className="col-span-12 md:col-span-2 md:mt-0 mt-2 py-2 flex justify-center items-center bg-green-500 text-white font-bold text-3xl">
+              <Link href={`/?accountcheck=true&tradepar=${tradeId}`} className="col-span-12 md:col-span-2 md:mt-0 mt-2 py-2 flex justify-center items-center bg-green-500 text-white font-bold text-3xl">
                 ✔
               </Link>
             </div>
