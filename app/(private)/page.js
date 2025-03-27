@@ -250,6 +250,11 @@ export default async function Home({ searchParams }) {
   const activeDay = currentPhase() === "trading" || currentPhase() === "updateBalance" ? getCurrentDayName() : getCurrentDayName(1);
   const note = settings[activeDay]?.note || "Δεν υπάρχει ώρα κλεισίματος";
 
+  const closeHour = settings[activeDay].closeHour.hour + user.hourOffsetFromGreece;
+  if (closeHour === 0) closeHour = 12;
+  if (closeHour === -1) closeHour = 11;
+  if (closeHour === -2) closeHour = 10;
+
   return (
     <PageTransition>
       <div className="flex flex-col gap-4 pb-4">
@@ -265,7 +270,7 @@ export default async function Home({ searchParams }) {
         {settings[activeDay]?.closeHour?.hour && settings[activeDay]?.closeHour?.minutes && (
           <>
             <div className="text-center bg-indigo-700 text-white animate-pulse p-4 text-2xl font-bold rounded">
-              Κλείνουμε {settings[activeDay].closeHour.hour + user.hourOffsetFromGreece}:{settings[activeDay].closeHour.minutes}
+              Κλείνουμε {closeHour}:{settings[activeDay].closeHour.minutes}
             </div>
 
             <div className="bg-gray-100 p-4 rounded text-center">Σημείωση: Η παραπάνω ώρα κλεισίματος αφορά πάντα το επόμενο κλείσιμο που έχουμε να κάνουμε. Αυτό σημαίνει ότι πριν τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την τρέχουσα ημέρα, μετά τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την επόμενη ημέρα.</div>
