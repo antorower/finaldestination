@@ -420,7 +420,7 @@ const TradeChecked = async ({ tradeId, userId, accountId }) => {
   }
 };
 
-const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, accountcheck, tradecheck }) => {
+const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, accountcheck, tradecheck, tradepar }) => {
   if (mode) return null;
 
   const now = new Date();
@@ -492,6 +492,7 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
                   accountCheck={accountcheck === "true" ? true : false}
                   tradeCheck={tradecheck === "true" ? true : false}
                   trade={tradeUser.trade}
+                  tradepar={tradepar}
                   TradeChecked={TradeChecked}
                 />
               );

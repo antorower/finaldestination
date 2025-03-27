@@ -3,7 +3,7 @@ import OpenTradeButton from "./OpenTradeButton";
 import Link from "next/link";
 import TradeCheckedButton from "./TradeCheckedButton";
 
-const OpenTradeItem = ({ BeAwareOfTrade, TradeChecked, OpenTrade, tradeId, userId, account, accountId, openDate, openTime, status, accountCheck, tradeCheck, checked, trade }) => {
+const OpenTradeItem = ({ BeAwareOfTrade, TradeChecked, OpenTrade, tradeId, userId, tradepar, account, accountId, openDate, openTime, status, accountCheck, tradeCheck, checked, trade }) => {
   return (
     <div className={`grid grid-cols-12 ${status === "try" && "opacity-50"} ${checked && "opacity-25"} border ${status === "accepted" ? "bg-gray-100" : "bg-green-100"} w-full`}>
       {status === "accepted" && <AwareButton BeAwareOfTrade={BeAwareOfTrade} tradeId={tradeId} userId={userId} />}
@@ -22,19 +22,19 @@ const OpenTradeItem = ({ BeAwareOfTrade, TradeChecked, OpenTrade, tradeId, userI
       {status === "aware" && <OpenTradeButton OpenTrade={OpenTrade} accountId={accountId} tradeId={tradeId} userId={userId} />}
       {status === "open" && (
         <div className="col-span-12 sm:col-span-10">
-          {!accountCheck && !tradeCheck && !checked && (
+          {tradepar === tradeId && !accountCheck && !tradeCheck && !checked && (
             <div className="h-full grid grid-cols-12 p-4 md:p-0">
               <div className="col-span-12 md:col-span-10 flex flex-col gap-2 justify-center items-center">
                 <div className="text-center text-black font-bold">Είσαι μέσα στο σωστό account;</div>
                 <div className="font-bold text-2xl text-center">{account}</div>
               </div>
 
-              <Link href="/?accountcheck=true" className="col-span-12 md:col-span-2 md:mt-0 mt-2 py-2 flex justify-center items-center bg-green-500 text-white font-bold text-3xl">
+              <Link href={`/?accountcheck=true&tradepar=${tradeId}`} className="col-span-12 md:col-span-2 md:mt-0 mt-2 py-2 flex justify-center items-center bg-green-500 text-white font-bold text-3xl">
                 ✔
               </Link>
             </div>
           )}
-          {(accountCheck || checked) && (
+          {tradepar === tradeId && (accountCheck || checked) && (
             <div className="grid grid-cols-6 p-4 lg:p-0 h-full">
               <div className={`${checked ? "col-span-6" : "col-span-6 lg:col-span-5"} flex flex-col gap-1 justify-center items-center`}>
                 <div className="flex flex-wrap gap-4">
@@ -54,14 +54,14 @@ const OpenTradeItem = ({ BeAwareOfTrade, TradeChecked, OpenTrade, tradeId, userI
                 </div>
               </div>
 
-              {!checked && (
-                <Link href="/?tradecheck=true" className="col-span-6 lg:col-span-1 lg:mt-0 mt-2 p-2 flex justify-center items-center bg-green-500 text-white font-bold text-3xl">
+              {tradepar === tradeId && !checked && (
+                <Link href={`/?tradecheck=true&tradepar=${tradeId}`} className="col-span-6 lg:col-span-1 lg:mt-0 mt-2 p-2 flex justify-center items-center bg-green-500 text-white font-bold text-3xl">
                   ✔
                 </Link>
               )}
             </div>
           )}
-          {tradeCheck && !checked && (
+          {tradepar === tradeId && tradeCheck && !checked && (
             <div className="grid grid-cols-6 h-full p-4 lg:p-0">
               <div className="col-span-6 lg:col-span-5 flex flex-col gap-1 justify-center items-center">
                 <div className="text-gray-500">Βεβαίωσε ότι έλεγξες όλα τα παρακάτω:</div>

@@ -3,15 +3,12 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 const TradeCheckedButton = ({ TradeChecked, tradeId, userId, accountId }) => {
-  const router = useRouter();
-
   const Checked = async () => {
     const response = await TradeChecked({ tradeId, userId, accountId });
     if (response.error) {
       toast.error(response.message);
     } else {
       toast.success(response.message);
-      router.push("/");
     }
   };
 

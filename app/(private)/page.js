@@ -178,7 +178,7 @@ const ChangeModePreference = async ({ id, preference }) => {
 };
 
 export default async function Home({ searchParams }) {
-  const { mode, userid, accountcheck, tradecheck } = await searchParams;
+  const { mode, userid, accountcheck, tradecheck, tradepar } = await searchParams;
 
   // Αφορούν τον user που κάνει επίσκεψη
   const { sessionClaims } = await auth();
@@ -283,7 +283,7 @@ export default async function Home({ searchParams }) {
         <div className="grid grid-cols-12 gap-4">
           <MiniMenu userid={userid} />
           <div className="col-span-12 md:col-span-9 xl:col-span-10 px-4 overflow-y-auto flex flex-col gap-4 pb-8">
-            <TradingSection tradecheck={tradecheck} accountcheck={accountcheck} GreeceTime={GreeceTime} settings={settings} user={user} forOpening={forOpening} mode={mode} />
+            <TradingSection tradecheck={tradecheck} tradepar={tradepar} accountcheck={accountcheck} GreeceTime={GreeceTime} settings={settings} user={user} forOpening={forOpening} mode={mode} />
             <UpdateBalanceSection GreeceTime={GreeceTime} settings={settings} openTrades={openTrades} user={user} mode={mode} />
             <SchedulingSection GreeceTime={GreeceTime} settings={settings} user={user} tradeSuggestions={tradeSuggestions} mode={mode} />
             <PreparationSection GreeceTime={GreeceTime} settings={settings} user={user} forOpening={forOpening} mode={mode} />
