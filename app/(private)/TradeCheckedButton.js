@@ -12,7 +12,7 @@ const TradeCheckedButton = ({ TradeChecked, tradeId, userId, accountId }) => {
       toast.error(response.message);
     } else {
       toast.success(response.message);
-      router.push("/?ready=true");
+      router.push("/");
     }
   };
 

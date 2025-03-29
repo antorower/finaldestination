@@ -250,7 +250,7 @@ export default async function Home({ searchParams }) {
   const activeDay = currentPhase() === "trading" || currentPhase() === "updateBalance" ? getCurrentDayName() : getCurrentDayName(1);
   const note = settings[activeDay]?.note || "Δεν υπάρχει ώρα κλεισίματος";
 
-  const closeHour = settings[activeDay].closeHour.hour + user.hourOffsetFromGreece;
+  const closeHour = settings[activeDay]?.closeHour?.hour + user.hourOffsetFromGreece || 100;
   if (closeHour === 0) closeHour = 12;
   if (closeHour === -1) closeHour = 11;
   if (closeHour === -2) closeHour = 10;
