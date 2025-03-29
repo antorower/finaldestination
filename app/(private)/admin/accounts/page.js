@@ -109,6 +109,14 @@ const Accounts = async () => {
 
   const companySummaries = summarizeAccountsByCompany(accounts);
 
+  const phase1Accounts = accounts.filter((a) => a.phase === 1);
+  const avgPhase1Progress = phase1Accounts.length > 0 ? Math.round(phase1Accounts.reduce((sum, acc) => sum + (acc.progress || 0), 0) / phase1Accounts.length) : 0;
+
+  const phase2Accounts = accounts.filter((a) => a.phase === 2);
+  const avgPhase2Progress = phase2Accounts.length > 0 ? Math.round(phase2Accounts.reduce((sum, acc) => sum + (acc.progress || 0), 0) / phase2Accounts.length) : 0;
+
+  const phase3Accounts = accounts.filter((a) => a.phase === 3);
+  const avgPhase3Progress = phase3Accounts.length > 0 ? Math.round(phase3Accounts.reduce((sum, acc) => sum + (acc.progress || 0), 0) / phase3Accounts.length) : 0;
   return (
     <div className="flex flex-col justify-center gap-4">
       <div className="hidden md:flex justify-between">
@@ -117,17 +125,19 @@ const Accounts = async () => {
           <div className="bg-blue-200 border-2 border-blue-300 h-[18px] w-[18px] rounded-full"></div>
           <div className="font-bold">First Phase:</div>
           <div> {accounts.filter((a) => a.phase === 1).length}</div>
+          <div>({avgPhase1Progress}%)</div>
         </div>
-        <Nav />
         <div className="flex items-center gap-2">
           <div className="bg-violet-200 border-2 border-violet-300 h-[18px] w-[18px] rounded-full"></div>
           <div className="font-bold">Second Phase:</div>
           <div> {accounts.filter((a) => a.phase === 2).length}</div>
+          <div>({avgPhase2Progress}%)</div>
         </div>
         <div className="flex items-center gap-2">
           <div className="bg-orange-200 border-2 border-orange-300 h-[18px] w-[18px] rounded-full"></div>
           <div className="font-bold">Third Phase:</div>
           <div> {accounts.filter((a) => a.phase === 3).length}</div>
+          <div>({avgPhase3Progress}%)</div>
         </div>
         <InfoButton message="Τα μπλε accounts είναι φάση 1, τα violet φάση 2 και τα πορτοκαλί φάση 3. Αυτά που είναι με πράσινο πλαίσιο χρειάζονται ενημέρωση balance. Η κουκίδα αριστερά από το account number προσδιορίζει αν είναι active για trading ή όχι." />
       </div>
