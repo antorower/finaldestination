@@ -1,11 +1,6 @@
 import { Roboto } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastContainer } from "react-toastify";
-import User from "@/models/User";
-import dbConnect from "@/dbConnect";
-import { auth } from "@clerk/nextjs/server";
-import { revalidatePath } from "next/cache";
-import { clerkClient } from "@clerk/nextjs/server";
 import { ToastProvider } from "@/components/ToastContext";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
