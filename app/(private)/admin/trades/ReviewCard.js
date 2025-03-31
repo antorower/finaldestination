@@ -52,7 +52,14 @@ const Participant = ({ participant }) => {
           <div>{participant.account.balance}</div>
         </div>
       </div>
-      <div>{participant.profit || 0}</div>
+      <div className="text-center">{participant.profit || 0}</div>
+      <div className="flex gap-2 text-sm">
+        <div>{participant.trade.pair}</div>
+        <div>{participant.trade.lots}</div>
+        <div>{participant.trade.position}</div>
+        <div>{participant.trade.takeProfit}</div>
+        <div>{participant.trade.stopLoss}</div>
+      </div>
     </div>
   );
 };
