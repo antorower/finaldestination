@@ -52,6 +52,7 @@ const Participant = ({ participant }) => {
           <div>{participant.account.balance}</div>
         </div>
       </div>
+      <div>{participant.profit || 0}</div>
     </div>
   );
 };
