@@ -222,16 +222,16 @@ const Phase1Card = ({ account }) => {
 
 const Phase2Card = ({ account }) => {
   return (
-    <Link href={`/account/${account._id.toString()}`} className={`p-4 border-2 ${account.needBalanceUpdate ? "border-green-600" : "border-violet-200"} rounded bg-violet-100`}>
+    <div className={`p-4 border-2 ${account.needBalanceUpdate ? "border-green-600" : "border-violet-200"} rounded bg-violet-100`}>
       <div className="flex flex-col gap-1 justify-center">
-        <div className="text-center font-semibold text-nowrap overflow-hidden">
+        <Link href={`/?userid=${account.user._id.toString()}`} className="text-center font-semibold text-nowrap overflow-hidden">
           {account.user.firstName} {account.user.lastName}
-        </div>
+        </Link>
         <div className="flex justify-between">
-          <div className={`text-center text-sm flex gap-1 items-center`}>
+          <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
             <div className="text-xs">{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
-          </div>
+          </Link>
           <div className={`text-center text-sm`}>{account.status}</div>
         </div>
         <div className="flex justify-between text-sm">
@@ -251,22 +251,22 @@ const Phase2Card = ({ account }) => {
 
         <div className="text-center text-xs bg-violet-200 p-2 rounded border border-violet-400">{account.note ? account.note : "-"}</div>
       </div>
-    </Link>
+    </div>
   );
 };
 
 const Phase3Card = ({ account }) => {
   return (
-    <Link href={`/account/${account._id.toString()}`} className={`p-4 border-2 ${account.needBalanceUpdate ? "border-green-600" : "border-orange-200"} rounded bg-orange-100`}>
+    <div className={`p-4 border-2 ${account.needBalanceUpdate ? "border-green-600" : "border-orange-200"} rounded bg-orange-100`}>
       <div className="flex flex-col gap-1 justify-center">
-        <div className="text-center font-semibold text-nowrap overflow-hidden">
+        <Link href={`/?userid=${account.user._id.toString()}`} className="text-center font-semibold text-nowrap overflow-hidden">
           {account.user.firstName} {account.user.lastName}
-        </div>
+        </Link>
         <div className="flex justify-between">
-          <div className={`text-center text-sm flex gap-1 items-center`}>
+          <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
             <div className="text-xs">{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
-          </div>
+          </Link>
           <div className={`text-center text-sm`}>{account.status}</div>
         </div>
         <div className="flex justify-between text-sm">
@@ -286,6 +286,6 @@ const Phase3Card = ({ account }) => {
 
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
-    </Link>
+    </div>
   );
 };
