@@ -53,7 +53,7 @@ const Participant = ({ participant }) => {
         </div>
       </div>
       <div className="text-center">{participant.profit || 0}</div>
-      <div className="flex gap-2 text-sm">
+      <div className="flex flex-col items-center justify-center gap-2 text-sm">
         <div>{participant.trade.pair}</div>
         <div>{participant.trade.lots}</div>
         <div>{participant.trade.position}</div>
