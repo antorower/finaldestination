@@ -50,7 +50,7 @@ const UpdateBalanceSection = ({ GreeceTime, settings, openTrades, user, mode }) 
   Σε αυτό το διάστημα θα πρέπει να ενημερώσεις το balance του account σου.
   Τα trades όμως θα πρέπει να ελέγχεις κάθε μέρα γιατί θα πρέπει να κλείνουν συγκεκριμένη ώρα.`;
 
-  if (GreeceTime >= settings.updateBalanceHours.startingHour && GreeceTime < settings.updateBalanceHours.endingHour) {
+  if (GreeceTime >= settings.updateBalanceHours.startingHour) {
     return (
       <div className="flex flex-col gap-4">
         <div className="font-semibold">Ενημέρωση</div>
