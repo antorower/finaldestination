@@ -14,7 +14,9 @@ const GetTrades = async () => {
   try {
     await dbConnect();
 
-    return await Trade.find({ status: { $ne: "completed" } }).populate([{ path: "firstParticipant.user" }, { path: "firstParticipant.account", populate: { path: "company" } }, { path: "secondParticipant.user" }, { path: "secondParticipant.account", populate: { path: "company" } }]);
+    return await Trade.find({ status: { $ne: "completed" } })
+      .populate([{ path: "firstParticipant.user" }, { path: "firstParticipant.account", populate: { path: "company" } }, { path: "secondParticipant.user" }, { path: "secondParticipant.account", populate: { path: "company" } }])
+      .sort({ openTime: 1 });
   } catch (error) {
     console.log("Υπήρξε error στην GetTrades στο /trades: ", error);
     return null;
