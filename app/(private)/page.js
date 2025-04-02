@@ -131,7 +131,6 @@ const GetTrades = async (userId) => {
         { "firstParticipant.user": userId, "firstParticipant.status": { $ne: "closed" } },
         { "secondParticipant.user": userId, "secondParticipant.status": { $ne: "closed" } },
       ],
-      status: { $nin: ["completed"] }, // Προστέθηκε το φίλτρο για να αποκλείσουμε αυτά τα status
     })
       .populate("firstParticipant.user", "hourOffsetFromGreece")
       .populate("secondParticipant.user", "hourOffsetFromGreece")
