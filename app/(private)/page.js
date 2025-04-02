@@ -276,7 +276,7 @@ export default async function Home({ searchParams }) {
             <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">ΑΝΑΚΟΙΝΩΣΗ: Όποιος αφήσει οποιαδήποτε δουλειά χωρίς να την κάνει δεν θα του αγοράζουμε accounts για 2 μήνες. Το 2 μηνο θα ανανεώνεται κάθε φορά που ξεχνάει την δουλειά του. Δεν είναι τιμωρία, ούτε κάνουμε νταντα τα κακά παιδιά. Απλά θέλουμε να προχωράμε.</div>
             <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
               <div>AWARE: πατάμε ΠΑΝΩ από 11 λεπτά πριν το trade</div>
-              <div>OPEN TRADE: πατάμε KATV από 10 λεπτά πριν το trade</div>
+              <div>OPEN TRADE: πατάμε ΚΑΤΩ από 10 λεπτά πριν το trade</div>
             </div>
           </>
         )}
