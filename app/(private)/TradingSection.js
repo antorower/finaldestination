@@ -51,7 +51,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
   "use server";
   try {
     await dbConnect();
-    console.log("1");
+
     // Παίρνουμε τα settings ολόκληρα για να τα χρησιμοποιήσουμε αργότερα
     const settings = await Settings.findOne().populate("monday.pairs tuesday.pairs wednesday.pairs thursday.pairs friday.pairs");
 
@@ -61,7 +61,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (!todaySettings?.active) {
       return { error: true, message: "Οι συναλλαγές δεν είναι ενεργές για σήμερα." };
     }
-    console.log("2");
+
     // Το trade που προσπαθούμε να ανοίξουμε
     let currentTrade = await Trade.findById(tradeId)
       .populate({ path: "firstParticipant.account", populate: { path: "company" } })
@@ -77,7 +77,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
     // Υπολογίζουμε 10 λεπτά πριν από το openTime
     const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000);
-    console.log("3");
+
     // Έλεγχος αν η τρέχουσα ώρα είναι μεταξύ 10 λεπτών και ακριβώς πριν το openTime
     if (nowUTC < tenMinutesBefore) return { error: true, message: "Πάτησε Open Trade 7 με 10 λεπτά πριν την ώρα του trade." };
     if (nowUTC > openTimeUTC) return { error: true, message: "Δυτυχώς η ώρα πέρασε. Δεν μπορείς να βάλεις trade τώρα και αυτό δεν πρέπει να ξαναγίνει!" };
@@ -105,7 +105,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
         return { error: true, message: "Το trade ακυρώθηκε" };
       }
     }
-    console.log("4");
+
     // Εντοπισμός του σωστού participant και αλλαγή του status του σε "open" αν υπάρχει ήδη trade
     if (currentTrade.firstParticipant.user.toString() === userId && currentTrade.firstParticipant?.trade?.pair) {
       currentTrade.firstParticipant.status = "open";
@@ -186,7 +186,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
         }
       });
     }
-    console.log("5");
+
     // Φιλτράρουμε τα διαθέσιμα pairs ώστε να μην περιέχουν αυτά που έχουν ήδη χρησιμοποιηθεί
     let filteredPairsFirstCompany = availablePairs.filter((pair) => pair && !usedPairsByFirstCompany.has(pair.name));
     let filteredPairsSecondCompany = availablePairs.filter((pair) => pair && !usedPairsBySecondCompany.has(pair.name));
@@ -235,7 +235,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (!bestPair) {
       return { error: true, message: "Δεν υπάρχουν διαθέσιμα pairs για αυτό το trade." };
     }
-    console.log("6");
+
     const firstParticipantAccount = currentTrade.firstParticipant.account;
     let firstParticipantPhase;
     if (firstParticipantAccount.phase === 1) firstParticipantPhase = "phase1";
