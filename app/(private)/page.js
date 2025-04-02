@@ -270,13 +270,10 @@ export default async function Home({ searchParams }) {
         {settings[activeDay]?.closeHour?.hour && settings[activeDay]?.closeHour?.minutes && (
           <>
             <div className="text-center bg-indigo-700 text-white animate-pulse p-4 text-2xl font-bold rounded">
-              Κλείνουμε {closeHour}:{settings[activeDay].closeHour.minutes}
+              {activeDay.charAt(0).toUpperCase() + activeDay.slice(1)} Κλείνουμε {closeHour}:{settings[activeDay].closeHour.minutes}
             </div>
 
-            <div className="bg-gray-100 p-4 rounded text-center">Σημείωση: Η παραπάνω ώρα κλεισίματος αφορά πάντα το επόμενο κλείσιμο που έχουμε να κάνουμε. Αυτό σημαίνει ότι πριν τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την τρέχουσα ημέρα, μετά τις 5 θα δείχνει την ώρα που πρέπει να κλείσουμε την επόμενη ημέρα.</div>
-            <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
-              ΔΕΝ κλείνουμε 10 λεπτά νωρίτερα, ΔΕΝ κλείνουμε 10 λεπτά αργότερα. ΔΕΝ κλείνουμε όταν μπορέσουμε. ΔΕΝ κλείνουμε αμέσως μόλις βγούμε διάλλειμα από την δουλειά. ΔΕΝ κάνουμε του κεφαλιού μας και μετά λέμε την δικαιολογία μας. ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ΕΝΔΙΑΦΕΡΕΙ είναι να μην πετάξουμε τα λεφτά μας!! Ξαναγράφω: ΔΕΝ ενδιαφέρει κανέναν η δικαιολογία σου. Το μόνο που μας ενδιαφέρει είναι να μην πετάξουμε τα λεφτά μας!!
-            </div>
+            <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">ΑΝΑΚΟΙΝΩΣΗ: Όποιος αφήσει οποιαδήποτε δουλειά χωρίς να την κάνει δεν θα του αγοράζουμε accounts για 2 μήνες. Το 2 μηνο θα ανανεώνεται κάθε φορά που ξεχνάει την δουλειά του. Δεν είναι τιμωρία, ούτε κάνουμε νταντα τα κακά παιδιά. Απλά θέλουμε να προχωράμε.</div>
             <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
               <div>AWARE: πατάμε ΠΑΝΩ από 11 λεπτά πριν το trade</div>
               <div>OPEN TRADE: πατάμε KATV από 10 λεπτά πριν το trade</div>
