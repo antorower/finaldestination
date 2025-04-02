@@ -84,7 +84,6 @@ const UpdateHours = async ({ day, startingHour, endingHour }) => {
 const UpdateDayCloseHour = async ({ day, closeHour, closeMinutes }) => {
   "use server";
   try {
-    console.log("aaaaaaaa");
     await dbConnect();
     const settings = await Settings.findOne();
     if (!settings) {

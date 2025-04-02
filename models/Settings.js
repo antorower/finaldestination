@@ -221,9 +221,6 @@ SettingsSchema.methods.setDayHours = async function (day, startingHour, endingHo
 };
 
 SettingsSchema.methods.setCloseHour = async function (day, closeHour, closeMinutes) {
-  console.log(day);
-  console.log(closeHour);
-  console.log(closeMinutes);
   if (!this[day]) throw new Error("Invalid day provided");
 
   // Αρχικοποίηση αν δεν υπάρχει ήδη
@@ -233,7 +230,6 @@ SettingsSchema.methods.setCloseHour = async function (day, closeHour, closeMinut
 
   this[day].closeHour.hour = closeHour;
   this[day].closeHour.minutes = closeMinutes;
-  console.log(this[day]);
   await this.save();
 };
 

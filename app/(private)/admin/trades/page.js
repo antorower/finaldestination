@@ -4,7 +4,6 @@ import dbConnect from "@/dbConnect";
 import Trade from "@/models/Trade";
 import AcceptedCard from "./AcceptedCard";
 import ReviewCard from "./ReviewCard";
-
 import Account from "@/models/Account";
 import RandomizeAccounts from "./RandomizeAccountsButton";
 import { revalidatePath } from "next/cache";

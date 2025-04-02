@@ -20,17 +20,12 @@ const BeAwareOfTrade = async ({ tradeId, userId, accountId }) => {
     if (!trade) return { error: true, message: "Δεν βρέθηκε το trade. Προσπάθησε ξανά." };
 
     const nowUTC = new Date(); // Τρέχουσα UTC ώρα
-    console.log("Now UTC", nowUTC);
     const openTimeUTC = new Date(trade.openTime); // Ώρα ανοίγματος trade (υποθέτουμε ότι είναι ήδη σε UTC)
-    console.log("Open Time UTC", openTimeUTC);
 
     const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000); // 10 λεπτά πριν
-    console.log("Ten Minutes Before", tenMinutesBefore);
     const oneHourBefore = new Date(openTimeUTC.getTime() - 60 * 60 * 1000); // 1 ώρα πριν
-    console.log("One Hour Before", oneHourBefore);
     if (nowUTC < oneHourBefore || nowUTC > tenMinutesBefore) return { error: true, message: "Δεν μπορείς να δηλώσεις παρών για αυτό το trade αυτήν την ώρα." };
-    console.log(nowUTC < oneHourBefore ? "is more than one hour before" : "is NOT more than one hour before");
-    console.log(nowUTC > tenMinutesBefore ? "is less than ten minutes before" : "is NOT kess than ten minutes before");
+
     if (trade.firstParticipant.user._id.toString() === userId) {
       trade.firstParticipant.status = "aware";
     }
@@ -56,7 +51,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
   "use server";
   try {
     await dbConnect();
-
+    console.log("1");
     // Παίρνουμε τα settings ολόκληρα για να τα χρησιμοποιήσουμε αργότερα
     const settings = await Settings.findOne().populate("monday.pairs tuesday.pairs wednesday.pairs thursday.pairs friday.pairs");
 
@@ -66,7 +61,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (!todaySettings?.active) {
       return { error: true, message: "Οι συναλλαγές δεν είναι ενεργές για σήμερα." };
     }
-
+    console.log("2");
     // Το trade που προσπαθούμε να ανοίξουμε
     let currentTrade = await Trade.findById(tradeId)
       .populate({ path: "firstParticipant.account", populate: { path: "company" } })
@@ -82,7 +77,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
     // Υπολογίζουμε 10 λεπτά πριν από το openTime
     const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000);
-
+    console.log("3");
     // Έλεγχος αν η τρέχουσα ώρα είναι μεταξύ 10 λεπτών και ακριβώς πριν το openTime
     if (nowUTC < tenMinutesBefore) return { error: true, message: "Πάτησε Open Trade 7 με 10 λεπτά πριν την ώρα του trade." };
     if (nowUTC > openTimeUTC) return { error: true, message: "Δυτυχώς η ώρα πέρασε. Δεν μπορείς να βάλεις trade τώρα και αυτό δεν πρέπει να ξαναγίνει!" };
@@ -110,7 +105,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
         return { error: true, message: "Το trade ακυρώθηκε" };
       }
     }
-
+    console.log("4");
     // Εντοπισμός του σωστού participant και αλλαγή του status του σε "open" αν υπάρχει ήδη trade
     if (currentTrade.firstParticipant.user.toString() === userId && currentTrade.firstParticipant?.trade?.pair) {
       currentTrade.firstParticipant.status = "open";
@@ -140,10 +135,9 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
       return { error: false, message: "Το trade σου άνοιξε επιτυχώς." };
     }
-
+    console.log("55");
     // Υπολογίζουμε το χρονικό όριο (40 λεπτά πριν)
     const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000);
-    console.log(fortyMinutesAgo);
 
     // Παίρνουμε όλα τα trades που είναι accepted ή open και έχουν openTime μέσα στα τελευταία 40 λεπτά
     const allTrades = await Trade.find({
@@ -152,7 +146,6 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     })
       .populate("firstParticipant.account")
       .populate("secondParticipant.account");
-    console.log(allTrades.length);
 
     // Όλα τα διαθέσιμα pairs από τα settings της ημέρας
     //let availablePairs = todaySettings.pairs;
@@ -166,22 +159,12 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     let usedPairsBySecondCompany = new Set();
 
     allTrades.forEach((trade) => {
-      console.log("-----------------");
-      console.log("Pair Trade", trade.firstParticipant.trade.pair);
-      console.log("Current Trade First Company ID", firstCompanyId);
-      console.log("All Trades First Company ID", trade.firstParticipant.account.company.toString());
       if (trade.firstParticipant.account?.company?.toString() === firstCompanyId || trade.firstParticipant.account?.company?.toString() === secondCompanyId) {
         usedPairsByFirstCompany.add(trade.firstParticipant.trade?.pair);
-        console.log("1", trade.firstParticipant.trade.pair);
       }
-      console.log("Pair Trade", trade.secondParticipant.trade.pair);
-      console.log("Current Trade Sec Company ID", secondCompanyId);
-      console.log("All Trades Sec Company ID", trade.secondParticipant.account.company.toString());
       if (trade.secondParticipant.account?.company?.toString() === secondCompanyId || trade.secondParticipant.account?.company?.toString() === firstCompanyId) {
         usedPairsBySecondCompany.add(trade.secondParticipant.trade?.pair);
-        console.log("2", trade.secondParticipant.trade.pair);
       }
-      console.log("-----------------");
     });
 
     // Επιπλέον, ελέγχουμε αν ο χρήστης έχει ήδη ανοίξει trade σήμερα στην ίδια εταιρεία
@@ -203,7 +186,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
         }
       });
     }
-
+    console.log("5");
     // Φιλτράρουμε τα διαθέσιμα pairs ώστε να μην περιέχουν αυτά που έχουν ήδη χρησιμοποιηθεί
     let filteredPairsFirstCompany = availablePairs.filter((pair) => pair && !usedPairsByFirstCompany.has(pair.name));
     let filteredPairsSecondCompany = availablePairs.filter((pair) => pair && !usedPairsBySecondCompany.has(pair.name));
@@ -239,7 +222,6 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
     // Ταξινόμηση των pairs με βάση το priority (ascending)
     let sortedPairs = [...filteredPairsFirstCompany, ...filteredPairsSecondCompany].sort((a, b) => b.priority - a.priority);
-    console.log("Sorted Pairs", sortedPairs);
 
     // Βρίσκουμε το κοινό pair με το χαμηλότερο priority
     let bestPair = null;
@@ -253,14 +235,14 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (!bestPair) {
       return { error: true, message: "Δεν υπάρχουν διαθέσιμα pairs για αυτό το trade." };
     }
-
+    console.log("6");
     const firstParticipantAccount = currentTrade.firstParticipant.account;
     let firstParticipantPhase;
     if (firstParticipantAccount.phase === 1) firstParticipantPhase = "phase1";
     if (firstParticipantAccount.phase === 2) firstParticipantPhase = "phase2";
     if (firstParticipantAccount.phase === 3) firstParticipantPhase = "phase3";
-    const firstParticipantRemainingProfit = (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].target) / 100;
-    const firstParticipantRemainingLoss = (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].totalDrawdown) / 100;
+    const firstParticipantRemainingProfit = (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].target) / 100 + firstParticipantAccount.capital - firstParticipantAccount.balance;
+    const firstParticipantRemainingLoss = firstParticipantAccount.balance - firstParticipantAccount.capital + (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].totalDrawdown) / 100;
     const firstParticipantMaxLoss = (firstParticipantAccount.company[firstParticipantPhase].maxRiskPerTrade * firstParticipantAccount.capital) / 100;
 
     const secondParticipantAccount = currentTrade.secondParticipant.account;
@@ -268,8 +250,8 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (secondParticipantAccount.phase === 1) secondParticipantPhase = "phase1";
     if (secondParticipantAccount.phase === 2) secondParticipantPhase = "phase2";
     if (secondParticipantAccount.phase === 3) secondParticipantPhase = "phase3";
-    const secondParticipantRemainingProfit = (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].target) / 100;
-    const secondParticipantRemainingLoss = (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].totalDrawdown) / 100;
+    const secondParticipantRemainingProfit = (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].target) / 100 + secondParticipantAccount.capital - secondParticipantAccount.balance;
+    const secondParticipantRemainingLoss = secondParticipantAccount.balance - secondParticipantAccount.capital + (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].totalDrawdown) / 100;
     const secondParticipantMaxLoss = (secondParticipantAccount.company[secondParticipantPhase].maxRiskPerTrade * secondParticipantAccount.capital) / 100;
 
     let firstTakeProfit;
@@ -324,7 +306,6 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
     const minimumProfit = Math.min(firstTakeProfit, secondTakeProfit);
     let lots = (bestPair.lots * minimumProfit) / 1000;
-
     if (currentTrade.firstParticipant.account.company.maxLots < lots || currentTrade.secondParticipant.account.company.maxLots < lots) {
       const maxLots = Math.min(currentTrade.firstParticipant.account.company.maxLots, currentTrade.secondParticipant.account.company.maxLots);
       lots = Math.random() * (maxLots * 0.99 - maxLots * 0.9) + maxLots * 0.9;
@@ -437,16 +418,12 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
 
   // Υπολογίζουμε το offset της Ελλάδας
   const greeceOffset = Math.ceil((greeceTimestamp - utcTimestamp) / 60000);
-  console.log("Διαφορά με ώρα Ελλάδας:", greeceOffset);
 
-  console.log("Open Time", openTime);
   // Μετατροπή του `openTime` στην ώρα Ελλάδας
   openTime.setUTCMinutes(openTime.getUTCMinutes() - greeceOffset);
-  console.log("Open Time Ωρα Ελλάδας", openTime);
 
   // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
   openTime.setUTCMinutes(openTime.getUTCMinutes() + 65);
-  console.log("Open Time +65", openTime);
 
   const text = `Κάθε μέρα από τις ${4 + user.hourOffsetFromGreece}:00 
   έως τις ${10 + user.hourOffsetFromGreece}:00 
