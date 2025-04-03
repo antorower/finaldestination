@@ -12,7 +12,7 @@ const GetAllAccounts = async () => {
   "use server";
   try {
     await dbConnect();
-    return await Account.find({ status: { $ne: "lost" } })
+    return await Account.find({ status: { $ne: ["Lost", "Review", "Upgrade Done"] } })
       .populate({
         path: "user",
         select: "firstName lastName",
