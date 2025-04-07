@@ -155,7 +155,9 @@ const Accounts = async () => {
             <div>
               <span className="font-medium">Phase 3 Accounts:</span> {summary.phase3Accounts}
             </div>
-            <div className="font-semibold">Total Value: {summary.value.toFixed(0)}</div>
+            <div className="font-semibold">
+              Total Value: {summary.value.toFixed(0)} | {(summary.phase1Accounts * 2.75 + summary.phase2Accounts * 2.75 + summary.phase3Accounts * 2.75).toFixed(0)}
+            </div>
           </div>
         ))}
       </div>
