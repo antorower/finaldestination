@@ -15,7 +15,7 @@ const GetAllAccounts = async () => {
     return await Account.find({ status: { $nin: ["Lost", "Review", "Upgrade Done"] } })
       .populate({
         path: "user",
-        select: "firstName lastName",
+        select: "firstName lastName tradingHours",
       })
       .populate({
         path: "company",
@@ -283,6 +283,9 @@ const Phase3Card = ({ account }) => {
           </div>
         </div>
         <div className="text-center font-bold text-2xl py-4">{account.progress}%</div>
+        <div className="text-center text-sm font-bold">
+          {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
+        </div>
 
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
