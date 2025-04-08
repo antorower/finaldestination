@@ -273,7 +273,9 @@ export default async function Home({ searchParams }) {
               {activeDay.charAt(0).toUpperCase() + activeDay.slice(1)} Κλείνουμε {closeHour}:{settings[activeDay].closeHour.minutes}
             </div>
 
-            <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">ΑΝΑΚΟΙΝΩΣΗ: Όποιος αφήσει οποιαδήποτε δουλειά χωρίς να την κάνει δεν θα του αγοράζουμε accounts για 2 μήνες. Το 2 μηνο θα ανανεώνεται κάθε φορά που ξεχνάει την δουλειά του. Δεν είναι τιμωρία, ούτε κάνουμε νταντα τα κακά παιδιά. Απλά θέλουμε να προχωράμε.</div>
+            <div className="text-center font-bold bg-black text-white rounded p-4 text-xl animate-bounce">
+              ΑΝΑΚΟΙΝΩΣΗ: Επειδή κούρασε το αστειάκι με την ανευθυνότητα ξεκαθαρίζω και βάζω και το πλαίσιο να χοροπηδάει για να μην μπορεί κανένας να πει δεν το είδα: Δεν ξανα λέω τίποτα για λάθη και ξέχασα και λοιπά. Στην επόμενη μαλακία όποιος την κάνει ΘΑ ΞΕΡΕΙ ΑΠΟ ΜΟΝΟΣ ΤΟΥ ότι θα παίξει τα accounts που έχει και μόλις φτάσει τα 0 accounts δεν παίρνει άλλο και φεύγει!! Ξαναλέω: Δεν θα τον ενημερώσω!! Έκανες την μαλακία; Ξέρεις από μόνος σου αυτόματα ότι θα φύγεις μόλις πας 0 accounts!
+            </div>
             <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
               <div>AWARE: πατάμε ΠΑΝΩ από 11 λεπτά πριν το trade</div>
               <div>OPEN TRADE: πατάμε ΚΑΤΩ από 10 λεπτά πριν το trade</div>
