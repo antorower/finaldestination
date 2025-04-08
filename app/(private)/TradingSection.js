@@ -135,7 +135,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
       return { error: false, message: "Το trade σου άνοιξε επιτυχώς." };
     }
-    console.log("55");
+
     // Υπολογίζουμε το χρονικό όριο (40 λεπτά πριν)
     const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000);
 
@@ -243,7 +243,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (firstParticipantAccount.phase === 3) firstParticipantPhase = "phase3";
     const firstParticipantRemainingProfit = (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].target) / 100 + firstParticipantAccount.capital - firstParticipantAccount.balance;
     const firstParticipantRemainingLoss = firstParticipantAccount.balance - firstParticipantAccount.capital + (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].totalDrawdown) / 100;
-    const firstParticipantMaxLoss = (firstParticipantAccount.company[firstParticipantPhase].maxRiskPerTrade * firstParticipantAccount.capital) / 100;
+    const firstParticipantMaxLoss = firstParticipantAccount.manualMaxRisk ? firstParticipantAccount.manualMaxRisk : (firstParticipantAccount.company[firstParticipantPhase].maxRiskPerTrade * firstParticipantAccount.capital) / 100;
 
     const secondParticipantAccount = currentTrade.secondParticipant.account;
     let secondParticipantPhase;
@@ -252,7 +252,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (secondParticipantAccount.phase === 3) secondParticipantPhase = "phase3";
     const secondParticipantRemainingProfit = (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].target) / 100 + secondParticipantAccount.capital - secondParticipantAccount.balance;
     const secondParticipantRemainingLoss = secondParticipantAccount.balance - secondParticipantAccount.capital + (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].totalDrawdown) / 100;
-    const secondParticipantMaxLoss = (secondParticipantAccount.company[secondParticipantPhase].maxRiskPerTrade * secondParticipantAccount.capital) / 100;
+    const secondParticipantMaxLoss = secondParticipantAccount.manualMaxRisk ? secondParticipantAccount.manualMaxRisk : (secondParticipantAccount.company[secondParticipantPhase].maxRiskPerTrade * secondParticipantAccount.capital) / 100;
 
     let firstTakeProfit;
     let secondTakeProfit;
