@@ -177,6 +177,33 @@ const ChangeModePreference = async ({ id, preference }) => {
   }
 };
 
+const NoJobCases = [
+  {
+    name: "Andreas N.",
+    date: "9 Απριλίου 2025",
+  },
+  {
+    name: "Theofanis T.",
+    date: "9 Απριλίου 2025",
+  },
+  {
+    name: "Theofanis T.",
+    date: "10 Απριλίου 2025",
+  },
+  {
+    name: "Panagiotis R.",
+    date: "9 Απριλίου 2025",
+  },
+  {
+    name: "Panagiotis R.",
+    date: "9 Απριλίου 2025",
+  },
+  {
+    name: "Panagiotis R.",
+    date: "9 Απριλίου 2025",
+  },
+];
+
 export default async function Home({ searchParams }) {
   const { mode, userid, accountcheck, tradecheck, tradepar } = await searchParams;
 
@@ -272,16 +299,17 @@ export default async function Home({ searchParams }) {
             <div className="text-center bg-indigo-700 text-white animate-pulse p-4 text-2xl font-bold rounded">
               {activeDay.charAt(0).toUpperCase() + activeDay.slice(1)} Κλείνουμε {closeHour}:{settings[activeDay].closeHour.minutes}
             </div>
-
-            <div className="text-center font-bold bg-black text-white rounded p-4 text-xl animate-bounce">
-              ΑΝΑΚΟΙΝΩΣΗ: Επειδή κούρασε το αστειάκι με την ανευθυνότητα ξεκαθαρίζω και βάζω και το πλαίσιο να χοροπηδάει για να μην μπορεί κανένας να πει δεν το είδα: Δεν ξανα λέω τίποτα για λάθη και ξέχασα και λοιπά. Στην επόμενη μαλακία όποιος την κάνει ΘΑ ΞΕΡΕΙ ΑΠΟ ΜΟΝΟΣ ΤΟΥ ότι θα παίξει τα accounts που έχει και μόλις φτάσει τα 0 accounts δεν παίρνει άλλο και φεύγει!! Ξαναλέω: Δεν θα τον ενημερώσω!! Έκανες την μαλακία; Ξέρεις από μόνος σου αυτόματα ότι θα φύγεις μόλις πας 0 accounts!
-            </div>
-            <div className="text-center font-bold bg-black text-white rounded p-4 text-xl">
-              <div>AWARE: πατάμε ΠΑΝΩ από 11 λεπτά πριν το trade</div>
-              <div>OPEN TRADE: πατάμε ΚΑΤΩ από 10 λεπτά πριν το trade</div>
-            </div>
           </>
         )}
+
+        <div className="text-center font-bold border border-gray-400 text-white rounded p-4 text-xl">
+          <div className="mb-4 bg-red-500 p-4 rounded">Ποιοί δεν έκαναν της δουλειές τους</div>
+          <div className="text-gray-400 text-sm flex flex-wrap gap-2 justify-center">
+            {NoJobCases.map((jobCase, index) => (
+              <NoJob key={`jobCase-index-${index}`} jobCase={jobCase} />
+            ))}
+          </div>
+        </div>
 
         <div className="grid grid-cols-12 gap-4">
           <MiniMenu userid={userid} />
@@ -328,3 +356,13 @@ export default async function Home({ searchParams }) {
 }
 
 //<MenuItem link={`/?mode=tickets${userid ? `&userid=${userid}` : ""}`} name="Tickets" icon="/tickets.svg" size={18} />
+
+const NoJob = ({ jobCase }) => {
+  return (
+    <div className="flex flex-wrap gap-2 rounded border border-gray-400 p-2">
+      <div>{jobCase.date}</div>
+      <div>|</div>
+      <div>{jobCase.name}</div>
+    </div>
+  );
+};
