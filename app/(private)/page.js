@@ -303,7 +303,7 @@ export default async function Home({ searchParams }) {
         )}
 
         <div className="text-center font-bold border border-gray-400 text-white rounded p-4 text-xl">
-          <div className="mb-4 bg-red-500 p-4 rounded">Ποιοί δεν έκαναν της δουλειές τους</div>
+          <div className="mb-4 bg-red-500 p-4 rounded">Ποιοί δεν έκαναν τις δουλειές τους</div>
           <div className="text-gray-400 text-sm flex flex-wrap gap-2 justify-center">
             {NoJobCases.map((jobCase, index) => (
               <NoJob key={`jobCase-index-${index}`} jobCase={jobCase} />
