@@ -23,9 +23,14 @@ const ReviewCard = ({ trade }) => {
   return (
     <div className={`border flex flex-col justify-between border-gray-400 p-4 rounded bg-red-50 ${trade.priority === "high" && ""} ${trade.priority === "medium" && ""} ${trade.priority === "low" && ""}`}>
       <div className="text-center text-sm text-gray-600">{convertToGreekTime(trade.openTime)}</div>
+      <div className="text-center text-sm text-gray-400">{trade._id.toString()}</div>
       <div className={`grid grid-cols-2`}>
         <Participant participant={trade.firstParticipant} />
         <Participant participant={trade.secondParticipant} />
+      </div>
+      <div className={`grid grid-cols-2`}>
+        <div className="text-center text-sm text-gray-600"> {trade.firstParticipant.priority} </div>
+        <div className="text-center text-sm text-gray-600"> {trade.secondParticipant.priority} </div>
       </div>
       <div className="text-center text-sm font-bold">{trade.note}</div>
       <CompletedButton CompleteTrade={CompleteTrade} tradeId={trade._id.toString()} />
