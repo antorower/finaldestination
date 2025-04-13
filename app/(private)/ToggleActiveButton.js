@@ -7,7 +7,7 @@ const ToggleActiveButton = ({ ToggleStatus, id, status }) => {
     if (response.error) toast.error(response.message);
   };
 
-  return <button onClick={Toogle}>{status === "active" ? "🔵" : "🔴"}</button>;
+  return <button onClick={Toogle}>{status === "active" ? "🔴" : "🔵"}</button>;
 };
 
 export default ToggleActiveButton;
