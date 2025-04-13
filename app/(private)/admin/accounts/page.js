@@ -230,7 +230,7 @@ const Phase2Card = ({ account }) => {
     <div className={`p-4 border-2 ${account.needBalanceUpdate ? "border-green-600" : "border-violet-200"} rounded bg-violet-100`}>
       <div className="flex flex-col gap-1 justify-center">
         <Link href={`/?userid=${account.user._id.toString()}`} className="text-center font-semibold text-nowrap overflow-hidden">
-          {account.user.firstName} {account.user.lastName}
+          {account.user.firstName} {account.user.lastName} - {account.user.accounts.length}
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
@@ -268,7 +268,7 @@ const Phase3Card = ({ account }) => {
     <div className={`p-4 border-2 ${account.needBalanceUpdate ? "border-green-600" : "border-orange-200"} rounded bg-orange-100`}>
       <div className="flex flex-col gap-1 justify-center">
         <Link href={`/?userid=${account.user._id.toString()}`} className="text-center font-semibold text-nowrap overflow-hidden">
-          {account.user.firstName} {account.user.lastName}
+          {account.user.firstName} {account.user.lastName} - {account.user.accounts.length}
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
