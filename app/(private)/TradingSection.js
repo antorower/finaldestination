@@ -450,8 +450,16 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
               const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece * 60);
 
               let tradeUser;
-              if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
-              if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
+              let opponentUser;
+              if (trade.firstParticipant.user._id.toString() === user._id.toString()) {
+                tradeUser = trade.firstParticipant;
+                opponentUser = trade.secondParticipant;
+              }
+              if (trade.secondParticipant.user._id.toString() === user._id.toString()) {
+                tradeUser = trade.secondParticipant;
+                opponentUser = trade.firstParticipant;
+              }
+
               return (
                 <OpenTradeItem
                   BeAwareOfTrade={BeAwareOfTrade}
@@ -470,6 +478,8 @@ const TradingSection = async ({ GreeceTime, settings, user, forOpening, mode, ac
                   tradeCheck={tradecheck === "true" ? true : false}
                   trade={tradeUser.trade}
                   tradepar={tradepar}
+                  telephone={tradeUser.user.tel && opponentUser.user.tel ? opponentUser.user.telephone : null}
+                  opponentName={opponentUser.user.firstName + " " + opponentUser.user.lastName}
                   TradeChecked={TradeChecked}
                 />
               );

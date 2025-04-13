@@ -34,6 +34,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     match: [/^\+?[0-9\- ]+$/, "Invalid telephone format"],
   },
+  tel: Boolean,
   bybitEmail: {
     type: String,
     trim: true,

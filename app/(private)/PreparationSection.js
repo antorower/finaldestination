@@ -26,9 +26,16 @@ const PreparationSection = ({ GreeceTime, user, forOpening, settings, mode }) =>
               const timeObject = ConvertToUserTime(trade.openTime, user.hourOffsetFromGreece * 60);
 
               let tradeUser;
-              if (trade.firstParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.firstParticipant;
-              if (trade.secondParticipant.user._id.toString() === user._id.toString()) tradeUser = trade.secondParticipant;
-              return <TomorrowTradeItem key={`tomorrow-${trade._id.toString()}`} account={tradeUser.account.number} openDate={timeObject.date} openTime={timeObject.time} />;
+              let opponentUser;
+              if (trade.firstParticipant.user._id.toString() === user._id.toString()) {
+                tradeUser = trade.firstParticipant;
+                opponentUser = trade.secondParticipant;
+              }
+              if (trade.secondParticipant.user._id.toString() === user._id.toString()) {
+                tradeUser = trade.secondParticipant;
+                opponentUser = trade.firstParticipant;
+              }
+              return <TomorrowTradeItem telephone={tradeUser.user.tel && opponentUser.user.tel ? opponentUser.user.telephone : null} opponentName={opponentUser.user.firstName + " " + opponentUser.user.lastName} key={`tomorrow-${trade._id.toString()}`} account={tradeUser.account.number} openDate={timeObject.date} openTime={timeObject.time} />;
             })}
 
           {(!forOpening || forOpening.length === 0) && <div className="animate-pulse text-gray-500">Δεν υπάρχουν trades για εσένα για αύριο</div>}

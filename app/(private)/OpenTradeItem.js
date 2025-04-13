@@ -3,9 +3,18 @@ import OpenTradeButton from "./OpenTradeButton";
 import Link from "next/link";
 import TradeCheckedButton from "./TradeCheckedButton";
 
-const OpenTradeItem = ({ BeAwareOfTrade, TradeChecked, OpenTrade, tradeId, userId, account, accountId, openDate, openTime, status, accountCheck, tradeCheck, checked, trade }) => {
+const OpenTradeItem = ({ BeAwareOfTrade, telephone, opponentName, TradeChecked, OpenTrade, tradeId, userId, account, accountId, openDate, openTime, status, accountCheck, tradeCheck, checked, trade }) => {
   return (
-    <div className={`grid grid-cols-12 ${status === "try" && "opacity-50"} ${checked && "opacity-25"} border ${status === "accepted" ? "bg-gray-100" : "bg-green-100"} w-full`}>
+    <div className={`grid grid-cols-12 relative ${status === "try" && "opacity-50"} ${checked && "opacity-25"} border ${status === "accepted" ? "bg-gray-100" : "bg-green-100"} w-full`}>
+      {telephone && (
+        <div className="absolute -top-6 right-0">
+          <a href={`tel:${telephone}`} className="flex items-center gap-2" style={{ color: "blue", textDecoration: "none" }}>
+            <div>📞</div>
+            <div>{opponentName}</div>
+            <div>{telephone}</div>
+          </a>
+        </div>
+      )}
       {status === "accepted" && <AwareButton BeAwareOfTrade={BeAwareOfTrade} tradeId={tradeId} userId={userId} />}
       {status !== "try" && (
         <div className={`${status === "open" ? "col-span-12 sm:col-span-2 lg:col-span-2" : "col-span-9 sm:col-span-9 lg:col-span-10"} text-gray-700 flex flex-col justify-center p-2 ${status === "canceled" && "opacity-25"}`}>

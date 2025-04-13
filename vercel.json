@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/scheduling",
-      "schedule": "0 17,18 * * *"
+      "schedule": "0 19,20 * * *"
     }
   ]
 }

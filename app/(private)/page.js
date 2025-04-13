@@ -132,8 +132,8 @@ const GetTrades = async (userId) => {
         { "secondParticipant.user": userId, "secondParticipant.status": { $ne: "closed" } },
       ],
     })
-      .populate("firstParticipant.user", "hourOffsetFromGreece")
-      .populate("secondParticipant.user", "hourOffsetFromGreece")
+      .populate("firstParticipant.user", "hourOffsetFromGreece telephone tel firstName lastName")
+      .populate("secondParticipant.user", "hourOffsetFromGreece telephone tel firstName lastName")
       .populate("firstParticipant.account", "number balance phase")
       .populate("secondParticipant.account", "number balance phase")
       .lean();
@@ -281,7 +281,7 @@ export default async function Home({ searchParams }) {
   if (closeHour === 0) closeHour = 12;
   if (closeHour === -1) closeHour = 11;
   if (closeHour === -2) closeHour = 10;
-
+  console.log(settings);
   return (
     <PageTransition>
       <div className="flex flex-col gap-4 pb-4">
@@ -292,7 +292,7 @@ export default async function Home({ searchParams }) {
         <LeaderFamilyBar leader={user.leader ? `${user.leader?.firstName.slice(0, 1)}. ${user.leader?.lastName}` : null} family={user.family ? `${user.family?.firstName.slice(0, 1)}. ${user.family?.lastName}` : null} />
         <FinanceBar user={user} />
         <ScheduleBar GreeceTime={GreeceTime} user={user} settings={settings} />
-        <ActiveDaysBar mon={settings.monday.active} tue={settings.tuesday.active} wed={settings.wednesday.active} thu={settings.thursday.active} fri={settings.friday.active} />
+        <ActiveDaysBar hourOffsetFromGreece={user.hourOffsetFromGreece} settings={settings} mon={settings.monday.active} tue={settings.tuesday.active} wed={settings.wednesday.active} thu={settings.thursday.active} fri={settings.friday.active} />
 
         {settings[activeDay]?.closeHour?.hour && settings[activeDay]?.closeHour?.minutes && (
           <>
@@ -301,6 +301,8 @@ export default async function Home({ searchParams }) {
             </div>
           </>
         )}
+
+        <div className="bg-green-200 text-gray-700 p-4 animate-bounce text-center text-sm font-bold border border-green-700">ΑΠΕΙΡΑ ΣΗΜΑΝΤΙΚΟ: Κάθε βδομάδα να φροντίζετε να βάζετε τουλάχιστον 1 trade σε κάθε account, έστω και 0.01, γιατί στις 30 μέρες χωρίς trade τα διαγράφουν!! Μην το ξεχνάτε αυτό, είναι άπειρα σημαντικό!</div>
 
         <div className="text-center font-bold border border-gray-400 text-white rounded p-4 text-xl">
           <div className="mb-4 bg-red-500 p-4 rounded">Ποιοί δεν έκαναν τις δουλειές τους</div>
