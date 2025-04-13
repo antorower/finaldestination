@@ -15,7 +15,7 @@ const GetAllAccounts = async () => {
     return await Account.find({ status: { $nin: ["Lost", "Review", "Upgrade Done"] } })
       .populate({
         path: "user",
-        select: "firstName lastName tradingHours",
+        select: "firstName lastName tradingHours accounts",
       })
       .populate({
         path: "company",
@@ -192,7 +192,7 @@ const Phase1Card = ({ account }) => {
     <div className={`p-4 border-2 ${account.needBalanceUpdate ? "border-green-600" : "border-blue-200"} rounded bg-blue-100`}>
       <div className="flex flex-col gap-1 justify-center">
         <Link href={`/?userid=${account.user._id.toString()}`} className="text-center font-semibold text-nowrap overflow-hidden">
-          {account.user.firstName} {account.user.lastName}
+          {account.user.firstName} {account.user.lastName} - {account.user.accounts.length}
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
