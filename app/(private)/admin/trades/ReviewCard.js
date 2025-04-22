@@ -7,9 +7,15 @@ const CompleteTrade = async (tradeId) => {
   "use server";
   try {
     await dbConnect();
-    const trade = await Trade.findById(tradeId);
+    const trade = await Trade.findById(tradeId).populate([{ path: "firstParticipant.account" }, { path: "secondParticipant.account" }]);
     trade.status = "completed";
     await trade.save();
+    trade.firstParticipant.account.adminCaseOn = false;
+    trade.firstParticipant.account.adminNote = "";
+    trade.secondParticipant.account.adminCaseOn = false;
+    trade.secondParticipant.account.adminNote = "";
+    await trade.firstParticipant.account.save();
+    await trade.secondParticipant.account.save();
     return { error: false };
   } catch (error) {
     console.log("Υπήρξε error στην CompleteTrade: ", error);
@@ -33,6 +39,12 @@ const ReviewCard = ({ trade }) => {
         <div className="text-center text-sm text-gray-600"> {trade.secondParticipant.priority} </div>
       </div>
       <div className="text-center text-sm font-bold">{trade.note}</div>
+      <div className="text-center text-sm font-bold">
+        {trade?.firstParticipant?.user?.lastName}: {trade?.firstParticipant?.account?.adminNote}
+      </div>
+      <div className="text-center text-sm font-bold">
+        {trade?.firstParticipant?.user?.lastName}: {trade?.secondParticipant?.account?.adminNote}
+      </div>
       <CompletedButton CompleteTrade={CompleteTrade} tradeId={trade._id.toString()} />
     </div>
   );

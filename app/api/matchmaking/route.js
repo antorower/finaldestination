@@ -519,7 +519,6 @@ export async function GET() {
   }
   console.log("Trades μετά τον πέμπτο κύκλο: ", trades.length);
   // --> Κοινές ώρες, ίδιο phase, progress 8
-
   const progressCycle7 = 8;
   for (let i = 0; i < updatedAccounts.length; i++) {
     const firstAccount = updatedAccounts[i];
