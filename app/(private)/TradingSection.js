@@ -302,6 +302,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     }
 
     if (Math.abs(firstParticipantAccount.phase - secondParticipantAccount.phase) > 0) {
+      console.log("IS DIFFERENT PHASE");
       const isTherePhase3 = firstParticipantAccount.phase === 3 || secondParticipantAccount.phase === 3;
       const phaseDifference = Math.abs(firstParticipantAccount.phase - secondParticipantAccount.phase);
       let phaseFactor = 1;
@@ -315,7 +316,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
           phaseFactor = 2;
         }
       }
-
+      console.log("PHASE FACTOR", phaseFactor);
       if (firstParticipantAccount.phase > secondParticipantAccount.phase) {
         if (firstParticipantRemainingProfit < secondParticipantMaxLoss / 3) {
           firstTakeProfit = firstParticipantRemainingProfit;
