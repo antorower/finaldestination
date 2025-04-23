@@ -318,6 +318,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     console.log("9");
     const minimumProfit = Math.min(firstTakeProfit, secondTakeProfit);
     let lots = (bestPair.lots * minimumProfit) / 1000;
+    console.log("lots 1", lots);
     if (currentTrade.firstParticipant.account.company.maxLots < lots || currentTrade.secondParticipant.account.company.maxLots < lots) {
       console.log("9.1");
       const maxLots = Math.min(currentTrade.firstParticipant.account.company.maxLots, currentTrade.secondParticipant.account.company.maxLots);
@@ -326,16 +327,22 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
     if (firstCost) firstTakeProfit = firstTakeProfit + bestPair.costFactor * lots;
     if (secondCost) secondTakeProfit = secondTakeProfit + bestPair.costFactor * lots;
+    console.log("First Cost ", firstCost);
+    console.log("Second Cost ", secondCost);
 
     if (firstGapTp) {
       firstTakeProfit = firstTakeProfit - settings.targetsGap[firstParticipantPhase] * lots;
+      console.log("firstTakeProfit", firstTakeProfit);
     } else {
       firstStopLoss = firstStopLoss + settings.targetsGap[firstParticipantPhase] * lots;
+      console.log("firstStopLoss", firstStopLoss);
     }
     if (secondGapTp) {
       secondTakeProfit = secondTakeProfit - settings.targetsGap[firstParticipantPhase] * lots;
+      console.log("secondTakeProfit", secondTakeProfit);
     } else {
       secondStopLoss = secondStopLoss + settings.targetsGap[firstParticipantPhase] * lots;
+      console.log("secondStopLoss", secondStopLoss);
     }
     console.log("9.2");
     // Ανάθεση στο currentTrade
@@ -355,6 +362,9 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       stopLoss: Math.floor(secondStopLoss),
     };
     console.log("currentTrade SP", currentTrade.secondParticipant);
+    console.log(currentTrade.firstParticipant.user.toString());
+    console.log(userId);
+    console.log(currentTrade.firstParticipant?.trade?.pair);
     if (currentTrade.firstParticipant.user.toString() === userId && currentTrade.firstParticipant?.trade?.pair) {
       console.log("11.1");
       currentTrade.firstParticipant.status = "open";
@@ -362,6 +372,9 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       currentTrade.firstParticipant.account.note = "Ενημέρωσε Balance";
       await currentTrade.firstParticipant.account.save();
     }
+    console.log(currentTrade.secondParticipant.user.toString());
+    console.log(userId);
+    console.log(currentTrade.secondParticipant?.trade?.pair);
     if (currentTrade.secondParticipant.user.toString() === userId && currentTrade.secondParticipant?.trade?.pair) {
       console.log("11.2");
       currentTrade.secondParticipant.status = "open";
