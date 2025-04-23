@@ -473,7 +473,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     console.log("currentTrade FP", currentTrade.firstParticipant);
     currentTrade.secondParticipant.trade = {
       pair: bestPair.name, // Θα πρέπει να οριστεί
-      lots: secondLots - (Math.random() * (0.11 - 0.05) + 0.05),
+      lots: secondLots - (Math.random() * (0.06 - 0.02) + 0.02),
       position: secondPosition,
       takeProfit: Math.floor(secondTakeProfit),
       stopLoss: Math.floor(secondStopLoss),

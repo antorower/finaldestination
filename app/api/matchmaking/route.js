@@ -926,6 +926,103 @@ export async function GET() {
     }
   }
 
+  // --> Κοινές ώρες
+  for (let i = 0; i < updatedAccounts.length; i++) {
+    const firstAccount = updatedAccounts[i];
+    for (let j = 0; j < updatedAccounts.length; j++) {
+      if (firstAccount.matched) continue;
+      if (i === j) continue;
+      const secondAccount = updatedAccounts[j];
+      if (firstAccount.user === secondAccount.user) continue;
+      if (secondAccount.matched) continue;
+      if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
+      if (firstAccount.company === secondAccount.company) continue;
+
+      const availableMinutes = AvailableMinutes(firstAccount.user, firstAccount.minHour, firstAccount.maxHour, secondAccount.user, secondAccount.minHour, secondAccount.maxHour, true);
+      if (!availableMinutes || availableMinutes.length === 0) continue;
+
+      // --> Βρίσκουμε την βέλτιστη δυνατή ώρα για τον user
+      let selectedTime;
+      if (firstAccount.timePreference === "Early Hours" && secondAccount.timePreference === "Early Hours") {
+        // Επιλέγει τυχαία από τις πρώτες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
+        selectedTime = availableMinutes[Math.floor(Math.random() * Math.min(5, availableMinutes.length))];
+      } else if (firstAccount.timePreference === "Late Hours" && secondAccount.timePreference === "Late Hours") {
+        // Επιλέγει τυχαία από τις τελευταίες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
+        let startIndex = Math.max(0, availableMinutes.length - 5);
+        selectedTime = availableMinutes[startIndex + Math.floor(Math.random() * (availableMinutes.length - startIndex))];
+      } else if (firstAccount.timePreference !== secondAccount.timePreference) {
+        if (firstAccount.modePreference === "Condescending" || secondAccount.modePreference === "Condescending") {
+          // Επιλέγει τυχαία από τις μεσαίες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
+          let midStart = Math.max(0, Math.floor((availableMinutes.length - 5) / 2));
+          selectedTime = availableMinutes[midStart + Math.floor(Math.random() * Math.min(5, availableMinutes.length - midStart))];
+        } else {
+          // Επιλέγει τυχαία από τις πρώτες 5 ή τελευταίες 5 ώρες, αλλά αν υπάρχουν λιγότερες, επιλέγει από όσες υπάρχουν
+          if (Math.random() < 0.5) {
+            selectedTime = availableMinutes[Math.floor(Math.random() * Math.min(5, availableMinutes.length))]; // Από τις πρώτες 5
+          } else {
+            let startIndex = Math.max(0, availableMinutes.length - 5);
+            selectedTime = availableMinutes[startIndex + Math.floor(Math.random() * (availableMinutes.length - startIndex))]; // Από τις τελευταίες 5
+          }
+        }
+      }
+
+      if (!selectedTime) continue;
+
+      userTradeTimes.get(firstAccount.user).push(selectedTime);
+      userTradeTimes.get(secondAccount.user).push(selectedTime);
+
+      const newTrade = {
+        firstParticipant: {
+          user: firstAccount.user,
+          account: firstAccount._id,
+          priority: selectedTime >= firstAccount.minHour && selectedTime <= firstAccount.maxHour ? "high" : "low",
+          progress: firstAccount.progress,
+          status: "pending",
+        },
+        secondParticipant: {
+          user: secondAccount.user,
+          account: secondAccount._id,
+          priority: selectedTime >= secondAccount.minHour && selectedTime <= secondAccount.maxHour ? "high" : "low",
+          progress: secondAccount.progress,
+          status: "pending",
+        },
+        openTime: null,
+        status: "pending",
+        priority: "",
+      };
+
+      const now = new Date();
+      const openTime = new Date(now);
+      openTime.setDate(now.getDate() + 1); // Αυριανή ημερομηνία
+      openTime.setUTCHours(0, 0, 0, 0); // Ξεκινάμε από τα μεσάνυχτα UTC
+
+      // Παίρνουμε το UTC timestamp
+      const utcTimestamp = now.getTime();
+      // Παίρνουμε το timestamp για την Ελλάδα
+      const greeceTime = new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" });
+      const greeceDate = new Date(greeceTime);
+      const greeceTimestamp = greeceDate.getTime();
+
+      // Υπολογίζουμε το offset της Ελλάδας
+      const greeceOffset = Math.ceil((greeceTimestamp - utcTimestamp) / 60000);
+
+      // Μετατροπή του `openTime` στην ώρα Ελλάδας
+      openTime.setUTCMinutes(openTime.getUTCMinutes() - greeceOffset);
+
+      // Προσθέτουμε την επιλεγμένη ώρα (selectedTime)
+      openTime.setUTCMinutes(openTime.getUTCMinutes() + selectedTime);
+
+      if (newTrade.firstParticipant.priority === "high" && newTrade.secondParticipant.priority === "high") newTrade.priority = "high";
+      if (newTrade.firstParticipant.priority === "low" && newTrade.secondParticipant.priority === "low") newTrade.priority = "low";
+      if (newTrade.firstParticipant.priority !== newTrade.secondParticipant.priority) newTrade.priority = "medium";
+
+      newTrade.openTime = openTime;
+      firstAccount.matched = true;
+      secondAccount.matched = true;
+      trades.push(newTrade);
+    }
+  }
+
   /*const progressCycle15 = 10;
   for (let i = 0; i < updatedAccounts.length; i++) {
     const firstAccount = updatedAccounts[i];
@@ -1024,6 +1121,7 @@ export async function GET() {
       trades.push(newTrade);
     }
   }*/
+
   console.log("Trades μετά τον τέταρτο κύκλο: ", trades.length);
   console.log("Συνολικά trades που δημιουργήθηκαν: ", trades.length);
   console.log("Επιτυχές MatchTrading");
