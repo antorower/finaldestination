@@ -279,25 +279,87 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     let secondGapTp = false;
     let secondGapSl = false;
 
-    if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
-      firstTakeProfit = firstParticipantRemainingProfit;
-      firstCost = true;
-      firstGapSl = true;
-    } else {
-      firstTakeProfit = Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8;
-      firstGapTp = true;
-    }
-    secondStopLoss = firstTakeProfit;
+    if (firstParticipantAccount.phase - secondParticipantAccount.phase === 0) {
+      if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
+        firstTakeProfit = firstParticipantRemainingProfit;
+        firstCost = true;
+        firstGapSl = true;
+      } else {
+        firstTakeProfit = Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8;
+        firstGapTp = true;
+      }
+      secondStopLoss = firstTakeProfit;
 
-    if (secondParticipantRemainingProfit < firstParticipantMaxLoss) {
-      secondTakeProfit = secondParticipantRemainingProfit;
-      secondCost = true;
-      secondGapSl = true;
-    } else {
-      secondTakeProfit = Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8;
-      secondGapTp = true;
+      if (secondParticipantRemainingProfit < firstParticipantMaxLoss) {
+        secondTakeProfit = secondParticipantRemainingProfit;
+        secondCost = true;
+        secondGapSl = true;
+      } else {
+        secondTakeProfit = Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8;
+        secondGapTp = true;
+      }
+      firstStopLoss = secondTakeProfit;
     }
-    firstStopLoss = secondTakeProfit;
+
+    if (Math.abs(firstParticipantAccount.phase - secondParticipantAccount.phase) > 0) {
+      const isTherePhase3 = firstParticipantAccount.phase === 3 || secondParticipantAccount.phase === 3;
+      const phaseDifference = Math.abs(firstParticipantAccount.phase - secondParticipantAccount.phase);
+      let phaseFactor = 1;
+      if (phaseDifference === 2) {
+        phaseFactor = 3;
+      }
+      if (phaseDifference === 1) {
+        if (isTherePhase3) {
+          phaseFactor = 1.7;
+        } else {
+          phaseFactor = 2;
+        }
+      }
+
+      if (firstParticipantAccount.phase > secondParticipantAccount.phase) {
+        if (firstParticipantRemainingProfit < secondParticipantMaxLoss / 3) {
+          firstTakeProfit = firstParticipantRemainingProfit;
+          firstCost = true;
+          firstGapSl = true;
+        } else {
+          firstTakeProfit = (Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8) / 3;
+          firstGapTp = true;
+        }
+        secondStopLoss = firstTakeProfit * 3;
+
+        if (secondParticipantRemainingProfit < firstParticipantMaxLoss) {
+          secondTakeProfit = secondParticipantRemainingProfit;
+          secondCost = true;
+          secondGapSl = true;
+        } else {
+          secondTakeProfit = Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8;
+          secondGapTp = true;
+        }
+        firstStopLoss = secondTakeProfit / 3;
+      }
+
+      if (firstParticipantAccount.phase < secondParticipantAccount.phase) {
+        if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
+          firstTakeProfit = firstParticipantRemainingProfit;
+          firstCost = true;
+          firstGapSl = true;
+        } else {
+          firstTakeProfit = Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8;
+          firstGapTp = true;
+        }
+        secondStopLoss = firstTakeProfit / 3;
+
+        if (secondParticipantRemainingProfit < firstParticipantMaxLoss / 3) {
+          secondTakeProfit = secondParticipantRemainingProfit;
+          secondCost = true;
+          secondGapSl = true;
+        } else {
+          secondTakeProfit = (Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8) / 3;
+          secondGapTp = true;
+        }
+        firstStopLoss = secondTakeProfit * 3;
+      }
+    }
 
     console.log("7");
     console.log("firstParticipantRemainingProfit", firstParticipantRemainingProfit);
