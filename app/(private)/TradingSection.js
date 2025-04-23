@@ -329,7 +329,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (secondCost) secondTakeProfit = secondTakeProfit + bestPair.costFactor * lots;
     console.log("First Cost ", firstCost);
     console.log("Second Cost ", secondCost);
-
+    console.log(firstTakeProfit, secondTakeProfit, firstStopLoss, secondStopLoss);
     if (firstGapTp) {
       firstTakeProfit = firstTakeProfit - settings.targetsGap[firstParticipantPhase] * lots;
       console.log("firstTakeProfit", firstTakeProfit);
