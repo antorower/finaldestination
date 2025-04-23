@@ -279,6 +279,8 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     let secondGapTp = false;
     let secondGapSl = false;
 
+    let lostFactor = 1;
+
     if (firstParticipantAccount.phase - secondParticipantAccount.phase === 0) {
       if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
         firstTakeProfit = firstParticipantRemainingProfit;
@@ -308,25 +310,28 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       let phaseFactor = 1;
       if (phaseDifference === 2) {
         phaseFactor = 3;
+        lostFactor = 3;
       }
       if (phaseDifference === 1) {
         if (isTherePhase3) {
           phaseFactor = 1.7;
+          lostFactor = 1.7;
         } else {
           phaseFactor = 2;
+          lostFactor = 2;
         }
       }
       console.log("PHASE FACTOR", phaseFactor);
       if (firstParticipantAccount.phase > secondParticipantAccount.phase) {
-        if (firstParticipantRemainingProfit < secondParticipantMaxLoss / 3) {
+        if (firstParticipantRemainingProfit < secondParticipantMaxLoss / phaseFactor) {
           firstTakeProfit = firstParticipantRemainingProfit;
           firstCost = true;
           firstGapSl = true;
         } else {
-          firstTakeProfit = (Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8) / 3;
+          firstTakeProfit = (Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8) / phaseFactor;
           firstGapTp = true;
         }
-        secondStopLoss = firstTakeProfit * 3;
+        secondStopLoss = firstTakeProfit * phaseFactor;
 
         if (secondParticipantRemainingProfit < firstParticipantMaxLoss) {
           secondTakeProfit = secondParticipantRemainingProfit;
@@ -336,7 +341,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
           secondTakeProfit = Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8;
           secondGapTp = true;
         }
-        firstStopLoss = secondTakeProfit / 3;
+        firstStopLoss = secondTakeProfit / phaseFactor;
       }
 
       if (firstParticipantAccount.phase < secondParticipantAccount.phase) {
@@ -348,17 +353,17 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
           firstTakeProfit = Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8;
           firstGapTp = true;
         }
-        secondStopLoss = firstTakeProfit / 3;
+        secondStopLoss = firstTakeProfit / phaseFactor;
 
-        if (secondParticipantRemainingProfit < firstParticipantMaxLoss / 3) {
+        if (secondParticipantRemainingProfit < firstParticipantMaxLoss / phaseFactor) {
           secondTakeProfit = secondParticipantRemainingProfit;
           secondCost = true;
           secondGapSl = true;
         } else {
-          secondTakeProfit = (Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8) / 3;
+          secondTakeProfit = (Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8) / phaseFactor;
           secondGapTp = true;
         }
-        firstStopLoss = secondTakeProfit * 3;
+        firstStopLoss = secondTakeProfit * phaseFactor;
       }
     }
 
@@ -426,31 +431,41 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       lots = Math.random() * (maxLots * 0.99 - maxLots * 0.9) + maxLots * 0.9;
     }
 
-    if (firstCost) firstTakeProfit = firstTakeProfit + bestPair.costFactor * lots;
-    if (secondCost) secondTakeProfit = secondTakeProfit + bestPair.costFactor * lots;
+    let firstLots = lots;
+    let secondLots = lots;
+
+    if (firstParticipantAccount.phase > secondParticipantAccount.phase) {
+      firstLots = firstLots / lostFactor;
+    }
+    if (firstParticipantAccount.phase < secondParticipantAccount.phase) {
+      secondLots = secondLots / lostFactor;
+    }
+
+    if (firstCost) firstTakeProfit = firstTakeProfit + bestPair.costFactor * firstLots;
+    if (secondCost) secondTakeProfit = secondTakeProfit + bestPair.costFactor * secondLots;
     console.log("First Cost ", firstCost);
     console.log("Second Cost ", secondCost);
     console.log(firstTakeProfit, secondTakeProfit, firstStopLoss, secondStopLoss);
 
     if (firstGapTp) {
-      firstTakeProfit = firstTakeProfit - settings.targetsGap[firstParticipantPhase] * lots;
+      firstTakeProfit = firstTakeProfit - settings.targetsGap[firstParticipantPhase] * firstLots;
       console.log("firstTakeProfit", firstTakeProfit);
     } else {
-      firstStopLoss = firstStopLoss + settings.targetsGap[firstParticipantPhase] * lots;
+      firstStopLoss = firstStopLoss + settings.targetsGap[firstParticipantPhase] * firstLots;
       console.log("firstStopLoss", firstStopLoss);
     }
     if (secondGapTp) {
-      secondTakeProfit = secondTakeProfit - settings.targetsGap[firstParticipantPhase] * lots;
+      secondTakeProfit = secondTakeProfit - settings.targetsGap[firstParticipantPhase] * secondLots;
       console.log("secondTakeProfit", secondTakeProfit);
     } else {
-      secondStopLoss = secondStopLoss + settings.targetsGap[firstParticipantPhase] * lots;
+      secondStopLoss = secondStopLoss + settings.targetsGap[firstParticipantPhase] * secondLots;
       console.log("secondStopLoss", secondStopLoss);
     }
     console.log("9.2");
     // Ανάθεση στο currentTrade
     currentTrade.firstParticipant.trade = {
       pair: bestPair.name, // Θα πρέπει να οριστεί
-      lots: lots - 0.01, // Θα πρέπει να οριστεί
+      lots: firstLots - 0.01, // Θα πρέπει να οριστεί
       position: firstPosition,
       takeProfit: Math.floor(firstTakeProfit),
       stopLoss: Math.floor(firstStopLoss),
@@ -458,7 +473,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     console.log("currentTrade FP", currentTrade.firstParticipant);
     currentTrade.secondParticipant.trade = {
       pair: bestPair.name, // Θα πρέπει να οριστεί
-      lots: lots - (Math.random() * (0.11 - 0.05) + 0.05),
+      lots: secondLots - (Math.random() * (0.11 - 0.05) + 0.05),
       position: secondPosition,
       takeProfit: Math.floor(secondTakeProfit),
       stopLoss: Math.floor(secondStopLoss),
