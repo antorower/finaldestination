@@ -84,7 +84,9 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     console.log("1");
     // Ελέγχω αν και οι δύο traders έχουν δηλώσει το παρών
     if (currentTrade.firstParticipant.user.toString() === userId) {
+      console.log("1.1");
       if (currentTrade.secondParticipant.status === "accepted") {
+        console.log("1.2");
         currentTrade.firstParticipant.status = "try";
         await currentTrade.save();
         const activityTitle = "Προσπάθεια ανοίγματος trade";
@@ -95,7 +97,9 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       }
     }
     if (currentTrade.secondParticipant.user.toString() === userId) {
+      console.log("1.3");
       if (currentTrade.firstParticipant.status === "accepted") {
+        console.log("1.4");
         currentTrade.secondParticipant.status = "try";
         await currentTrade.save();
         const activityTitle = "Προσπάθεια ανοίγματος trade";
@@ -105,9 +109,10 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
         return { error: true, message: "Το trade ακυρώθηκε" };
       }
     }
-
+    console.log("2");
     // Εντοπισμός του σωστού participant και αλλαγή του status του σε "open" αν υπάρχει ήδη trade
     if (currentTrade.firstParticipant.user.toString() === userId && currentTrade.firstParticipant?.trade?.pair) {
+      console.log("2.1");
       currentTrade.firstParticipant.status = "open";
       currentTrade.firstParticipant.account.needBalanceUpdate = true;
       currentTrade.firstParticipant.account.note = "Ενημέρωσε Balance";
@@ -122,6 +127,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     }
 
     if (currentTrade.secondParticipant.user.toString() === userId && currentTrade.secondParticipant?.trade?.pair) {
+      console.log("2.2");
       currentTrade.secondParticipant.status = "open";
       currentTrade.secondParticipant.account.needBalanceUpdate = true;
       currentTrade.secondParticipant.account.note = "Ενημέρωσε Balance";
@@ -135,7 +141,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
       return { error: false, message: "Το trade σου άνοιξε επιτυχώς." };
     }
-    console.log("2");
+    console.log("3");
     // Υπολογίζουμε το χρονικό όριο (40 λεπτά πριν)
     const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000);
 
@@ -166,7 +172,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
         usedPairsBySecondCompany.add(trade.secondParticipant.trade?.pair);
       }
     });
-
+    console.log("4");
     // Επιπλέον, ελέγχουμε αν ο χρήστης έχει ήδη ανοίξει trade σήμερα στην ίδια εταιρεία
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
@@ -186,7 +192,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
         }
       });
     }
-    console.log("3");
+    console.log("5");
     // Φιλτράρουμε τα διαθέσιμα pairs ώστε να μην περιέχουν αυτά που έχουν ήδη χρησιμοποιηθεί
     let filteredPairsFirstCompany = availablePairs.filter((pair) => pair && !usedPairsByFirstCompany.has(pair.name));
     let filteredPairsSecondCompany = availablePairs.filter((pair) => pair && !usedPairsBySecondCompany.has(pair.name));
@@ -253,7 +259,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     const secondParticipantRemainingProfit = (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].target) / 100 + secondParticipantAccount.capital - secondParticipantAccount.balance;
     const secondParticipantRemainingLoss = secondParticipantAccount.balance - secondParticipantAccount.capital + (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].totalDrawdown) / 100;
     const secondParticipantMaxLoss = secondParticipantAccount.manualMaxRisk ? secondParticipantAccount.manualMaxRisk : (secondParticipantAccount.company[secondParticipantPhase].maxRiskPerTrade * secondParticipantAccount.capital) / 100;
-
+    console.log("6");
     let firstTakeProfit;
     let secondTakeProfit;
     let firstStopLoss;
@@ -266,14 +272,16 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     let firstGapSl = true;
     let secondGapTp = true;
     let secondGapSl = true;
-
+    console.log("7");
     if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
+      console.log("7.1");
       firstTakeProfit = firstParticipantRemainingProfit;
       secondStopLoss = firstTakeProfit;
       firstCost = true;
       firstGapTp = false;
     }
     if (secondParticipantRemainingProfit < firstParticipantMaxLoss) {
+      console.log("7.2");
       secondTakeProfit = secondParticipantRemainingProfit;
       firstStopLoss = secondTakeProfit;
       secondCost = true;
@@ -281,21 +289,25 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     }
 
     if (firstParticipantRemainingLoss < secondParticipantMaxLoss) {
+      console.log("7.3");
       firstStopLoss = firstParticipantRemainingLoss;
       secondTakeProfit = firstStopLoss;
       firstGapSl = false;
     }
     if (secondParticipantRemainingLoss < firstParticipantMaxLoss) {
+      console.log("7.4");
       secondStopLoss = secondParticipantRemainingLoss;
       firstTakeProfit = secondStopLoss;
       secondGapSl = false;
     }
-
+    console.log("8");
     if (firstParticipantRemainingProfit >= secondParticipantMaxLoss && firstParticipantRemainingLoss >= secondParticipantMaxLoss) {
+      console.log("8.1");
       firstTakeProfit = Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8;
       secondStopLoss = firstTakeProfit;
     }
     if (secondParticipantRemainingProfit >= firstParticipantMaxLoss && secondParticipantRemainingLoss >= firstParticipantMaxLoss) {
+      console.log("8.2");
       secondTakeProfit = Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8;
       firstStopLoss = secondTakeProfit;
     }
@@ -303,10 +315,11 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     // Τυχαία επιλογή Buy/Sell
     const firstPosition = Math.random() < 0.5 ? "Buy" : "Sell";
     const secondPosition = firstPosition === "Buy" ? "Sell" : "Buy";
-
+    console.log("9");
     const minimumProfit = Math.min(firstTakeProfit, secondTakeProfit);
     let lots = (bestPair.lots * minimumProfit) / 1000;
     if (currentTrade.firstParticipant.account.company.maxLots < lots || currentTrade.secondParticipant.account.company.maxLots < lots) {
+      console.log("9.1");
       const maxLots = Math.min(currentTrade.firstParticipant.account.company.maxLots, currentTrade.secondParticipant.account.company.maxLots);
       lots = Math.random() * (maxLots * 0.99 - maxLots * 0.9) + maxLots * 0.9;
     }
@@ -324,7 +337,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     } else {
       secondStopLoss = secondStopLoss + settings.targetsGap[firstParticipantPhase] * lots;
     }
-
+    console.log("9.2");
     // Ανάθεση στο currentTrade
     currentTrade.firstParticipant.trade = {
       pair: bestPair.name, // Θα πρέπει να οριστεί
@@ -333,7 +346,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       takeProfit: Math.floor(firstTakeProfit),
       stopLoss: Math.floor(firstStopLoss),
     };
-
+    console.log("currentTrade FP", currentTrade.firstParticipant);
     currentTrade.secondParticipant.trade = {
       pair: bestPair.name, // Θα πρέπει να οριστεί
       lots: lots - (Math.random() * (0.11 - 0.05) + 0.05),
@@ -341,20 +354,22 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       takeProfit: Math.floor(secondTakeProfit),
       stopLoss: Math.floor(secondStopLoss),
     };
-
+    console.log("currentTrade SP", currentTrade.secondParticipant);
     if (currentTrade.firstParticipant.user.toString() === userId && currentTrade.firstParticipant?.trade?.pair) {
+      console.log("11.1");
       currentTrade.firstParticipant.status = "open";
       currentTrade.firstParticipant.account.needBalanceUpdate = true;
       currentTrade.firstParticipant.account.note = "Ενημέρωσε Balance";
       await currentTrade.firstParticipant.account.save();
     }
     if (currentTrade.secondParticipant.user.toString() === userId && currentTrade.secondParticipant?.trade?.pair) {
+      console.log("11.2");
       currentTrade.secondParticipant.status = "open";
       currentTrade.secondParticipant.account.needBalanceUpdate = true;
       currentTrade.secondParticipant.account.note = "Ενημέρωσε Balance";
       await currentTrade.secondParticipant.account.save();
     }
-
+    console.log("END");
     const activityTitle = "'Ανοιγμα Trade";
     const activityDescription = "Ο χρήστης τράβηξε το trade από την σελίδα.";
     const activitySign = "neutral";
