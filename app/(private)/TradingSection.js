@@ -273,6 +273,12 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     let secondGapTp = true;
     let secondGapSl = true;
     console.log("7");
+    console.log("firstParticipantRemainingProfit", firstParticipantRemainingProfit);
+    console.log("firstParticipantRemainingLoss", firstParticipantRemainingLoss);
+    console.log("firstParticipantMaxLoss", firstParticipantMaxLoss);
+    console.log("secondParticipantRemainingProfit", secondParticipantRemainingProfit);
+    console.log("secondParticipantRemainingLoss", secondParticipantRemainingLoss);
+    console.log("secondParticipantMaxLoss", secondParticipantMaxLoss);
     if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
       console.log("7.1");
       firstTakeProfit = firstParticipantRemainingProfit;
