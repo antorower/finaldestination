@@ -81,7 +81,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     // Έλεγχος αν η τρέχουσα ώρα είναι μεταξύ 10 λεπτών και ακριβώς πριν το openTime
     //if (nowUTC < tenMinutesBefore) return { error: true, message: "Πάτησε Open Trade 7 με 10 λεπτά πριν την ώρα του trade." };
     //if (nowUTC > openTimeUTC) return { error: true, message: "Δυτυχώς η ώρα πέρασε. Δεν μπορείς να βάλεις trade τώρα και αυτό δεν πρέπει να ξαναγίνει!" };
-
+    console.log("1");
     // Ελέγχω αν και οι δύο traders έχουν δηλώσει το παρών
     if (currentTrade.firstParticipant.user.toString() === userId) {
       if (currentTrade.secondParticipant.status === "accepted") {
@@ -135,7 +135,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
 
       return { error: false, message: "Το trade σου άνοιξε επιτυχώς." };
     }
-
+    console.log("2");
     // Υπολογίζουμε το χρονικό όριο (40 λεπτά πριν)
     const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000);
 
@@ -186,7 +186,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
         }
       });
     }
-
+    console.log("3");
     // Φιλτράρουμε τα διαθέσιμα pairs ώστε να μην περιέχουν αυτά που έχουν ήδη χρησιμοποιηθεί
     let filteredPairsFirstCompany = availablePairs.filter((pair) => pair && !usedPairsByFirstCompany.has(pair.name));
     let filteredPairsSecondCompany = availablePairs.filter((pair) => pair && !usedPairsBySecondCompany.has(pair.name));
