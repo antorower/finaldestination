@@ -29,7 +29,7 @@ export default function LeftBar({ isOwner, isLeader }) {
         <MenuItem icon="/profile.svg" text="Profile" link="/" symbol="" />
         {isLeader && <MenuItem icon="/team.svg" text="Ομάδα" link="/admin" symbol="💎" />}
         <MenuItem icon="/dollar-icon.svg" text="Λογιστικά" link="/accounting" symbol="" />
-        <MenuItem icon="/info.svg" text="Οδηγοί" link="/education" symbol="" />
+        <MenuItem icon="/info.svg" text="Οδηγοί" link="/mistakes-cost" symbol="" />
       </div>
       <div className="flex items-center justify-center p-4 border-t border-gray-800">
         <UserButton />
