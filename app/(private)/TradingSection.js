@@ -242,6 +242,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       return { error: true, message: "Δεν υπάρχουν διαθέσιμα pairs για αυτό το trade." };
     }
     console.log("Best pair:", bestPair.name);
+
     const firstParticipantAccount = currentTrade.firstParticipant.account;
     let firstParticipantPhase;
     if (firstParticipantAccount.phase === 1) firstParticipantPhase = "phase1";
@@ -249,7 +250,8 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (firstParticipantAccount.phase === 3) firstParticipantPhase = "phase3";
     const firstParticipantRemainingProfit = (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].target) / 100 + firstParticipantAccount.capital - firstParticipantAccount.balance;
     const firstParticipantRemainingLoss = firstParticipantAccount.balance - firstParticipantAccount.capital + (firstParticipantAccount.capital * firstParticipantAccount.company[firstParticipantPhase].totalDrawdown) / 100;
-    const firstParticipantMaxLoss = firstParticipantAccount.manualMaxRisk ? firstParticipantAccount.manualMaxRisk : (firstParticipantAccount.company[firstParticipantPhase].maxRiskPerTrade * firstParticipantAccount.capital) / 100;
+    let firstParticipantMaxLoss = firstParticipantAccount.manualMaxRisk ? firstParticipantAccount.manualMaxRisk : (firstParticipantAccount.company[firstParticipantPhase].maxRiskPerTrade * firstParticipantAccount.capital) / 100;
+    firstParticipantMaxLoss = Math.min(firstParticipantMaxLoss, firstParticipantRemainingLoss);
 
     const secondParticipantAccount = currentTrade.secondParticipant.account;
     let secondParticipantPhase;
@@ -258,20 +260,45 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (secondParticipantAccount.phase === 3) secondParticipantPhase = "phase3";
     const secondParticipantRemainingProfit = (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].target) / 100 + secondParticipantAccount.capital - secondParticipantAccount.balance;
     const secondParticipantRemainingLoss = secondParticipantAccount.balance - secondParticipantAccount.capital + (secondParticipantAccount.capital * secondParticipantAccount.company[secondParticipantPhase].totalDrawdown) / 100;
-    const secondParticipantMaxLoss = secondParticipantAccount.manualMaxRisk ? secondParticipantAccount.manualMaxRisk : (secondParticipantAccount.company[secondParticipantPhase].maxRiskPerTrade * secondParticipantAccount.capital) / 100;
+    let secondParticipantMaxLoss = secondParticipantAccount.manualMaxRisk ? secondParticipantAccount.manualMaxRisk : (secondParticipantAccount.company[secondParticipantPhase].maxRiskPerTrade * secondParticipantAccount.capital) / 100;
+    secondParticipantMaxLoss = Math.min(secondParticipantMaxLoss, secondParticipantRemainingLoss);
+
     console.log("6");
     let firstTakeProfit;
     let secondTakeProfit;
     let firstStopLoss;
     let secondStopLoss;
-    //
+
+    // Όταν πρέπει να περάσει δίνω στο tp και το cost
     let firstCost = false;
     let secondCost = false;
 
-    let firstGapTp = true;
-    let firstGapSl = true;
-    let secondGapTp = true;
-    let secondGapSl = true;
+    // Προτιμώ να δίνω gap με πιο χαμηλό tp αλλά αν είναι να περάσει προτιμώ πιο υψηλό sl
+    let firstGapTp = false;
+    let firstGapSl = false;
+    let secondGapTp = false;
+    let secondGapSl = false;
+
+    if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
+      firstTakeProfit = firstParticipantRemainingProfit;
+      firstCost = true;
+      firstGapSl = true;
+    } else {
+      firstTakeProfit = Math.random() * (secondParticipantMaxLoss - secondParticipantMaxLoss * 0.8) + secondParticipantMaxLoss * 0.8;
+      firstGapTp = true;
+    }
+    secondStopLoss = firstTakeProfit;
+
+    if (secondParticipantRemainingProfit < firstParticipantMaxLoss) {
+      secondTakeProfit = secondParticipantRemainingProfit;
+      secondCost = true;
+      secondGapSl = true;
+    } else {
+      secondTakeProfit = Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8;
+      secondGapTp = true;
+    }
+    firstStopLoss = secondTakeProfit;
+
     console.log("7");
     console.log("firstParticipantRemainingProfit", firstParticipantRemainingProfit);
     console.log("firstParticipantRemainingLoss", firstParticipantRemainingLoss);
@@ -279,7 +306,12 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     console.log("secondParticipantRemainingProfit", secondParticipantRemainingProfit);
     console.log("secondParticipantRemainingLoss", secondParticipantRemainingLoss);
     console.log("secondParticipantMaxLoss", secondParticipantMaxLoss);
-    if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
+
+    console.log("First Take Profit: ", firstTakeProfit);
+    console.log("First Stop Loss: ", firstStopLoss);
+    console.log("Second Take Profit: ", secondTakeProfit);
+    console.log("Scond Stop Loss: ", secondStopLoss);
+    /* if (firstParticipantRemainingProfit < secondParticipantMaxLoss) {
       console.log("7.1");
       firstTakeProfit = firstParticipantRemainingProfit;
       secondStopLoss = firstTakeProfit;
@@ -316,7 +348,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       console.log("8.2");
       secondTakeProfit = Math.random() * (firstParticipantMaxLoss - firstParticipantMaxLoss * 0.8) + firstParticipantMaxLoss * 0.8;
       firstStopLoss = secondTakeProfit;
-    }
+    }*/
 
     // Τυχαία επιλογή Buy/Sell
     const firstPosition = Math.random() < 0.5 ? "Buy" : "Sell";
@@ -336,6 +368,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     console.log("First Cost ", firstCost);
     console.log("Second Cost ", secondCost);
     console.log(firstTakeProfit, secondTakeProfit, firstStopLoss, secondStopLoss);
+
     if (firstGapTp) {
       firstTakeProfit = firstTakeProfit - settings.targetsGap[firstParticipantPhase] * lots;
       console.log("firstTakeProfit", firstTakeProfit);
