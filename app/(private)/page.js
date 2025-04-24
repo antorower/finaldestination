@@ -346,7 +346,6 @@ export default async function Home({ searchParams }) {
           </div>
         </div>
 
-        <StatsComponent user={user} />
         {isOwner && (
           <div className="fixed bottom-5 right-5">
             <AddAccountLink userid={userid} />

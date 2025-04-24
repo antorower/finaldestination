@@ -2,9 +2,9 @@ export const dynamic = "force-dynamic";
 
 const StatsComponent = ({ user }) => {
   const allAccounts = user.allAccounts.phase1 + user.allAccounts.phase2 + user.allAccounts.phase3 + 15;
-  const phase1 = user.allAccounts.phase1 + 6;
-  const phase2 = user.allAccounts.phase2 + 5;
-  const phase3 = user.allAccounts.phase3 + 4;
+  const phase1 = user.allAccounts.phase1;
+  const phase2 = user.allAccounts.phase2;
+  const phase3 = user.allAccounts.phase3;
 
   // Υπολογίζουμε τα col-span βασισμένα στο ποσοστό επί 12
   let phase1ColSpan = Math.ceil(allAccounts > 0 ? (phase1 / allAccounts) * 12 : 4);
