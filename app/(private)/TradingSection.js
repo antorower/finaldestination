@@ -434,10 +434,10 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     let firstLots = lots;
     let secondLots = lots;
 
-    if (firstParticipantAccount.phase > secondParticipantAccount.phase) {
+    if (firstParticipantAccount.phase < secondParticipantAccount.phase) {
       firstLots = firstLots * lostFactor;
     }
-    if (secondParticipantAccount.phase > firstParticipantAccount.phase) {
+    if (secondParticipantAccount.phase < firstParticipantAccount.phase) {
       secondLots = secondLots * lostFactor;
     }
 
