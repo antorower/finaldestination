@@ -428,7 +428,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     if (currentTrade.firstParticipant.account.company.maxLots < lots || currentTrade.secondParticipant.account.company.maxLots < lots) {
       console.log("9.1");
       const maxLots = Math.min(currentTrade.firstParticipant.account.company.maxLots, currentTrade.secondParticipant.account.company.maxLots);
-      lots = Math.random() * (maxLots * 0.99 - maxLots * 0.9) + maxLots * 0.9;
+      lots = Math.random() * (maxLots * 1.2 - maxLots * 0.8) + maxLots * 0.8;
     }
 
     let firstLots = lots;
