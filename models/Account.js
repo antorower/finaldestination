@@ -212,15 +212,13 @@ AccountSchema.methods.updateBalance = async function (newBalance, tp, sl) {
       }
     }
     // 🟢 Έλεγχος αν έχασε το όριο
-    else if (this.balance <= finalDrawdownBalance) {
+    else if (this.balance + 30 <= finalDrawdownBalance) {
       this.status = "Review";
       this.lostDate = now;
 
       const user = await mongoose.model("User").findById(this.user);
-      if (user && Array.isArray(user.accounts)) {
-        user.accounts = user.accounts.filter((accId) => accId.toString() !== this._id.toString());
-        await user.save();
-      }
+      user.accounts = user.accounts.filter((accId) => accId.toString() !== this._id.toString());
+      await user.save();
     }
 
     // ✅ Αποθήκευση των αλλαγών
