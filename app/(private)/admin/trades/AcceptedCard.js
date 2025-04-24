@@ -14,7 +14,7 @@ export default AcceptedCard;
 
 const Participant = ({ participant }) => {
   return (
-    <div className={`p-4 flex flex-col gap-2`}>
+    <div className={`p-4 flex flex-col justify-center gap-2`}>
       <div className={`text-center font-bold ${participant.status === "accepted" && "text-green-500"}`}>
         {participant.user.firstName.slice(0, 8)} {participant.user.lastName.slice(0, 3)}.
       </div>
@@ -28,7 +28,9 @@ const Participant = ({ participant }) => {
           <div>{participant.account.balance}</div>
         </div>
       </div>
-      <div className={`${participant.priority === "high" && participant.status === "rejected" && "animate-bounce text-red-500 text-center text-xs"}`}>{participant.priority}</div>
+
+      <div className={`text-center ${participant.priority === "high" && participant.status === "rejected" && "animate-bounce text-red-500 text-center text-xs"}`}>{participant.priority}</div>
+      <div className="text-center">{participant.status}</div>
       {participant?.trade?.pair && (
         <div className="flex flex-col items-center justify-center">
           <div className="text-center">{participant.trade.pair}</div>
