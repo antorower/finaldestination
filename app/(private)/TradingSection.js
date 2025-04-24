@@ -59,7 +59,7 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     const todaySettings = settings[today];
 
     if (!todaySettings?.active) {
-      //return { error: true, message: "Οι συναλλαγές δεν είναι ενεργές για σήμερα." };
+      return { error: true, message: "Οι συναλλαγές δεν είναι ενεργές για σήμερα." };
     }
 
     // Το trade που προσπαθούμε να ανοίξουμε
@@ -79,8 +79,8 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
     const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000);
 
     // Έλεγχος αν η τρέχουσα ώρα είναι μεταξύ 10 λεπτών και ακριβώς πριν το openTime
-    //if (nowUTC < tenMinutesBefore) return { error: true, message: "Πάτησε Open Trade 7 με 10 λεπτά πριν την ώρα του trade." };
-    //if (nowUTC > openTimeUTC) return { error: true, message: "Δυτυχώς η ώρα πέρασε. Δεν μπορείς να βάλεις trade τώρα και αυτό δεν πρέπει να ξαναγίνει!" };
+    if (nowUTC < tenMinutesBefore) return { error: true, message: "Πάτησε Open Trade 7 με 10 λεπτά πριν την ώρα του trade." };
+    if (nowUTC > openTimeUTC) return { error: true, message: "Δυτυχώς η ώρα πέρασε. Δεν μπορείς να βάλεις trade τώρα και αυτό δεν πρέπει να ξαναγίνει!" };
     console.log("1");
     // Ελέγχω αν και οι δύο traders έχουν δηλώσει το παρών
     if (currentTrade.firstParticipant.user.toString() === userId) {

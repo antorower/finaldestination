@@ -302,7 +302,7 @@ export default async function Home({ searchParams }) {
           </>
         )}
 
-        <div className="bg-green-200 text-gray-700 p-4 animate-bounce text-center text-sm font-bold border border-green-700">ΑΠΕΙΡΑ ΣΗΜΑΝΤΙΚΟ: Κάθε βδομάδα να φροντίζετε να βάζετε τουλάχιστον 1 trade σε κάθε account, έστω και 0.01, γιατί στις 30 μέρες χωρίς trade τα διαγράφουν!! Μην το ξεχνάτε αυτό, είναι άπειρα σημαντικό!</div>
+        <div className="bg-green-200 text-gray-700 p-4 animate-bounce text-center text-sm font-bold border border-green-700 opacity-25">ΑΠΕΙΡΑ ΣΗΜΑΝΤΙΚΟ: Κάθε βδομάδα να φροντίζετε να βάζετε τουλάχιστον 1 trade σε κάθε account, έστω και 0.01, γιατί στις 30 μέρες χωρίς trade τα διαγράφουν!! Μην το ξεχνάτε αυτό, είναι άπειρα σημαντικό!</div>
 
         {/* <div className="text-center font-bold border border-gray-400 text-white rounded p-4 text-xl">
           <div className="mb-4 bg-red-500 p-4 rounded">Ποιοί δεν έκαναν τις δουλειές τους</div>
