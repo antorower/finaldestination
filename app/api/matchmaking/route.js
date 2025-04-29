@@ -161,7 +161,7 @@ export async function GET() {
     };
   });
   // --> Τα κάνει sort με βάση το progress τους
-  updatedAccounts.sort((a, b) => a.progress - b.progress);
+  updatedAccounts.sort((a, b) => b.progress - a.progress);
 
   //--> Map με τους users και ένα array για τις ωρες
   const userTradeTimes = new Map();
