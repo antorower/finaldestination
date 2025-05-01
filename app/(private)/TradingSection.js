@@ -142,10 +142,10 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       return { error: false, message: "Το trade σου άνοιξε επιτυχώς." };
     }
     console.log("3");
-    // Υπολογίζουμε το χρονικό όριο (40 λεπτά πριν)
-    const fortyMinutesAgo = new Date(Date.now() - 40 * 60 * 1000);
+    // Υπολογίζουμε το χρονικό όριο (20 λεπτά πριν) (ήταν 40 γι αυτο λεγεται fortyMinutesAgo)
+    const fortyMinutesAgo = new Date(Date.now() - 20 * 60 * 1000);
 
-    // Παίρνουμε όλα τα trades που είναι accepted ή open και έχουν openTime μέσα στα τελευταία 40 λεπτά
+    // Παίρνουμε όλα τα trades που είναι accepted ή open και έχουν openTime μέσα στα τελευταία 20 λεπτά
     const allTrades = await Trade.find({
       status: { $in: ["accepted", "open"] },
       openTime: { $gte: fortyMinutesAgo },
