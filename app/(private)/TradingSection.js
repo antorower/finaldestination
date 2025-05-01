@@ -154,8 +154,8 @@ const OpenTrade = async ({ tradeId, userId, accountId }) => {
       .populate("secondParticipant.account");
 
     // Όλα τα διαθέσιμα pairs από τα settings της ημέρας
-    //let availablePairs = todaySettings.pairs;
-    let availablePairs = await Pair.find();
+    let availablePairs = todaySettings.pairs;
+    //let availablePairs = await Pair.find();
     // IDs των εταιρειών των συμμετεχόντων
     const firstCompanyId = currentTrade.firstParticipant.account.company._id.toString();
     const secondCompanyId = currentTrade.secondParticipant.account.company._id.toString();
