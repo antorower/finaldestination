@@ -8,6 +8,7 @@ import User from "@/models/User";
 import InfoButton from "@/components/InfoButton";
 import Nav from "./NavigatorComp";
 import DeleteOffer from "./DeleteOffer";
+import { revalidatePath } from "next/cache";
 
 const GetAllAccounts = async () => {
   "use server";
@@ -104,6 +105,7 @@ const OfferDone = async ({ accountId }) => {
   "use server";
   try {
     await dbConnect();
+    revalidatePath("/admin/accounts");
     const account = await Account.findById(accountId);
     if (!account) return false;
     account.offer = null;
