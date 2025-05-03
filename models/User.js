@@ -150,25 +150,13 @@ const UserSchema = new mongoose.Schema({
 
   // 🟢 Stats
   mistakes: {
-    withCost: {
-      count: {
-        type: Number,
-        default: 0,
-      },
-      amount: {
-        type: Number,
-        default: 0,
-      },
+    count: {
+      type: Number,
+      default: 0,
     },
-    withoutCost: {
-      count: {
-        type: Number,
-        default: 0,
-      },
-      amount: {
-        type: Number,
-        default: 0,
-      },
+    amount: {
+      type: Number,
+      default: 0,
     },
   },
   bonuses: {

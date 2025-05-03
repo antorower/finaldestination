@@ -12,7 +12,6 @@ export async function GET() {
   console.log("Ξεκινάει ο έλεγχος του trading");
   // Αυτό τρέχει ακριβώς μετά το άνοιγμα των trades
   // Για να δούμε αν κάποιος δεν άνοιξε τα trades του
-  // Ελεγμένο
 
   const greeceTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" }));
   const greeceHour = greeceTime.getHours();
@@ -58,7 +57,7 @@ export async function GET() {
   ]);
 
   const invoices = [];
-  const userTotalProfits = {}; // Για συγκέντρωση των συνολικών ποινών/μπόνους ανά χρήστη
+  const userTotalProfits = {};
   const userPenaltiesCount = {};
   const userPenaltiesAmount = {};
   const userBonusesCount = {};
@@ -73,48 +72,48 @@ export async function GET() {
       const participant = trade[participantKey];
 
       if (!participant.user) return;
+      if (participant.status === "try") return;
 
       let profitAmount = 0;
       let category = "Mistake";
       let title = "";
       let description = "";
-      let adminNote = "";
 
-      // 🟥 CASE 1: Accepted -> Ποινή 30$
+      // 🟥 CASE: Accepted -> Ποινή 30$
       if (participant.status === "accepted") {
         profitAmount = -30;
-        title = "Missed Trade";
-        description = `Ο χρήστης δήλωσε ότι θα βάλει το trade και δεν το έβαλε. Ποινή 30$.`;
+        title = "Accepted Trade Ξεχάστηκε";
+        description = `Ο χρήστης ξέχασε το trade του σήμερα.`;
         if (!forgetedTrades[participant.user._id]) {
           forgetedTrades[participant.user._id] = {};
         }
         forgetedTrades[participant.user._id].toOpen = (forgetedTrades[participant.user._id].toOpen || 0) + 1;
       }
 
+      // 🟥 CASE: Accepted -> Ποινή 30$
       if (!participant.checked && participant.status === "open") {
         profitAmount = -15;
         title = "Δεν Έγινε Έλεγχος";
-        description = `Ο χρήστης δεν έκανε έλεγχο αφού έβαλε το trade. Ποινή 15$.`;
+        description = `Ο χρήστης δεν έκανε έλεγχο αφού έβαλε το trade.`;
       }
 
-      // 🟥 CASE 2: Aware -> Ποινή 100$
+      // 🟥 CASE: Aware -> Ποινή 100$
       if (participant.status === "aware") {
         profitAmount = -100;
-        title = "Missed Trade";
-        adminNote = "Πρέπει να χρεωθεί και την αξία του trade χειροκίνητα γιατί πάτησε aware αλλά δεν έβαλε το trade.";
-        description = `Ο χρήστης δήλωσε ότι ήταν στον υπολογιστή την ώρα του trade ${trade._id.toString()} και τελικά δεν το έβαλε. Εκτός από τα 100$ που χρεώθηκε ήδη θα χρεωθεί και την αξία του trade χειροκίνητα. Ποινή 100$.`;
+        title = "Aware Trade Ξεχάστηκε";
+        description = `Ο χρήστης δήλωσε ότι ήταν στον υπολογιστή την ώρα του trade και τελικά δεν το έβαλε.`;
         if (!forgetedTrades[participant.user._id]) {
           forgetedTrades[participant.user._id] = {};
         }
         forgetedTrades[participant.user._id].toOpen = (forgetedTrades[participant.user._id].toOpen || 0) + 1;
       }
 
-      // 🟩 CASE 4: Open (Low Priority) -> Bonus 3
+      // 🟩 CASE: Open (Low Priority) -> Bonus 3
       if (participant.status === "open" && participant.priority === "low") {
         profitAmount = 5;
         category = "Bonus";
-        title = "Low Priority Execution";
-        description = "Ο χρήστης άνοιξε ένα low priority trade. Μπόνους 5$.";
+        title = "Low Priority Μπήκε";
+        description = "Ο χρήστης άνοιξε ένα low priority trade και πήρε μπόνους.";
       }
 
       if (profitAmount !== 0) {
@@ -130,7 +129,6 @@ export async function GET() {
           category: category,
           amount: Math.abs(profitAmount),
           status: "Completed",
-          adminNote: adminNote,
         });
 
         userTotalProfits[participant.user._id] = (userTotalProfits[participant.user._id] || 0) + profitAmount;
@@ -181,18 +179,18 @@ export async function GET() {
     const bonusAmount = userBonusesAmount[userId] || 0;
     const forgetedTradesToOpen = forgetedTrades[userId]?.toOpen || 0;
 
-    if (forgetedTradesToOpen > 0) {
-      updateFields.$inc["trades.forgeted.toOpen"] = forgetedTradesToOpen;
-    }
-
     if (penaltyCount > 0) {
-      updateFields.$inc["mistakes.withoutCost.count"] = penaltyCount;
-      updateFields.$inc["mistakes.withoutCost.amount"] = penaltyAmount;
+      updateFields.$inc["mistakes.count"] = penaltyCount;
+      updateFields.$inc["mistakes.amount"] = penaltyAmount;
     }
 
     if (bonusCount > 0) {
       updateFields.$inc["bonuses.count"] = bonusCount;
       updateFields.$inc["bonuses.amount"] = bonusAmount;
+    }
+
+    if (forgetedTradesToOpen > 0) {
+      updateFields.$inc["trades.forgeted.toOpen"] = forgetedTradesToOpen;
     }
 
     if (Object.keys(updateFields.$inc).length === 0) {
