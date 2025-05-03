@@ -214,7 +214,7 @@ const Phase1Card = ({ account }) => {
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
-            <div className="text-xs">{account.isOnBoarding ? "🔴" : "🔵"}</div>
+            <div className={`text-xs ${account.adminCaseOn && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </Link>
           <div className={`text-center text-sm`}>{account.status}</div>
@@ -236,8 +236,6 @@ const Phase1Card = ({ account }) => {
         <div className="text-center text-sm font-bold">
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
-
-        {account.adminCaseOn && <div className="text-center text-xs bg-blue-red p-2 rounded border border-red-400">Admin Case On</div>}
 
         <div className="text-center text-xs bg-blue-200 p-2 rounded border border-blue-400">{account.note ? account.note : "-"}</div>
       </div>
@@ -254,7 +252,7 @@ const Phase2Card = ({ account }) => {
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
-            <div className="text-xs">{account.isOnBoarding ? "🔴" : "🔵"}</div>
+            <div className={`text-xs ${account.adminCaseOn && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </Link>
           <div className={`text-center text-sm`}>{account.status}</div>
@@ -277,8 +275,6 @@ const Phase2Card = ({ account }) => {
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
 
-        {account.adminCaseOn && <div className="text-center text-xs bg-blue-red p-2 rounded border border-red-400">Admin Case On</div>}
-
         <div className="text-center text-xs bg-violet-200 p-2 rounded border border-violet-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
@@ -294,7 +290,7 @@ const Phase3Card = ({ account }) => {
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
-            <div className="text-xs">{account.isOnBoarding ? "🔴" : "🔵"}</div>
+            <div className={`text-xs ${account.adminCaseOn && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </Link>
           <div className={`text-center text-sm`}>{account.status}</div>
@@ -318,8 +314,6 @@ const Phase3Card = ({ account }) => {
         </div>
 
         {account.offer && <DeleteOffer DeleteTheOffer={OfferDone} accountId={account._id.toString()} offer={account.offer} />}
-
-        {account.adminCaseOn && <div className="text-center text-xs bg-blue-red p-2 rounded border border-red-400">Admin Case On</div>}
 
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
