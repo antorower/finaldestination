@@ -43,6 +43,7 @@ const ChangeTradeStatus = async ({ tradeId, userId, status, accountId, priority 
       trade.secondParticipant.account.note = status === "accepted" ? "Επερχόμενο Trade" : "";
       await trade.secondParticipant.account.save();
     }
+
     await trade.save();
 
     // Εισαγωγή του activity

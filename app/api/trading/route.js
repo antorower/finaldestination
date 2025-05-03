@@ -12,6 +12,7 @@ export async function GET() {
   console.log("Ξεκινάει ο έλεγχος του trading");
   // Αυτό τρέχει ακριβώς μετά το άνοιγμα των trades
   // Για να δούμε αν κάποιος δεν άνοιξε τα trades του
+  // Είναι φτιαγμένο και ελεγμένο
 
   const greeceTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" }));
   const greeceHour = greeceTime.getHours();
@@ -205,10 +206,10 @@ export async function GET() {
     };
   });
 
+  // Μαζικές Ενημερώσεις χρηστών και trades
   if (userUpdates.length > 0) await User.bulkWrite(userUpdates);
-
-  // Μαζική ενημέρωση των trades σε status "review"
   if (tradeUpdates.length > 0) await Trade.bulkWrite(tradeUpdates);
   revalidatePath("/", "layout");
+  console.log("Τελείωσε ο έλεγχος του trading");
   return NextResponse.json({ success: true });
 }

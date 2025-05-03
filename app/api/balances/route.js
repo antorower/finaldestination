@@ -83,11 +83,11 @@ export async function GET() {
       let description = "";
       let adminNote = "";
 
-      // 🟥 CASE 1: Δεν ενημερώθηκε το balance -> Ποινή 100$
+      // 🟥 CASE 1: Δεν ενημερώθηκε το balance
       if (participant.status === "open") {
         profitAmount = -100;
         title = "Μη ενημερωμένο balance";
-        description = `Ο χρήστης δεν έχει ενημερώσει το balance του ή/και δεν έχει κλείσει το trade του. Ποινή 100$.`;
+        description = `Ο χρήστης δεν έχει ενημερώσει το balance του ή/και δεν έχει κλείσει το trade του.`;
         if (!forgetedTrades[participant.user._id]) {
           forgetedTrades[participant.user._id] = {};
         }
@@ -136,12 +136,28 @@ export async function GET() {
     if (trade.firstParticipant.status === "open" || trade.secondParticipant.status === "open") {
       needReview = true;
     } else {
-      if (trade.firstParticipant.profit < 0 && trade.secondParticipant.profit < 0) needReview = true;
-      if (trade.firstParticipant.profit > 0 && trade.secondParticipant.profit > 0) needReview = true;
-      if (trade.firstParticipant.profit > trade.firstParticipant.trade.takeProfit * 1.1) needReview = true;
-      if (trade.firstParticipant.profit < 0 && Math.abs(trade.firstParticipant.profit) > trade.firstParticipant.trade.stopLoss * 1.15) needReview = true;
-      if (trade.secondParticipant.profit > trade.secondParticipant.trade.takeProfit * 1.1) needReview = true;
-      if (trade.secondParticipant.profit < 0 && Math.abs(trade.secondParticipant.profit) > trade.secondParticipant.trade.stopLoss * 1.15) needReview = true;
+      if (trade.firstParticipant.profit < 0 && trade.secondParticipant.profit < 0) {
+        needReview = true;
+        tradeNote = `Χάσανε και οι δύο traders.`;
+      }
+      if (trade.firstParticipant.profit > 0 && trade.secondParticipant.profit > 0) {
+        needReview = true;
+        tradeNote = `Κέρδισαν και οι δύο traders.`;
+      }
+      if (trade.firstParticipant.profit > trade.firstParticipant.trade.takeProfit * 1.1) {
+        needReview = true;
+        tradeNote = `Ο χρήστης κέρδισε παραπάνω από το take profit.`;
+      }
+      if (trade.firstParticipant.profit < 0 && Math.abs(trade.firstParticipant.profit) > trade.firstParticipant.trade.stopLoss * 1.15) {
+      }
+      if (trade.secondParticipant.profit > trade.secondParticipant.trade.takeProfit * 1.1) {
+        needReview = true;
+        tradeNote = `Ο χρήστης κέρδισε παραπάνω από το take profit.`;
+      }
+      if (trade.secondParticipant.profit < 0 && Math.abs(trade.secondParticipant.profit) > trade.secondParticipant.trade.stopLoss * 1.15) {
+        needReview = true;
+        tradeNote = `Ο χρήστης έχασε πολλά παραπάνω από το stop loss.`;
+      }
     }
 
     let totalProfit;

@@ -12,7 +12,6 @@ export async function GET() {
   // Αυτό τρέχει αμέσως μετά που θα έχουν αποδεχτούν οι users τα trades τους
   // Σκοπός είνα να δεί αν κάποια high priority trades έχουν γίνει cancel
   // Αν κάποιοι δεν έχουν κάνει καν τον κόπο να αποδεχτούν ή να απορρίψουν
-  // Τέλος - Ελεγμένο
 
   const greeceTime = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Athens" }));
   const greeceHour = greeceTime.getHours();
@@ -89,7 +88,7 @@ export async function GET() {
         if (participant.priority === "high") {
           profitAmount = -20;
           title = "High Priority Ακυρωμένο";
-          description = `Ο χρήστης ακύρωσε high priority trade. Χρέωση: 20$.`;
+          description = `Ο χρήστης ακύρωσε high priority trade.`;
           if (!rejectedTrades[participant.user._id]) {
             rejectedTrades[participant.user._id] = {};
           }
@@ -123,12 +122,12 @@ export async function GET() {
         if (participant.priority === "high") {
           profitAmount = -50;
           title = "High Priority ξεχασμένο";
-          description = `Ο χρήστης ούτε αποδέχτηκε ούτε απέρριψε high priority trade. Χρέωση 50$.`;
+          description = `Ο χρήστης ούτε αποδέχτηκε ούτε απέρριψε high priority trade.`;
         }
         if (participant.priority === "low") {
           profitAmount = -5;
           title = "Low Priority Ξεχασμένο";
-          description = `Ο χρήστης ούτε αποδέχτηκε ούτε απέρριψε low priority trade. Ποινή 5$.`;
+          description = `Ο χρήστης ούτε αποδέχτηκε ούτε απέρριψε low priority trade.`;
         }
         if (!forgetedTrades[participant.user._id]) {
           forgetedTrades[participant.user._id] = {};
