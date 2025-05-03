@@ -108,7 +108,7 @@ const OfferDone = async ({ accountId }) => {
     revalidatePath("/admin/accounts");
     const account = await Account.findById(accountId);
     if (!account) return false;
-    account.offer = null;
+    account.offer = "";
     await account.save();
     return { error: false, message: "Η προσφορά διαγράφηκε" };
   } catch (error) {
