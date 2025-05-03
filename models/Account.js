@@ -100,6 +100,8 @@ const AccountSchema = new mongoose.Schema(
     server: String,
 
     note: String,
+
+    offer: String,
   },
   { timestamps: true }
 );

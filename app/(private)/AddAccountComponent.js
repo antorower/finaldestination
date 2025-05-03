@@ -6,7 +6,7 @@ import Account from "@/models/Account";
 import User from "@/models/User";
 import { AddActivity } from "@/library/AddActivity";
 
-const CreateNewAccount = async ({ id, company, capital, phase, balance, number }) => {
+const CreateNewAccount = async ({ id, company, capital, phase, balance, number, offer }) => {
   "use server";
   if (!id || !company || !capital) return { error: true, message: "Συμπλήρωσε όλα τα στοιχεία" };
   try {
@@ -21,6 +21,7 @@ const CreateNewAccount = async ({ id, company, capital, phase, balance, number }
       isOnBoarding: true,
       needBalanceUpdate: false,
       note: number ? null : "Νέα Αγορά Account",
+      offer: offer || null,
     });
     if (number) newAccount.number = number;
     await newAccount.save();

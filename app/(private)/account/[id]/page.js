@@ -119,6 +119,7 @@ const UpgradeAccount = async ({ accountId, newNumber, login, password, server })
       password: password,
       server: server,
     });
+    if (account.offer) newAccount.offer = account.offer;
     await newAccount.save();
     await account.user.addAccount(newAccount._id.toString());
     return { error: false };

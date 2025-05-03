@@ -9,10 +9,11 @@ const AddAccountForm = ({ CreateNewAccount, companies, id }) => {
   const [phase, setPhase] = useState(1);
   const [balance, setBalance] = useState("");
   const [number, setNumber] = useState("");
+  const [offer, setOffer] = useState("");
 
   const router = useRouter();
   const Create = async () => {
-    const response = await CreateNewAccount({ id, capital, company, phase, balance, number });
+    const response = await CreateNewAccount({ id, capital, company, phase, balance, number, offer });
     if (response.error) {
       toast.error(response.message);
     }
@@ -54,6 +55,7 @@ const AddAccountForm = ({ CreateNewAccount, companies, id }) => {
           <input value={balance} placeholder="Balance" onChange={(e) => setBalance(e.target.value)} className="input rounded col-span-4" type="number" />
           <input value={phase} placeholder="Phase" onChange={(e) => setPhase(e.target.value)} className="input rounded col-span-3" type="number" />
         </div>
+        <input value={offer} placeholder="Offer" onChange={(e) => setOffer(e.target.value)} className="input rounded col-span-3" type="text" />
         <button onClick={Create} className="bg-blue-500 hover:bg-blue-600 transition-colors duration-300 p-2 w-full text-white text-base rounded">
           ✔
         </button>

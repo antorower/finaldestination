@@ -7,6 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import User from "@/models/User";
 import InfoButton from "@/components/InfoButton";
 import Nav from "./NavigatorComp";
+import DeleteOffer from "./DeleteOffer";
 
 const GetAllAccounts = async () => {
   "use server";
@@ -25,7 +26,7 @@ const GetAllAccounts = async () => {
         path: "lastTrade",
         select: "openTime",
       })
-      .select("number phase balance status isOnBoarding needBalanceUpdate adminCaseOn adminNote progress lastTrade note")
+      .select("number phase balance status isOnBoarding needBalanceUpdate adminCaseOn adminNote progress lastTrade note offer")
       .sort({ progress: 1 })
       .lean(); // Φιλτράρει όλα εκτός από τα "lost"
   } catch (error) {
@@ -97,6 +98,21 @@ const summarizeAccountsByCompany = (accounts) => {
   });
 
   return Object.values(summary);
+};
+
+const OfferDone = async ({ accountId }) => {
+  "use server";
+  try {
+    await dbConnect();
+    const account = await Account.findById(accountId);
+    if (!account) return false;
+    account.offer = null;
+    await account.save();
+    return { error: false, message: "Η προσφορά διαγράφηκε" };
+  } catch (error) {
+    console.log("Υπήρξε error στην DeleteOffer στο /admin/accounts", error);
+    return false;
+  }
 };
 
 const Accounts = async () => {
@@ -295,6 +311,7 @@ const Phase3Card = ({ account }) => {
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
 
+        {account.offer && <DeleteOffer DeleteTheOffer={OfferDone} accountId={account._id.toString()} offer={account.offer} />}
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
