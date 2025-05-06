@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 const ActionBar = ({ account, shadowbanActive, adminCaseOpen, Shadowban, RemoveAdminCase }) => {
   const Shadow = async () => {
-    const response = await Shadowban({ account });
+    const response = await Shadowban({ accountId });
     if (response.error) {
       toast.error(response.message);
     } else {
@@ -13,7 +13,7 @@ const ActionBar = ({ account, shadowbanActive, adminCaseOpen, Shadowban, RemoveA
   };
 
   const Remove = async () => {
-    const response = await RemoveAdminCase({ account });
+    const response = await RemoveAdminCase({ accountId });
     if (response.error) {
       toast.error(response.message);
     } else {

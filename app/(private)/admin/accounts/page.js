@@ -128,7 +128,7 @@ const Shadowban = async ({ accountId }) => {
     await account.save();
     return { error: false, message: "Το account έφαγε shadowban" };
   } catch (error) {
-    console.log("Υπήρξε error στην DeleteOffer στο /admin/accounts", error);
+    console.log("Υπήρξε error στην Shadowban στο /admin/accounts", error);
     return false;
   }
 };
@@ -144,7 +144,7 @@ const RemoveAdminCase = async ({ accountId }) => {
     await account.save();
     return { error: false, message: "Δεν υπάρχει πλέον open admin case" };
   } catch (error) {
-    console.log("Υπήρξε error στην DeleteOffer στο /admin/accounts", error);
+    console.log("Υπήρξε error στην RemoveAdminCase στο /admin/accounts", error);
     return false;
   }
 };
