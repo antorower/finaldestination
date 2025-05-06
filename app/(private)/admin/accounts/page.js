@@ -27,7 +27,7 @@ const GetAllAccounts = async () => {
         path: "lastTrade",
         select: "openTime",
       })
-      .select("number phase balance status isOnBoarding needBalanceUpdate adminCaseOn adminNote progress lastTrade note offer")
+      .select("number phase balance status isOnBoarding needBalanceUpdate adminCaseOn shadowban adminNote progress lastTrade note offer")
       .sort({ progress: 1 })
       .lean(); // Φιλτράρει όλα εκτός από τα "lost"
   } catch (error) {
@@ -246,7 +246,7 @@ const Phase1Card = ({ account }) => {
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
-            <div className={`text-xs ${account.adminCaseOn && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
+            <div className={`text-xs ${(account.adminCaseOn || account.shadowban) && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </Link>
           <div className={`text-center text-sm`}>{account.status}</div>
@@ -284,7 +284,7 @@ const Phase2Card = ({ account }) => {
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
-            <div className={`text-xs ${account.adminCaseOn && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
+            <div className={`text-xs ${(account.adminCaseOn || account.shadowban) && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </Link>
           <div className={`text-center text-sm`}>{account.status}</div>
@@ -322,7 +322,7 @@ const Phase3Card = ({ account }) => {
         </Link>
         <div className="flex justify-between">
           <Link href={`/account/${account._id.toString()}`} className={`text-center text-sm flex gap-1 items-center`}>
-            <div className={`text-xs ${account.adminCaseOn && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
+            <div className={`text-xs ${(account.adminCaseOn || account.shadowban) && `animate-ping`}`}>{account.isOnBoarding ? "🔴" : "🔵"}</div>
             <div>{account.number}</div>
           </Link>
           <div className={`text-center text-sm`}>{account.status}</div>
