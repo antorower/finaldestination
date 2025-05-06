@@ -15,6 +15,8 @@ import PendingPayoutForm from "./PendingPayoutForm";
 import PayoutRequestDoneButton from "./PayoutRequestDoneButton";
 import PayoutForm from "./PayoutForm";
 import Payout from "@/models/Payout";
+import { auth } from "@clerk/nextjs/server";
+import DeleteAccount from "./DeleteAccount";
 
 const GetAccount = async (id) => {
   "use server";
@@ -234,7 +236,30 @@ const SendPayout = async ({ accountId, payoutAmount, userShare, leaderDept, team
   }
 };
 
+const DeleteAccount = async ({ accountId }) => {
+  "use server";
+  try {
+    await dbConnect();
+    const account = await Account.findById(accountId).populate("user");
+    if (!account) return { error: true, message: "Το account δεν βρέθηκε" };
+    account.status = "Lost";
+    account.lostDate = new Date();
+    account.user.accounts = account.user.accounts.filter((accId) => accId.toString() !== accountId);
+    await account.user.save();
+    await account.save();
+    return { error: false, message: "Το account διεγράφη" };
+  } catch (error) {
+    console.log("Υπήρξε error στην DeleteAccount στο /admin/account/[id]", error);
+    return { error: true, message: error.message };
+  } finally {
+    revalidatePath("/", "layout");
+  }
+};
+
 const AccountPage = async ({ params }) => {
+  const { sessionClaims } = await auth();
+  const isOwner = sessionClaims.metadata.isOwner;
+
   const { id } = await params;
 
   const account = await GetAccount(id);
@@ -257,6 +282,7 @@ const AccountPage = async ({ params }) => {
               {account.user.firstName} {account.user.lastName}
             </div>
             <div>{account.company.name}</div>
+            {isOwner && <DeleteAccount accountId={account._id.toString()} />}
           </div>
         </div>
         <div className="max-w-[500px] m-auto">
