@@ -117,34 +117,34 @@ const OfferDone = async ({ accountId }) => {
   }
 };
 
-const Shadowban = async ({ accountId }) => {
+const ToggleShadowban = async ({ accountId }) => {
   "use server";
   try {
     await dbConnect();
     revalidatePath("/admin/accounts");
     const account = await Account.findById(accountId);
     if (!account) return false;
-    account.shadowban = true;
+    account.shadowban = !account.shadowban;
     await account.save();
-    return { error: false, message: "Το account έφαγε shadowban" };
+    return { error: false, message: account.shadowban ? "Ο χρήστης έφαγε shadowban" : "Το shadowban σβήστηκε" };
   } catch (error) {
-    console.log("Υπήρξε error στην Shadowban στο /admin/accounts", error);
+    console.log("Υπήρξε error στην ToggleShadowban στο /admin/accounts", error);
     return false;
   }
 };
 
-const RemoveAdminCase = async ({ accountId }) => {
+const ToggleAdminCase = async ({ accountId }) => {
   "use server";
   try {
     await dbConnect();
     revalidatePath("/admin/accounts");
     const account = await Account.findById(accountId);
     if (!account) return false;
-    account.adminCaseOn = false;
+    account.adminCaseOn = account.adminCaseOn;
     await account.save();
-    return { error: false, message: "Δεν υπάρχει πλέον open admin case" };
+    return { error: false, message: account.adminCaseOn ? "Υπάρχει ανοιχτό case" : "Το case σβήστηκε" };
   } catch (error) {
-    console.log("Υπήρξε error στην RemoveAdminCase στο /admin/accounts", error);
+    console.log("Υπήρξε error στην ToggleAdminCase στο /admin/accounts", error);
     return false;
   }
 };
@@ -268,7 +268,7 @@ const Phase1Card = ({ account }) => {
         <div className="text-center text-sm font-bold">
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
-        <ActionBar account={account._id.toString()} Shadowban={Shadowban} RemoveAdminCase={RemoveAdminCase} />
+        <ActionBar accountId={account._id.toString()} shadowbanActive={account.shadowban} adminCaseOpen={account.adminCaseOn} ToggleShadowban={ToggleShadowban} ToggleAdminCase={ToggleAdminCase} />
         <div className="text-center text-xs bg-blue-200 p-2 rounded border border-blue-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
@@ -306,7 +306,7 @@ const Phase2Card = ({ account }) => {
         <div className="text-center text-sm font-bold">
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
-        <ActionBar account={account._id.toString()} Shadowban={Shadowban} RemoveAdminCase={RemoveAdminCase} />
+        <ActionBar accountId={account._id.toString()} shadowbanActive={account.shadowban} adminCaseOpen={account.adminCaseOn} ToggleShadowban={ToggleShadowban} ToggleAdminCase={ToggleAdminCase} />
         <div className="text-center text-xs bg-violet-200 p-2 rounded border border-violet-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
@@ -346,7 +346,7 @@ const Phase3Card = ({ account }) => {
         </div>
 
         {account.offer && <DeleteOffer DeleteTheOffer={OfferDone} accountId={account._id.toString()} offer={account.offer} />}
-        <ActionBar account={account._id.toString()} shadowbanActive={account.shadowban} adminCaseOpen={account.adminCaseOn} Shadowban={Shadowban} RemoveAdminCase={RemoveAdminCase} />
+        <ActionBar accountId={account._id.toString()} shadowbanActive={account.shadowban} adminCaseOpen={account.adminCaseOn} ToggleShadowban={ToggleShadowban} ToggleAdminCase={ToggleAdminCase} />
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
