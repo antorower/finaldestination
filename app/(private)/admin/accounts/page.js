@@ -140,7 +140,7 @@ const ToggleAdminCase = async ({ accountId }) => {
     revalidatePath("/admin/accounts");
     const account = await Account.findById(accountId);
     if (!account) return false;
-    account.adminCaseOn = account.adminCaseOn;
+    account.adminCaseOn = !account.adminCaseOn;
     await account.save();
     return { error: false, message: account.adminCaseOn ? "Υπάρχει ανοιχτό case" : "Το case σβήστηκε" };
   } catch (error) {
