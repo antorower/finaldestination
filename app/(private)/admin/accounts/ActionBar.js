@@ -3,18 +3,32 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 const ActionBar = ({ account, shadowbanActive, adminCaseOpen, Shadowban, RemoveAdminCase }) => {
-  const [isShadowban, setIsShadowban] = useState(false);
-  const [isAdminCaseOpen, setIsAdminCaseOpen] = useState(false);
+  const Shadow = async () => {
+    const response = await Shadowban({ account });
+    if (response.error) {
+      toast.error(response.message);
+    } else {
+      toast.success(response.message);
+    }
+  };
 
-  useEffect(() => {
-    setIsShadowban(account.shadowbanActive);
-    setIsAdminCaseOpen(account.adminCaseOpen);
-  }, [shadowbanActive, adminCaseOpen]);
+  const Remove = async () => {
+    const response = await RemoveAdminCase({ account });
+    if (response.error) {
+      toast.error(response.message);
+    } else {
+      toast.success(response.message);
+    }
+  };
 
   return (
     <div className="flex justify-between items-center">
-      <button className={`${shadowbanActive ? "text-green-500" : "text-gray-500"} text-sm`}>Shadowban</button>
-      <button className={`${adminCaseOpen ? "text-green-500" : "text-gray-500"} text-sm`}>Case</button>
+      <button onClick={Shadow} className={`${shadowbanActive ? "text-green-500 font-bold" : "text-gray-500"} text-sm`}>
+        Shadowban
+      </button>
+      <button onClick={Remove} className={`${adminCaseOpen ? "text-green-500 font-bold" : "text-gray-500"} text-sm`}>
+        Case
+      </button>
     </div>
   );
 };
