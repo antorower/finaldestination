@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
-const DeleteAccount = ({ accountId, DeleteAccount }) => {
+const DeleteAccount = ({ accountId, DeleteAccountAction }) => {
   const Delete = async () => {
-    const response = await DeleteAccount({ accountId });
+    const response = await DeleteAccountAction({ accountId });
     if (response.error) {
       toast.error(response.message);
     } else {

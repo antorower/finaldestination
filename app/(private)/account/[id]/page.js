@@ -236,7 +236,7 @@ const SendPayout = async ({ accountId, payoutAmount, userShare, leaderDept, team
   }
 };
 
-const DeleteAccount = async ({ accountId }) => {
+const DeleteAccountAction = async ({ accountId }) => {
   "use server";
   try {
     await dbConnect();
@@ -249,7 +249,7 @@ const DeleteAccount = async ({ accountId }) => {
     await account.save();
     return { error: false, message: "Το account διεγράφη" };
   } catch (error) {
-    console.log("Υπήρξε error στην DeleteAccount στο /admin/account/[id]", error);
+    console.log("Υπήρξε error στην DeleteAccountAction στο /admin/account/[id]", error);
     return { error: true, message: error.message };
   } finally {
     revalidatePath("/", "layout");
@@ -282,7 +282,7 @@ const AccountPage = async ({ params }) => {
               {account.user.firstName} {account.user.lastName}
             </div>
             <div>{account.company.name}</div>
-            {isOwner && <DeleteAccount accountId={account._id.toString()} />}
+            {isOwner && <DeleteAccount accountId={account._id.toString()} DeleteAccountAction={DeleteAccountAction} />}
           </div>
         </div>
         <div className="max-w-[500px] m-auto">
