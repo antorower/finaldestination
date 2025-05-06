@@ -6,7 +6,7 @@ import Account from "@/models/Account";
 import { auth } from "@clerk/nextjs/server";
 import User from "@/models/User";
 import InfoButton from "@/components/InfoButton";
-import Nav from "./NavigatorComp";
+import ActionBar from "./ActionBar";
 import DeleteOffer from "./DeleteOffer";
 import { revalidatePath } from "next/cache";
 
@@ -111,6 +111,38 @@ const OfferDone = async ({ accountId }) => {
     account.offer = "";
     await account.save();
     return { error: false, message: "Η προσφορά διαγράφηκε" };
+  } catch (error) {
+    console.log("Υπήρξε error στην DeleteOffer στο /admin/accounts", error);
+    return false;
+  }
+};
+
+const Shadowban = async ({ accountId }) => {
+  "use server";
+  try {
+    await dbConnect();
+    revalidatePath("/admin/accounts");
+    const account = await Account.findById(accountId);
+    if (!account) return false;
+    account.shadowban = true;
+    await account.save();
+    return { error: false, message: "Το account έφαγε shadowban" };
+  } catch (error) {
+    console.log("Υπήρξε error στην DeleteOffer στο /admin/accounts", error);
+    return false;
+  }
+};
+
+const RemoveAdminCase = async ({ accountId }) => {
+  "use server";
+  try {
+    await dbConnect();
+    revalidatePath("/admin/accounts");
+    const account = await Account.findById(accountId);
+    if (!account) return false;
+    account.adminCaseOn = false;
+    await account.save();
+    return { error: false, message: "Δεν υπάρχει πλέον open admin case" };
   } catch (error) {
     console.log("Υπήρξε error στην DeleteOffer στο /admin/accounts", error);
     return false;
@@ -236,7 +268,7 @@ const Phase1Card = ({ account }) => {
         <div className="text-center text-sm font-bold">
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
-
+        <ActionBar account={account._id.toString()} Shadowban={Shadowban} RemoveAdminCase={RemoveAdminCase} />
         <div className="text-center text-xs bg-blue-200 p-2 rounded border border-blue-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
@@ -274,7 +306,7 @@ const Phase2Card = ({ account }) => {
         <div className="text-center text-sm font-bold">
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
-
+        <ActionBar account={account._id.toString()} Shadowban={Shadowban} RemoveAdminCase={RemoveAdminCase} />
         <div className="text-center text-xs bg-violet-200 p-2 rounded border border-violet-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
@@ -314,7 +346,7 @@ const Phase3Card = ({ account }) => {
         </div>
 
         {account.offer && <DeleteOffer DeleteTheOffer={OfferDone} accountId={account._id.toString()} offer={account.offer} />}
-
+        <ActionBar account={account._id.toString()} Shadowban={Shadowban} RemoveAdminCase={RemoveAdminCase} />
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>

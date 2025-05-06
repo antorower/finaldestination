@@ -149,6 +149,7 @@ export async function GET() {
       balance: account.balance,
       phase: account.phase,
       capital: account.capital,
+      shadowban: account.shadowban,
       user: account.user._id.toString(),
       company: account.company._id.toString(),
       matched: false,
@@ -226,6 +227,7 @@ export async function GET() {
       if (firstAccount.matched) continue;
       if (i === j) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.shadowban || secondAccount.shadowban) continue;
       if (firstAccount.user === secondAccount.user) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
@@ -326,6 +328,7 @@ export async function GET() {
       if (firstAccount.matched) continue;
       if (i === j) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.shadowban || secondAccount.shadowban) continue;
       if (firstAccount.user === secondAccount.user) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
@@ -426,6 +429,7 @@ export async function GET() {
       if (firstAccount.matched) continue;
       if (i === j) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.shadowban || secondAccount.shadowban) continue;
       if (firstAccount.user === secondAccount.user) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
@@ -526,6 +530,7 @@ export async function GET() {
       if (firstAccount.matched) continue;
       if (i === j) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.shadowban || secondAccount.shadowban) continue;
       if (firstAccount.user === secondAccount.user) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;
@@ -626,6 +631,7 @@ export async function GET() {
       if (firstAccount.matched) continue;
       if (i === j) continue;
       const secondAccount = updatedAccounts[j];
+      if (firstAccount.shadowban || secondAccount.shadowban) continue;
       if (firstAccount.user === secondAccount.user) continue;
       if (secondAccount.matched) continue;
       if (firstAccount.capital < secondAccount.capital * 0.5 || firstAccount.capital > secondAccount.capital * 1.5) continue;

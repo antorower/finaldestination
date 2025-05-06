@@ -102,6 +102,8 @@ const AccountSchema = new mongoose.Schema(
     note: String,
 
     offer: String,
+
+    shadowban: Boolean,
   },
   { timestamps: true }
 );
