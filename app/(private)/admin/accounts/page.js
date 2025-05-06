@@ -307,6 +307,7 @@ const Phase2Card = ({ account }) => {
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
         <ActionBar accountId={account._id.toString()} shadowbanActive={account.shadowban} adminCaseOpen={account.adminCaseOn} ToggleShadowban={ToggleShadowban} ToggleAdminCase={ToggleAdminCase} />
+        {account.adminCaseOn && <div className="text-center">{account.adminNote}</div>}
         <div className="text-center text-xs bg-violet-200 p-2 rounded border border-violet-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
