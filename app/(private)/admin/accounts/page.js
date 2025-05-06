@@ -346,7 +346,7 @@ const Phase3Card = ({ account }) => {
         </div>
 
         {account.offer && <DeleteOffer DeleteTheOffer={OfferDone} accountId={account._id.toString()} offer={account.offer} />}
-        <ActionBar account={account._id.toString()} Shadowban={Shadowban} RemoveAdminCase={RemoveAdminCase} />
+        <ActionBar account={account._id.toString()} shadowbanActive={account.shadowban} adminCaseOpen={account.adminCaseOn} Shadowban={Shadowban} RemoveAdminCase={RemoveAdminCase} />
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
