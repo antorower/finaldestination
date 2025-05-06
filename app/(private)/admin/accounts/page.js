@@ -269,6 +269,7 @@ const Phase1Card = ({ account }) => {
           {account.user?.tradingHours?.startingTradingHour}:00-{account.user?.tradingHours?.endingTradingHour}:00
         </div>
         <ActionBar accountId={account._id.toString()} shadowbanActive={account.shadowban} adminCaseOpen={account.adminCaseOn} ToggleShadowban={ToggleShadowban} ToggleAdminCase={ToggleAdminCase} />
+        {account.adminCaseOn && <div className="text-center">Admin Note: {account.adminNote}</div>}
         <div className="text-center text-xs bg-blue-200 p-2 rounded border border-blue-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
@@ -348,6 +349,7 @@ const Phase3Card = ({ account }) => {
 
         {account.offer && <DeleteOffer DeleteTheOffer={OfferDone} accountId={account._id.toString()} offer={account.offer} />}
         <ActionBar accountId={account._id.toString()} shadowbanActive={account.shadowban} adminCaseOpen={account.adminCaseOn} ToggleShadowban={ToggleShadowban} ToggleAdminCase={ToggleAdminCase} />
+        {account.adminCaseOn && <div className="text-center">Admin Note: {account.adminNote}</div>}
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
     </div>
