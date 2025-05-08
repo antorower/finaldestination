@@ -278,10 +278,14 @@ export default async function Home({ searchParams }) {
   const note = settings[activeDay]?.note || "Δεν υπάρχει ώρα κλεισίματος";
 
   let closeHour = settings[activeDay]?.closeHour?.hour + user.hourOffsetFromGreece || 100;
+  console.log("Close Hour 1: ", settings[activeDay]?.closeHour?.hour);
+  console.log("Close Hour 2: ", user.hourOffsetFromGreece);
+  console.log("Close Hour 3: ", closeHour);
   if (closeHour === 0) closeHour = 12;
   if (closeHour === -1) closeHour = 11;
   if (closeHour === -2) closeHour = 10;
   console.log(settings);
+  console.log("Close Hour 4: ", closeHour);
   return (
     <PageTransition>
       <div className="flex flex-col gap-4 pb-4">
