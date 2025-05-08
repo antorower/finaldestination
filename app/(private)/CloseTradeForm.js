@@ -18,6 +18,10 @@ const CloseTradeForm = ({ UpdateBalance, tradeId, userId, account, prevBalance, 
   const Update = () => {
     startTransition(async () => {
       try {
+        if (newBalance > 111000 || newBalance < 88000) {
+          toast.error("Προσεκτικά είπαμε το balance!");
+          return;
+        }
         await UpdateBalance({ tradeId, userId, newBalance: Number.parseFloat(newBalance) });
         toast.success("Balance updated successfully");
         setNewBalance("");
