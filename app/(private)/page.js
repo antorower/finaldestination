@@ -281,6 +281,7 @@ export default async function Home({ searchParams }) {
   console.log("Close Hour 1: ", settings[activeDay]?.closeHour?.hour);
   console.log("Close Hour 2: ", user.hourOffsetFromGreece);
   console.log("Close Hour 3: ", closeHour);
+  console.log("Close Hour 6: ", settings[activeDay]?.closeHour?.hour + user.hourOffsetFromGreece);
   if (closeHour === 0) closeHour = 12;
   if (closeHour === -1) closeHour = 11;
   if (closeHour === -2) closeHour = 10;
