@@ -32,7 +32,7 @@ const CloseTradeForm = ({ UpdateBalance, tradeId, userId, account, prevBalance, 
       <div>
         Νέο Balance για <span className="font-bold text-lg">{account}</span>
       </div>
-      <input value={newBalance} onChange={(e) => setNewBalance(e.target.value)} type="number" placeholder="Νέο Balance" className="input rounded w-full p-2" />
+      <input value={newBalance} onChange={(e) => setNewBalance(e.target.value)} type="number" max={111000} min={88000} placeholder="Νέο Balance" className="input rounded w-full p-2" />
       {!correctBalance && newBalance !== "" && <div className="text-sm text-center text-red-500 font-bold">Προσοχή στο balance</div>}
       <button onClick={Update} disabled={newBalance === "" || isPending} className={`text-white ${correctBalance ? "bg-blue-500" : "bg-red-500"} w-full p-2 rounded ${isPending ? "opacity-50 cursor-not-allowed" : ""}`}>
         {correctBalance ? (isPending ? "Ενημέρωση..." : "✔") : "Είναι σωστό;"}
