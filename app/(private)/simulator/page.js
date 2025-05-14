@@ -164,9 +164,9 @@ export default function PropFirmSimulator() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-center">🎯 Prop Firm Simulator</h1>
+      <h1 className="text-3xl font-bold text-center">🎯Monte Carlo Simulator</h1>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {Object.keys(accounts).map((firm) => (
           <div key={firm} className="p-4 border rounded-xl shadow space-y-2">
             <h2 className="text-xl font-semibold capitalize">{firm}</h2>
@@ -209,7 +209,7 @@ export default function PropFirmSimulator() {
               <p>Phase 2: {r.phase2}</p>
               <p>Phase 3: {r.phase3}</p>
               <p>Σύνολο: {r.total} accounts</p>
-              <p>💰 Fund Pool: ${r.fundPool}</p>
+              <p>💰 Ταμείο: ${r.fundPool}</p>
             </div>
           ))}
         </div>
