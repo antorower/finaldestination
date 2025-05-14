@@ -38,6 +38,10 @@ const ReviewCard = ({ trade }) => {
         <div className="text-center text-sm text-gray-600"> {trade.firstParticipant.priority} </div>
         <div className="text-center text-sm text-gray-600"> {trade.secondParticipant.priority} </div>
       </div>
+      <div className={`grid grid-cols-2`}>
+        <div className="text-center text-sm text-gray-600"> Profit: {trade.firstParticipant?.profit} </div>
+        <div className="text-center text-sm text-gray-600"> Profit: {trade.secondParticipant?.profit} </div>
+      </div>
       <div className="text-center text-sm font-bold">{trade.note}</div>
       <div className="text-center text-sm font-bold">
         {trade?.firstParticipant?.user?.lastName}: {trade?.firstParticipant?.account?.adminNote}

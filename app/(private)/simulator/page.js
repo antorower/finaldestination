@@ -37,8 +37,8 @@ export default function PropFirmSimulator() {
 
   const handleSimulationStart = () => {
     const targets = {
-      ftmo: { phase1: 10, phase2: 5, phase3: 2 },
-      default: { phase1: 8, phase2: 5, phase3: 2 },
+      ftmo: { phase1: 10, phase2: 5, phase3: 4 },
+      default: { phase1: 8, phase2: 5, phase3: 4 },
     };
 
     let fundPool = 0;
