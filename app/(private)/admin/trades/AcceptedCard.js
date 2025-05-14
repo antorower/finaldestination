@@ -36,8 +36,8 @@ const Participant = ({ participant }) => {
           <div className="text-center">{participant.trade.pair}</div>
           <div className="text-center">{participant.trade.lots}</div>
           <div className="text-center">{participant.trade.position}</div>
-          <div className="text-center">{participant.trade.stopLoss}</div>
-          <div className="text-center">{participant.trade.takeProfit}</div>
+          <div className="text-center">Take Profit: {participant.trade.takeProfit}</div>
+          <div className="text-center">Stop Loss: {participant.trade.stopLoss}</div>
           <div className="text-center">{participant.trade?.profit}</div>
         </div>
       )}
