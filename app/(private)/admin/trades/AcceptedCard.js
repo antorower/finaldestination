@@ -38,6 +38,7 @@ const Participant = ({ participant }) => {
           <div className="text-center">{participant.trade.position}</div>
           <div className="text-center">{participant.trade.stopLoss}</div>
           <div className="text-center">{participant.trade.takeProfit}</div>
+          <div className="text-center">{participant.trade?.profit}</div>
         </div>
       )}
     </div>
