@@ -154,12 +154,12 @@ const FastAsHell = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="flex items-center space-x-2">
             <input type="checkbox" checked={autoRebuy} onChange={(e) => setAutoRebuy(e.target.checked)} />
-            <span className="text-sm text-gray-800">Αγορά νέου account αν χαθεί πριν πληρωμή</span>
+            <span className="text-sm text-gray-800">Αγορά νέων accounts εξ αρχής</span>
           </label>
 
           <label className="flex items-center space-x-2">
             <input type="checkbox" checked={strictMatchmaking} onChange={(e) => setStrictMatchmaking(e.target.checked)} />
-            <span className="text-sm text-gray-800">Αυστηρό Matchmaking (βάσει balance)</span>
+            <span className="text-sm text-gray-800">Αυστηρό Matchmaking</span>
           </label>
 
           <label className="flex flex-col">
@@ -168,7 +168,7 @@ const FastAsHell = () => {
           </label>
 
           <label className="flex flex-col">
-            <span className="text-sm text-gray-700 mb-1">Payout στόχος Phase 3 (%):</span>
+            <span className="text-sm text-gray-700 mb-1">Payout στόχος (%):</span>
             <input type="number" min="0" max="100" value={payoutTargetPercent} onChange={(e) => setPayoutTargetPercent(Number(e.target.value))} className="border p-1 rounded outline-none" />
           </label>
 
