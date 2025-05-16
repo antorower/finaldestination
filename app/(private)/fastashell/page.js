@@ -201,13 +201,13 @@ const FastAsHell = () => {
                     {count > 0 && <div className="absolute top-4 right-10 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">x{count}</div>}
 
                     {/* Προσθήκη */}
-                    <button className="absolute top-1 right-1 text-green-600 hover:text-green-800 text-sm" onClick={() => handleSelect(companyKey, accountSize, data)}>
+                    <button className="absolute top-2 right-2 text-green-600 hover:text-green-800 text-sm" onClick={() => handleSelect(companyKey, accountSize, data)}>
                       ➕
                     </button>
 
                     {/* Αφαίρεση */}
                     {count > 0 && (
-                      <button className="absolute top-8 right-1 text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemove(companyKey, accountSize, data)}>
+                      <button className="absolute top-8 right-2 text-red-500 hover:text-red-700 text-sm" onClick={() => handleRemove(companyKey, accountSize, data)}>
                         ➖
                       </button>
                     )}
