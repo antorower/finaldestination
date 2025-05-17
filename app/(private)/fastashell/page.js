@@ -106,16 +106,27 @@ const companies = {
   },
 };
 
+const isWeekend = (day) => {
+  const dayOfWeek = day % 7;
+  return dayOfWeek === 5 || dayOfWeek === 6;
+};
+
 const FastAsHell = () => {
   const [selectedCounts, setSelectedCounts] = useState({});
   const [budget, setBudget] = useState(0);
 
-  const [autoRebuy, setAutoRebuy] = useState(true);
-  const [strictMatchmaking, setStrictMatchmaking] = useState(false);
-  const [tradeCostPercent, setTradeCostPercent] = useState(1);
   const [payoutTargetPercent, setPayoutTargetPercent] = useState(4);
-  const [daysToSimulate, setDaysToSimulate] = useState(180);
+  const [monthsToSimulate, setMonthsToSimulate] = useState(6);
   const [tradesPerDay, setTradesPerDay] = useState(3);
+  const [phase1Risk, setPhase1Risk] = useState(2);
+  const [phase2Risk, setPhase2Risk] = useState(2);
+  const [phase3Risk, setPhase3Risk] = useState(2);
+
+  const [results, setResults] = useState({
+    treasury: 0,
+    minTreasury: 0,
+    totalAccounts: 0,
+  });
 
   const handleSelect = (companyKey, accountSize, accountData) => {
     const key = `${companyKey}-${accountSize}`;
@@ -146,45 +157,217 @@ const FastAsHell = () => {
     setBudget(budget - accountData.price);
   };
 
+  const totalAccounts = Object.values(selectedCounts).reduce((sum, count) => sum + count, 0);
+
+  const totalCapital = Object.entries(selectedCounts).reduce((sum, [key, count]) => {
+    const [companyKey, accountSize] = key.split("-");
+    return sum + count * parseInt(accountSize);
+  }, 0);
+
+  const CreateAccounts = () => {
+    const accounts = [];
+
+    const generateId = () =>
+      Math.floor(Math.random() * 1e15)
+        .toString()
+        .padStart(15, "0");
+
+    Object.entries(selectedCounts).forEach(([key, count]) => {
+      const [companyKey, accountSizeStr] = key.split("-");
+      const accountSize = parseInt(accountSizeStr);
+      const company = companies[companyKey];
+      const accountData = company.accounts[accountSize];
+
+      for (let i = 0; i < count; i++) {
+        accounts.push({
+          id: generateId(),
+          company: companyKey,
+          capital: accountSize,
+          balance: accountSize,
+          phase: 1,
+          phase1Target: (company.phase1Target * accountSize) / 100 + accountSize,
+          phase2Target: (5 * accountSize) / 100 + accountSize,
+          phase3Target: (payoutTargetPercent * accountSize) / 100 + accountSize,
+          phase1MaxRiskPerTrade: (accountSize * phase1Risk) / 100,
+          phase2MaxRiskPerTrade: (accountSize * phase2Risk) / 100,
+          phase3MaxRiskPerTrade: (accountSize * phase3Risk) / 100,
+          firstPaymentDays: company.firstPaymentDays,
+          totalProfits: 0,
+          numberOfPayouts: 0,
+          bonusAmount: accountData.bonus || 0,
+          bonusTaken: false,
+          refundAmount: accountData.price,
+          refundTaken: false,
+          refundPayoutNumber: company.refund,
+          status: "active",
+          payoutDay: 0,
+          upgradeDay: 0,
+          startingDay: 0,
+        });
+      }
+    });
+
+    return accounts;
+  };
+
+  const SimulationExecution = () => {
+    const accounts = CreateAccounts();
+    const MAX_DAILY_RISK_PERCENT = 4;
+    const totalDays = monthsToSimulate * 30;
+    let treasury = 0;
+    let minTreasury = 0;
+    let totalAccounts = accounts.length;
+    console.log("Total accounts created:", totalAccounts);
+
+    for (let day = 0; day < totalDays; day++) {
+      accounts.forEach((account) => {
+        if (account.status === "active" && !isWeekend(day)) {
+          let tradesPlaced = 0;
+          let dailyRiskUsed = 0;
+
+          const currentTarget = account.phase === 1 ? account.phase1Target : account.phase === 2 ? account.phase2Target : account.phase3Target;
+
+          const maxRiskPerTrade = account.phase === 1 ? account.phase1MaxRiskPerTrade : account.phase === 2 ? account.phase2MaxRiskPerTrade : account.phase3MaxRiskPerTrade;
+
+          const maxDailyRisk = (account.capital * MAX_DAILY_RISK_PERCENT) / 100;
+          const stopLossLevel = account.capital * 0.9;
+
+          while (tradesPlaced < tradesPerDay && dailyRiskUsed + maxRiskPerTrade <= maxDailyRisk) {
+            const remainingLoss = account.balance - stopLossLevel;
+            const remainingTarget = currentTarget - account.balance;
+
+            const riskAmount = Math.min(maxRiskPerTrade, remainingLoss);
+            const profitAmount = Math.min(maxRiskPerTrade, remainingTarget);
+
+            if (riskAmount <= 0 || profitAmount <= 0) break;
+
+            const probabilityOfWin = riskAmount / (riskAmount + profitAmount);
+            const didWin = Math.random() < probabilityOfWin;
+
+            if (didWin) {
+              account.balance += profitAmount;
+              account.totalProfits += profitAmount;
+            } else {
+              account.balance -= riskAmount;
+            }
+
+            dailyRiskUsed += riskAmount;
+            tradesPlaced++;
+
+            // Αν φτάσει στο stop loss (χάνει)
+            if (account.balance <= stopLossLevel) {
+              account.phase = 1;
+              account.balance = account.capital;
+              account.status = "active";
+              account.startingDay = day;
+              account.upgradeDay = 0;
+              account.payoutDay = 0;
+              account.totalProfits = 0;
+              account.numberOfPayouts = 0;
+              treasury -= account.refundAmount;
+              if (treasury < minTreasury) {
+                minTreasury = treasury;
+              }
+              totalAccounts++;
+              break;
+            }
+
+            // Αν φτάσει στον στόχο (κερδίζει)
+            if (account.balance >= currentTarget) {
+              if (account.phase === 1) {
+                account.phase = 2;
+                account.balance = account.capital;
+                account.status = "upgrade";
+                account.upgradeDay = account.startingDay + 5;
+              } else if (account.phase === 2) {
+                account.phase = 3;
+                account.balance = account.capital;
+                account.status = "upgrade";
+                account.upgradeDay = account.startingDay + 5;
+              } else if (account.phase === 3) {
+                account.status = "payout";
+                account.payoutDay = account.startingDay + account.firstPaymentDays + 2;
+                account.upgradeDay = 0;
+              }
+              break;
+            }
+          }
+        }
+
+        // Περιμένει για upgrade
+        if (account.status === "upgrade" && day >= account.upgradeDay) {
+          account.status = "active";
+          account.upgradeDay = 0;
+          account.startingDay = day;
+        }
+
+        // Placeholder για payout logic (θα μπει αργότερα)
+        if (account.status === "payout" && day >= account.payoutDay) {
+          account.numberOfPayouts++;
+          if (account.bonusAmount !== 0 && !account.bonusTaken && account.totalProfits >= 5) {
+            treasury += account.bonusAmount;
+            account.bonusTaken = true;
+          }
+          if (!account.refundTaken && account.numberOfPayouts === account.refundPayoutNumber) {
+            treasury += account.refundAmount;
+            account.refundTaken = true;
+          }
+          treasury += (account.balance - account.capital) * 0.8;
+          account.balance = account.capital;
+          account.totalProfits += (100 * (account.balance - account.capital)) / account.capital;
+          account.status = "active";
+        }
+      });
+    }
+
+    setResults({
+      treasury,
+      minTreasury,
+      totalAccounts,
+    });
+  };
+
   return (
     <div className="flex flex-col items-center p-4">
       <div className="w-full max-w-4xl mb-4 p-4 border rounded shadow bg-white">
         <h2 className="text-xl font-semibold mb-4 text-gray-700">⚙️ Settings</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label className="flex items-center space-x-2">
-            <input type="checkbox" checked={autoRebuy} onChange={(e) => setAutoRebuy(e.target.checked)} />
-            <span className="text-sm text-gray-800">Αγορά νέων accounts εξ αρχής</span>
-          </label>
-
-          <label className="flex items-center space-x-2">
-            <input type="checkbox" checked={strictMatchmaking} onChange={(e) => setStrictMatchmaking(e.target.checked)} />
-            <span className="text-sm text-gray-800">Αυστηρό Matchmaking</span>
-          </label>
-
-          <label className="flex flex-col">
-            <span className="text-sm text-gray-700 mb-1">Κόστος συναλλαγής (%):</span>
-            <input type="number" min="0" max="100" value={tradeCostPercent} onChange={(e) => setTradeCostPercent(Number(e.target.value))} className="border p-1 rounded outline-none" />
-          </label>
-
           <label className="flex flex-col">
             <span className="text-sm text-gray-700 mb-1">Payout στόχος (%):</span>
             <input type="number" min="0" max="100" value={payoutTargetPercent} onChange={(e) => setPayoutTargetPercent(Number(e.target.value))} className="border p-1 rounded outline-none" />
           </label>
 
           <label className="flex flex-col col-span-full sm:col-span-1">
-            <span className="text-sm text-gray-700 mb-1">Ημέρες προσομοίωσης:</span>
-            <input type="number" min="1" max="365" value={daysToSimulate} onChange={(e) => setDaysToSimulate(Number(e.target.value))} className="border p-1 rounded outline-none" />
+            <span className="text-sm text-gray-700 mb-1">Μήνες προσομοίωσης:</span>
+            <input type="number" min="1" max="365" value={monthsToSimulate} onChange={(e) => setMonthsToSimulate(Number(e.target.value))} className="border p-1 rounded outline-none" />
           </label>
 
           <label className="flex flex-col col-span-full sm:col-span-1">
             <span className="text-sm text-gray-700 mb-1">Trades ανά ημέρα:</span>
             <input type="number" min="1" max="6" value={tradesPerDay} onChange={(e) => setTradesPerDay(Number(e.target.value))} className="border p-1 rounded outline-none" />
           </label>
+
+          <label className="flex flex-col col-span-full sm:col-span-1">
+            <span className="text-sm text-gray-700 mb-1">Ρίσκο Phase 1 (%):</span>
+            <input type="number" min="1" max="6" step={0.1} value={phase1Risk} onChange={(e) => setPhase1Risk(Number(e.target.value))} className="border p-1 rounded outline-none" />
+          </label>
+
+          <label className="flex flex-col col-span-full sm:col-span-1">
+            <span className="text-sm text-gray-700 mb-1">Ρίσκο Phase 2 (%):</span>
+            <input type="number" min="1" max="6" step={0.1} value={phase2Risk} onChange={(e) => setPhase2Risk(Number(e.target.value))} className="border p-1 rounded outline-none" />
+          </label>
+
+          <label className="flex flex-col col-span-full sm:col-span-1">
+            <span className="text-sm text-gray-700 mb-1">Ρίσκο Phase 3 (%):</span>
+            <input type="number" min="1" max="6" step={0.1} value={phase3Risk} onChange={(e) => setPhase3Risk(Number(e.target.value))} className="border p-1 rounded outline-none" />
+          </label>
         </div>
       </div>
 
       <div className="mb-4 text-3xl font-semibold text-green-700 border rounded shadow max-w-4xl w-full p-4 text-center">Budget: ${budget}</div>
+      <div className="mb-4 text-3xl font-semibold text-green-700 border rounded shadow max-w-4xl w-full p-4 text-center">Accounts: {totalAccounts}</div>
+      <div className="mb-4 text-3xl font-semibold text-green-700 border rounded shadow max-w-4xl w-full p-4 text-center">Capital: ${totalCapital}</div>
 
       <div className="w-full max-w-4xl space-y-8">
         {Object.entries(companies).map(([companyKey, company]) => (
@@ -255,6 +438,14 @@ const FastAsHell = () => {
           </ul>
         )}
       </div>
+
+      <button onClick={SimulationExecution} className="mt-4 bg-blue-500 text-white p-4 rounded font-bold text-2xl hover:bg-blue-600 w-full max-w-4xl">
+        Εκτέλεση
+      </button>
+
+      <div className="mb-4 text-3xl font-semibold text-purple-700 border rounded shadow max-w-4xl w-full p-4 text-center">Κέρδη: ${results.treasury.toFixed(2)}</div>
+      <div className="mb-4 text-3xl font-semibold text-red-700 border rounded shadow max-w-4xl w-full p-4 text-center">Backup κεφάλαιο: ${results.minTreasury.toFixed(2)}</div>
+      <div className="mb-4 text-3xl font-semibold text-indigo-700 border rounded shadow max-w-4xl w-full p-4 text-center">Συνολικά accounts που αγοράστηκαν: {results.totalAccounts}</div>
     </div>
   );
 };
