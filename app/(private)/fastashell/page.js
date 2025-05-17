@@ -114,6 +114,7 @@ const isWeekend = (day) => {
 const FastAsHell = () => {
   const [selectedCounts, setSelectedCounts] = useState({});
   const [budget, setBudget] = useState(0);
+  const [monthlyReports, setMonthlyReports] = useState([]);
 
   const [payoutTargetPercent, setPayoutTargetPercent] = useState(4);
   const [monthsToSimulate, setMonthsToSimulate] = useState(6);
@@ -211,6 +212,7 @@ const FastAsHell = () => {
   };
 
   const SimulationExecution = () => {
+    const newMonthlyReports = [];
     const accounts = CreateAccounts();
     const MAX_DAILY_RISK_PERCENT = 4;
     const totalDays = monthsToSimulate * 30;
@@ -318,6 +320,14 @@ const FastAsHell = () => {
           account.status = "active";
         }
       });
+      if ((day + 1) % 30 === 0) {
+        newMonthlyReports.push({
+          month: (day + 1) / 30,
+          treasury,
+          minTreasury,
+          totalAccounts,
+        });
+      }
     }
 
     setResults({
@@ -325,6 +335,8 @@ const FastAsHell = () => {
       minTreasury,
       totalAccounts,
     });
+
+    setMonthlyReports(newMonthlyReports);
   };
 
   return (
@@ -446,6 +458,22 @@ const FastAsHell = () => {
       <div className="mb-4 text-3xl font-semibold text-purple-700 border rounded shadow max-w-4xl w-full p-4 text-center">Κέρδη: ${results.treasury.toFixed(2)}</div>
       <div className="mb-4 text-3xl font-semibold text-red-700 border rounded shadow max-w-4xl w-full p-4 text-center">Backup κεφάλαιο: ${results.minTreasury.toFixed(2)}</div>
       <div className="mb-4 text-3xl font-semibold text-indigo-700 border rounded shadow max-w-4xl w-full p-4 text-center">Συνολικά accounts που αγοράστηκαν: {results.totalAccounts}</div>
+
+      {monthlyReports.length > 0 && (
+        <div className="w-full max-w-4xl mt-10 p-4 border rounded shadow bg-white">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Μηνιαία Αναφορά</h2>
+          <ul className="space-y-2">
+            {monthlyReports.map((report) => (
+              <li key={`${report.month}-${report.treasury}-${report.totalAccounts}`} className="p-3 border-b text-gray-700">
+                <div className="font-semibold">Μήνας {report.month}</div>
+                <div>📦 Ταμείο: ${report.treasury.toFixed(2)}</div>
+                <div>🔻 Ελάχιστο Ταμείο: ${report.minTreasury.toFixed(2)}</div>
+                <div>🧾 Accounts συνολικά: {report.totalAccounts}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
