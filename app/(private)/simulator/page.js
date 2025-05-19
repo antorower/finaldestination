@@ -80,7 +80,7 @@ export default function PropFirmSimulator() {
 
     for (let day = 1; day <= days; day++) {
       const activeAccounts = allAccounts.filter((acc) => acc.status === "active");
-      const tradeCount = Math.floor(activeAccounts.length * 0.35);
+      const tradeCount = Math.floor(activeAccounts.length * 0.5);
       const selectedForTrade = activeAccounts.sort(() => 0.5 - Math.random()).slice(0, tradeCount);
 
       for (const acc of selectedForTrade) {
