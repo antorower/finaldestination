@@ -23,8 +23,8 @@ const BeAwareOfTrade = async ({ tradeId, userId, accountId }) => {
     const openTimeUTC = new Date(trade.openTime); // Ώρα ανοίγματος trade (υποθέτουμε ότι είναι ήδη σε UTC)
 
     const tenMinutesBefore = new Date(openTimeUTC.getTime() - 10 * 60 * 1000); // 10 λεπτά πριν
-    const oneHourBefore = new Date(openTimeUTC.getTime() - 60 * 60 * 1000); // 1 ώρα πριν
-    if (nowUTC < oneHourBefore || nowUTC > tenMinutesBefore) return { error: true, message: "Δεν μπορείς να δηλώσεις παρών για αυτό το trade αυτήν την ώρα." };
+    const oneHourBefore = new Date(openTimeUTC.getTime() - 60 * 5 * 1000); // 1 ώρα πριν
+    if (nowUTC < oneHourBefore || nowUTC > tenMinutesBefore) return { error: true, message: "Άλλαξε ο χρόνος που πατάμε aware. Πριν ήταν 11 λεπτά με 1 ώρα. Τώρα είναι 11 λεπτά με 15 λεπτά. Οπότε πάτησε το aware 14-15 λεπτά πριν το trade. Μην μπερδευτείς." };
 
     if (trade.firstParticipant.user._id.toString() === userId) {
       trade.firstParticipant.status = "aware";
