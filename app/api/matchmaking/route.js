@@ -69,7 +69,7 @@ export async function GET() {
 
   if (Number(greeceHour) !== settings.updateBalanceHours.endingHour) {
     console.log("Η ώρα δεν είναι η σωστή: ", greeceHour, `:00. Θα έπρεπε να είναι ${settings.updateBalanceHours.endingHour}:00`);
-    //return NextResponse.json({ stopped: true }, { status: 200 });
+    return NextResponse.json({ stopped: true }, { status: 200 });
   }
 
   // <-- Είναι η ελάχιστη διαφορά λεπτών που πρέπει να έχουν τα trades ενός trader μεταξύ τους
