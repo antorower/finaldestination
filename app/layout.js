@@ -1,7 +1,7 @@
 import { Roboto } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { ToastContainer } from "react-toastify";
 import { ToastProvider } from "@/components/ToastContext";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
