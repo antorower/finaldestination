@@ -151,6 +151,7 @@ const ToggleAdminCase = async ({ accountId }) => {
 };
 
 export const UpdateAccountBalance = async ({ accountId, newBalance }) => {
+  "use server";
   try {
     await dbConnect();
 
