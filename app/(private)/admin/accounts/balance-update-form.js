@@ -31,7 +31,7 @@ export default function BalanceUpdateForm({ accountId, currentBalance, UpdateAcc
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col w-full items-center gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-col w-full items-center gap-2 mt-2">
       <input type="number" value={newBalance} onChange={(e) => setNewBalance(Number(e.target.value))} className="w-32 px-3 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" step="0.01" min="0" />
       <button type="submit" disabled={isLoading} className={`flex items-center gap-1 px-3 py-2 text-sm font-medium text-white w-full bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}>
         {isLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
