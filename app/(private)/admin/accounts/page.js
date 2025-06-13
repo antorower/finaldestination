@@ -9,6 +9,7 @@ import InfoButton from "@/components/InfoButton";
 import ActionBar from "./ActionBar";
 import DeleteOffer from "./DeleteOffer";
 import { revalidatePath } from "next/cache";
+import BalanceUpdateForm from "./balance-update-form";
 
 const GetAllAccounts = async () => {
   "use server";
@@ -149,6 +150,33 @@ const ToggleAdminCase = async ({ accountId }) => {
   }
 };
 
+export const UpdateAccountBalance = async ({ accountId, newBalance }) => {
+  try {
+    await dbConnect();
+
+    const account = await Account.findById(accountId);
+    if (!account) {
+      return { error: true, message: "Ο λογαριασμός δεν βρέθηκε" };
+    }
+
+    // Χρησιμοποιούμε τη μέθοδο updateBalance από το μοντέλο
+    await account.updateBalance(Number(newBalance));
+
+    revalidatePath("/admin/accounts");
+
+    return {
+      error: false,
+      message: `Το balance ενημερώθηκε επιτυχώς σε ${newBalance}`,
+    };
+  } catch (error) {
+    console.log("Υπήρξε error στην UpdateAccountBalance", error);
+    return {
+      error: true,
+      message: `Σφάλμα κατά την ενημέρωση: ${error.message}`,
+    };
+  }
+};
+
 const Accounts = async () => {
   const { sessionClaims } = await auth();
   const { isOwner, mongoId } = sessionClaims.metadata;
@@ -272,6 +300,7 @@ const Phase1Card = ({ account }) => {
         {account.adminCaseOn && <div className="text-center">Admin Note: {account.adminNote}</div>}
         <div className="text-center text-xs bg-blue-200 p-2 rounded border border-blue-400">{account.note ? account.note : "-"}</div>
       </div>
+      <BalanceUpdateForm accountId={account._id.toString()} currentBalance={account.balance} UpdateAccountBalance={UpdateAccountBalance} />
     </div>
   );
 };
@@ -311,6 +340,7 @@ const Phase2Card = ({ account }) => {
         {account.adminCaseOn && <div className="text-center">Admin Note: {account.adminNote}</div>}
         <div className="text-center text-xs bg-violet-200 p-2 rounded border border-violet-400">{account.note ? account.note : "-"}</div>
       </div>
+      <BalanceUpdateForm accountId={account._id.toString()} currentBalance={account.balance} UpdateAccountBalance={UpdateAccountBalance} />
     </div>
   );
 };
@@ -352,6 +382,7 @@ const Phase3Card = ({ account }) => {
         {account.adminCaseOn && <div className="text-center">Admin Note: {account.adminNote}</div>}
         <div className="text-center text-xs bg-orange-200 p-2 rounded border border-orange-400">{account.note ? account.note : "-"}</div>
       </div>
+      <BalanceUpdateForm accountId={account._id.toString()} currentBalance={account.balance} UpdateAccountBalance={UpdateAccountBalance} />
     </div>
   );
 };
