@@ -178,7 +178,7 @@ AccountSchema.methods.updateBalance = async function (newBalance, tp, sl) {
     // 🟢 Ενημέρωση του balance
     this.balance = newBalance;
     this.needBalanceUpdate = false;
-    this.note = null;
+    //this.note = null;
 
     // 🟢 Φόρτωσε τα δεδομένα της εταιρείας
     const company = await mongoose.model("Company").findById(this.company).lean();
