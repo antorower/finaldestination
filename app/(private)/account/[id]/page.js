@@ -154,7 +154,7 @@ const SavePayoutDate = async ({ accountId, date }) => {
     }).format(new Date(date));
 
     // Αποθήκευση του note με την ημερομηνία
-    account.note = `Payout: ${formattedDate}`;
+    //account.note = `Payout: ${formattedDate}`;
 
     await account.save();
 
@@ -177,7 +177,7 @@ const PayoutRequestDone = async (accountId) => {
       return { error: true, message: "Ο λογαριασμός δεν βρέθηκε." };
     }
 
-    account.note = "Είσπραξη Payout";
+    //account.note = "Είσπραξη Payout";
     account.status = "Payout Request Done";
 
     await account.save();
