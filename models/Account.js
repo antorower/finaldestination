@@ -208,7 +208,7 @@ AccountSchema.methods.updateBalance = async function (newBalance, tp, sl) {
       if (this.phase === 3) {
         this.status = "Pending Payout";
         this.targetReachedDate = now;
-        this.note = "Ημερομηνία Payout";
+        //this.note = "Ημερομηνία Payout";
       } else {
         this.status = "Pending Upgrade";
         this.targetReachedDate = now;
