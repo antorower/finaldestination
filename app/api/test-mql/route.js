@@ -1,6 +1,6 @@
-export async function POST(req) {
+export async function GET(req) {
   try {
-    console.log("Web Request!!!");
+    console.error("Web Request!!!");
     return Response.json({ success: true });
   } catch (error) {
     console.error("Assistant error:", error);
