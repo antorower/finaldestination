@@ -170,7 +170,7 @@ AccountSchema.methods.updateBalance = async function (newBalance, tp, sl) {
       const slMax = this.balance - sl * 0.8;
 
       if (!(newBalance >= tpMin && newBalance <= tpMax) && !(newBalance >= slMin && newBalance <= slMax)) {
-        this.adminCaseOn = true;
+        this.adminCaseOn = false;
         this.adminNote = `Το παλιό balance ήταν ${this.balance} και το νέο ${newBalance} με take profit ${tp} και stoploss ${sl}`;
       }
     }
