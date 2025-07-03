@@ -1,11 +1,13 @@
-export async function GET(req) {
+export async function POST(req) {
   try {
+    const { symbol } = await req.json();
+
+    console.log(req);
     console.log("Web Request!!!");
-    const { symbol, lots } = req.query;
     console.log("Symbol ", symbol);
     console.log("Lots ", lots);
 
-    return Response.json({ success: true });
+    return Response.json({ symbol: symbol });
   } catch (error) {
     console.error("Assistant error:", error);
     return Response.json({ success: false }, { status: 500 });
