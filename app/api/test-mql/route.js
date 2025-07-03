@@ -1,6 +1,6 @@
 export async function GET(req) {
   try {
-    console.error("Web Request!!!");
+    console.log("Web Request!!!");
     const { symbol, lots } = req.query;
     console.log("Symbol ", symbol);
     console.log("Lots ", lots);
