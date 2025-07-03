@@ -214,7 +214,7 @@ AccountSchema.methods.updateBalance = async function (newBalance, tp, sl) {
         this.targetReachedDate = now;
         this.note = "Κάνε Upgrade";
       }
-    } else if (this.balance <= finalDrawdownBalance) {
+    } else if (this.balance <= finalDrawdownBalance * 1.003) {
       this.status = "Review";
       this.lostDate = now;
 
