@@ -308,7 +308,7 @@ export default async function Home({ searchParams }) {
         )}
 
         <div className="bg-green-200 text-gray-700 p-4 animate-bounce text-center text-sm font-bold border border-green-700">ΓΡΑΦΕΤΕ ΠΡΟΣΕΚΤΙΚΑ ΤΟ BALANCE ΤΟΥ ACCOUNT ΟΤΑΝ ΕΝΗΜΕΡΩΝΕΤΕ!</div>
-        {user.tel && <div className="bg-orange-300 text-green-700 p-4 text-center text-lg font-bold border border-green-500">Κέρδη: $3902 / $7.000</div>}
+        {user.tel && <div className="bg-orange-300 text-green-700 p-4 text-center text-lg font-bold border border-green-500">Κέρδη: $4244 / $7.000</div>}
         {user.tel && <div className="bg-orange-300 text-green-700 p-4 text-center text-lg font-bold border border-green-500">Τελευταίο λάθος: 9 Μαίου 2025</div>}
 
         {/* <div className="text-center font-bold border border-gray-400 text-white rounded p-4 text-xl">
