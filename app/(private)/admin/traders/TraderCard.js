@@ -11,7 +11,6 @@ const TraderCard = ({ trader }) => {
             <div>{trader.firstName}</div>
             <div>{trader.lastName}</div>
           </Link>
-          <Link href={`/admin/trader/${trader._id.toString()}`}>👀</Link>
         </div>
       </div>
       <div className="flex flex-col text-gray-400 flex-wrap justify-center font-semibold gap-2 border-b border-gray-300 p-3 text-xs">
