@@ -35,7 +35,7 @@ export default clerkMiddleware(async (auth, request) => {
     //#region Admin Permissions
     if (path.startsWith("/admin")) {
       if (!sessionClaims.metadata.isOwner && !sessionClaims.metadata.isLeader) return NextResponse.redirect(new URL("/not-found", request.url));
-      return NextResponse.redirect(new URL("/not-found", request.url));
+      //return NextResponse.redirect(new URL("/not-found", request.url));
     }
 
     if (path.startsWith("/admin/new-users") && !sessionClaims.metadata.isOwner) return NextResponse.redirect(new URL("/not-found", request.url));
