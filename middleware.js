@@ -11,7 +11,12 @@ export default clerkMiddleware(async (auth, request) => {
 
   if (!isPublicRoute(request)) {
     await auth.protect();
-    const { sessionClaims } = await auth();
+    const { userId, sessionClaims } = await auth();
+
+    console.log("Middleware User Id: ", userId);
+    console.log("Middleware Session Claims: ", sessionClaims);
+    console.log("Middleware First Name: ", sessionClaims.firstName);
+    console.log("Middleware First Name: ", sessionClaims.lastName);
 
     //#region Authentication
     if (!sessionClaims.metadata.registered && path !== "/register") {
